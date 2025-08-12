@@ -18,10 +18,6 @@ burger-club/
 ├── images/
 │   └── (aquí van todas las imágenes)
 │
-└── assets/
-    └── fonts/
-        └── (fuentes locales si las necesitas)
-
 
 
 
