@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Menú - Burger Club. Descubre nuestras deliciosas hamburguesas gourmet.">
+    <title>Menú - Burger Club</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header" id="header">
+        <div class="container header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon-wrapper">
+                    <img src="images/logo.png" alt="Burger Club Logo" class="logo-icon">
+                </div>
+                <span class="logo-text">BURGER CLUB</span>
+            </a>
+            
+            <nav class="main-nav" id="mainNav">
+                <ul>
+                    <li><a href="index.html" class="nav-link">Inicio</a></li>
+                    <li><a href="menu.html" class="nav-link active">Menú</a></li>
+                    <li><a href="index.html#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li>
+                        <a href="#" class="cart-link" id="cartBtn">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Carrito</span>
+                            <span class="cart-count" id="cartCount">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="location-info" id="locationBtn">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Encuéntranos acá</span>
+            </div>
+            
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <span class="hamburger-icon"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <nav class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="index.html" class="mobile-nav-link">Inicio</a></li>
+            <li><a href="menu.html" class="mobile-nav-link">Menú</a></li>
+            <li><a href="index.html#about" class="mobile-nav-link">Sobre Nosotros</a></li>
+            <li><a href="#" class="mobile-nav-link" id="mobileCartLink">Carrito</a></li>
+            <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
+        </ul>
+    </nav>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+    <!-- Menu Section -->
+    <main id="menu" class="menu-section">
+        <div class="page-wrapper">
+            <!-- Background Decorations -->
+            <div class="background-decorations">
+                <div class="deco-item deco-1">🍔</div>
+                <div class="deco-item deco-2">🍟</div>
+                <div class="deco-item deco-3">🥤</div>
+                <div class="deco-item deco-4">🍰</div>
+                <div class="deco-item deco-5">✨</div>
+                <div class="deco-item deco-6">💫</div>
+            </div>
+
+            <div class="container">
+                <div class="menu-header">
+                    <h1 class="menu-title">NUESTRO MENÚ</h1>
+                    <p class="menu-subtitle">Descubre nuestros sabores únicos</p>
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="menu-filters">
+                    <button class="filter-btn active" data-category="all">
+                        <i class="fas fa-th"></i>
+                        <span>Todos</span>
+                    </button>
+                    <button class="filter-btn" data-category="burgers">
+                        <i class="fas fa-hamburger"></i>
+                        <span>Hamburguesas</span>
+                    </button>
+                    <button class="filter-btn" data-category="sides">
+                        <i class="fas fa-utensils"></i>
+                        <span>Acompañamientos</span>
+                    </button>
+                    <button class="filter-btn" data-category="drinks">
+                        <i class="fas fa-glass-whiskey"></i>
+                        <span>Bebidas</span>
+                    </button>
+                    <button class="filter-btn" data-category="desserts">
+                        <i class="fas fa-ice-cream"></i>
+                        <span>Postres</span>
+                    </button>
+                </div>
+
+                <!-- Menu Grid -->
+                <div class="menu-grid" id="menuGrid">
+                    <!-- New In the Club -->
+                    <article class="menu-card" data-category="burgers" data-price="25000">
+                        <div class="menu-card-badge">Nuevo</div>
+                        <div class="menu-card-image">
+                            <img src="images/menu/new-in-the-club.png" alt="New In the Club" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">New In the Club</h3>
+                            <p class="menu-card-description">Nuestra última creación gourmet con ingredientes premium</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$25.000</span>
+                                <button class="btn-add-cart" data-product="New In the Club" data-price="25000" data-image="images/menu/new-in-the-club.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Classic Burger -->
+                    <article class="menu-card" data-category="burgers" data-price="22000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/BURGER.png" alt="Classic Burger" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">BURGER CLÁSICA</h3>
+                            <p class="menu-card-description">La tradicional que todos aman, con carne jugosa y vegetales frescos</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$22.000</span>
+                                <button class="btn-add-cart" data-product="Burger Clásica" data-price="22000" data-image="images/menu/classic-burger.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- BBQ Burger -->
+                    <article class="menu-card" data-category="burgers" data-price="26000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/BBQ-especial.png" alt="BBQ Burger" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">BBQ ESPECIAL</h3>
+                            <p class="menu-card-description">Con salsa BBQ casera, cebolla caramelizada y bacon crujiente</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$26.000</span>
+                                <button class="btn-add-cart" data-product="BBQ Especial" data-price="26000" data-image="images/menu/bbq-burger.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Hot Dog -->
+                    <article class="menu-card" data-category="burgers" data-price="18000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/hot-dog.png" alt="Hot Dog" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">HOT DOG PREMIUM</h3>
+                            <p class="menu-card-description">Salchicha premium con ingredientes gourmet y salsas especiales</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$18.000</span>
+                                <button class="btn-add-cart" data-product="Hot Dog Premium" data-price="18000" data-image="images/menu/hot-dog.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Papas Fritas -->
+                    <article class="menu-card" data-category="sides" data-price="8000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/fries.png" alt="Papas Fritas" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">PAPAS FRITAS</h3>
+                            <p class="menu-card-description">Crujientes y doradas, perfectas para acompañar</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$8.000</span>
+                                <button class="btn-add-cart" data-product="Papas Fritas" data-price="8000" data-image="images/menu/fries.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Acompañamientos -->
+                    <article class="menu-card" data-category="sides" data-price="12000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/sides.png" alt="Acompañamientos" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">ACOMPAÑAMIENTOS</h3>
+                            <p class="menu-card-description">Variedad de sides perfectos para complementar tu meal</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$12.000</span>
+                                <button class="btn-add-cart" data-product="Acompañamientos" data-price="12000" data-image="images/menu/sides.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Bebidas -->
+                    <article class="menu-card" data-category="drinks" data-price="6000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/drinks.png" alt="Bebidas" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">BEBIDAS</h3>
+                            <p class="menu-card-description">Refrescantes opciones para acompañar tu comida</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$6.000</span>
+                                <button class="btn-add-cart" data-product="Bebidas" data-price="6000" data-image="images/menu/drinks.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Postres -->
+                    <article class="menu-card" data-category="desserts" data-price="10000">
+                        <div class="menu-card-image">
+                            <img src="images/menu/desserts.png" alt="Postres" class="menu-card-img">
+                        </div>
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name">POSTRES</h3>
+                            <p class="menu-card-description">Dulce final perfecto para completar tu experiencia</p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price">$10.000</span>
+                                <button class="btn-add-cart" data-product="Postres" data-price="10000" data-image="images/menu/desserts.png">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Load More Button -->
+                <div class="load-more-container">
+                    <button class="btn-load-more" id="loadMoreBtn">
+                        <span>Ver Más Productos</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-social">
+                <h3 class="follow-us">¡Síguenos!</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link">
+                        <i class="fab fa-facebook-f"></i>
+                        <span>Facebook</span>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-instagram"></i>
+                        <span>Instagram</span>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-twitter"></i>
+                        <span>Twitter</span>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-modal-content">
+            <div class="cart-modal-header">
+                <h2>Tu Carrito</h2>
+                <button class="cart-close" id="cartClose">&times;</button>
+            </div>
+            <div class="cart-modal-body" id="cartItems">
+                <p class="empty-cart">Tu carrito está vacío</p>
+            </div>
+            <div class="cart-modal-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal">$0</span>
+                </div>
+                <button class="btn-checkout">Proceder al Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/main.js"></script>
+    <script src="js/menu.js"></script>
