@@ -7,7 +7,7 @@ let isLoaded = false;
 let scrollPosition = 0;
 let currentPromoIndex = 0;
 const promoImages = [
-    'images/burger.png',
+    //'images/burger.png',
     'images/promo1.png',
     'images/promo2.png',
     'images/promo3.png',
