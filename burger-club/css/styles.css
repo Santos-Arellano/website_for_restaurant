@@ -1402,7 +1402,7 @@ input, textarea, select {
 
 .welcome-burger {
     width: 100%;
-    max-width: 500px;
+    max-width: 900px;
     height: auto;
     filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
     animation: float 4s ease-in-out infinite;
@@ -1555,7 +1555,7 @@ input, textarea, select {
     }
     
     .welcome-burger {
-        max-width: 350px;
+        max-width: 700px;
     }
 }
 
