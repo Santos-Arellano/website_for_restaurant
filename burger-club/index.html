@@ -82,7 +82,59 @@
         </ul>
     </nav>
     <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
-
+<!-- Welcome Section (NUEVA) -->
+<section id="welcome" class="welcome-section">
+    <div class="container">
+        <div class="welcome-content">
+            <div class="welcome-text">
+                <h1 class="welcome-title">
+                    <span class="welcome-small">Bienvenidos a</span>
+                    <span class="welcome-big">Burger Club</span>
+                </h1>
+                <p class="welcome-tagline">Donde cada hamburguesa cuenta una historia</p>
+                <div class="welcome-features">
+                    <div class="welcome-feature">
+                        <i class="fas fa-clock"></i>
+                        <span>Entrega Rápida</span>
+                    </div>
+                    <div class="welcome-feature">
+                        <i class="fas fa-star"></i>
+                        <span>Calidad Premium</span>
+                    </div>
+                    <div class="welcome-feature">
+                        <i class="fas fa-fire"></i>
+                        <span>Recién Hechas</span>
+                    </div>
+                </div>
+                <div class="welcome-cta">
+                    <a href="#hero" class="btn-scroll-down">
+                        <span>Descubre Nuestras Promociones</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="welcome-image">
+                <div class="welcome-badge">
+                    <span class="badge-number">20%</span>
+                    <span class="badge-text">DESCUENTO</span>
+                    <span class="badge-sub">En tu primera orden</span>
+                </div>
+                <img src="images/burger.png" alt="Burger especial" class="welcome-burger">
+                <div class="welcome-decoration">
+                    <div class="deco-circle deco-circle-1"></div>
+                    <div class="deco-circle deco-circle-2"></div>
+                    <div class="deco-circle deco-circle-3"></div>
+                </div>
+            </div>
+        </div>
+        <div class="welcome-bottom">
+            <div class="scroll-indicator">
+                <i class="fas fa-mouse"></i>
+                <span>Scroll para más</span>
+            </div>
+        </div>
+    </div>
+</section>
     <!-- Hero Section -->
     <section id="hero" class="hero-section">
         <div class="container hero-container">
@@ -94,21 +146,38 @@
                 </div>
                 
                 <div class="promotions-content">
-                    <h2 class="promo-title">Promociones</h2>
+                    <h2 class="promo-title">Promociones Especiales</h2>
+                    <p class="promo-description">Descubre nuestras ofertas exclusivas de temporada</p>
                     <div class="promo-gallery">
                         <div class="promo-item" data-promo="0">
                             <img src="images/promo1.png" alt="Promo Burger 1">
+                            <div class="promo-overlay">
+                                <span class="promo-label">2x1</span>
+                            </div>
                         </div>
                         <div class="promo-item" data-promo="1">
                             <img src="images/promo2.png" alt="Promo Burger 2">
+                            <div class="promo-overlay">
+                                <span class="promo-label">-30%</span>
+                            </div>
                         </div>
                         <div class="promo-item" data-promo="2">
                             <img src="images/promo3.png" alt="Promo Burger 3">
+                            <div class="promo-overlay">
+                                <span class="promo-label">Combo</span>
+                            </div>
                         </div>
                         <div class="promo-item" data-promo="3">
                             <img src="images/promo4.png" alt="Promo Burger 4">
+                            <div class="promo-overlay">
+                                <span class="promo-label">Nueva</span>
+                            </div>
                         </div>
                     </div>
+                    <a href="menu.html" class="promo-cta-button">
+                        <span>Ver Menú Completo</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
             
@@ -118,10 +187,10 @@
                         <img src="images/burger.png" alt="Deliciosa hamburguesa gourmet" class="hero-burger-img">
                         <div class="hero-image-glow"></div>
                     </div>
-                    <button class="hero-cta" id="addToCartHero">
-                        <span>Agregar al carrito</span>
-                        <i class="fas fa-shopping-cart"></i>
-                    </button>
+                    <a href="menu.html" class="hero-cta">
+                        <span>Ir al Menú</span>
+                        <i class="fas fa-utensils"></i>
+                    </a>
                     <div class="promo-dots">
                         <span class="dot active" data-dot="0"></span>
                         <span class="dot" data-dot="1"></span>

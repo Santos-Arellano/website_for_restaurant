@@ -255,33 +255,23 @@ function closeMobileMenu() {
 
 // ========== HERO SECTION ==========
 function initializeHeroSection() {
-    const heroCta = document.getElementById('addToCartHero');
-    const heroImage = document.querySelector('.hero-burger-img');
+    // REMOVIDO: Ya no agregamos al carrito desde el hero
+    // Solo inicializamos el link al menú
+    const promoCta = document.querySelector('.promo-cta-button');
+    const heroCta = document.querySelector('.hero-cta');
     
-    // Hero CTA button
-    if (heroCta) {
-        heroCta.addEventListener('click', function() {
-            this.classList.add('animate-pulse');
-            
-            if (typeof window.CartManager !== 'undefined') {
-                window.CartManager.addItem({
-                    name: 'Burger Especial Hero',
-                    price: 25000,
-                    image: 'images/burger.png'
-                });
-                
-                showNotification('¡Burger agregada al carrito! 🍔', 'success');
-            } else {
-                showNotification('Sistema de carrito inicializando...', 'info');
-            }
-            
-            setTimeout(() => {
-                this.classList.remove('animate-pulse');
-            }, 1000);
+    if (promoCta) {
+        promoCta.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = 'menu.html';
         });
-        
-        // Add ripple effect
-        heroCta.addEventListener('click', createRippleEffect);
+    }
+    
+    if (heroCta) {
+        heroCta.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = 'menu.html';
+        });
     }
 }
 
@@ -294,7 +284,7 @@ function initializePromoSlider() {
     if (promoDots.length === 0 && promoItems.length === 0) return;
     
     // Auto-rotate promos every 5 seconds
-    const autoRotate = setInterval(() => {
+    let autoRotate = setInterval(() => {
         if (!document.hidden) {
             nextPromo();
         }
@@ -315,7 +305,7 @@ function initializePromoSlider() {
         });
     });
     
-    // Promo item click handlers
+    // Promo item click handlers - NO agregar al carrito, solo mostrar
     promoItems.forEach((item, index) => {
         item.addEventListener('click', () => {
             goToPromo(index);
