@@ -832,7 +832,7 @@ function closeNotification(notification) {
 // ========== PERFORMANCE ==========
 function preloadImages() {
     const criticalImages = [
-        'images/burger.png',
+        'images/OurPlace.png',
         'images/logo.png',
         'images/promo1.png',
         'images/promo2.png',
