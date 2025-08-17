@@ -1,7 +1,6 @@
 // ==========================================
 // BURGER CLUB - CART JAVASCRIPT
 // ==========================================
-
 // ========== CART MANAGER CLASS ==========
 class CartManager {
     constructor() {
@@ -86,7 +85,7 @@ class CartManager {
                 id: Date.now(),
                 name: product.name,
                 price: product.price,
-                image: product.image || '../static/images/default-burger.png',
+                image: product.image || 'images/default-burger.png',
                 quantity: 1
             });
         }
@@ -547,9 +546,13 @@ class CartManager {
     
     // ========== UTILITIES ==========
     formatPrice(price) {
-        return new Intl.NumberFormat('es-CO').format(price);
+   return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    }).format(price);
     }
-    
+
     // ========== STYLES ==========
     addCartItemStyles() {
         if (document.getElementById('cart-item-styles')) return;

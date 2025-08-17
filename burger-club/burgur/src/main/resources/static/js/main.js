@@ -7,10 +7,10 @@ let isLoaded = false;
 let scrollPosition = 0;
 let currentPromoIndex = 0;
 const promoImages = [
-    '../static/images/promo1.png',
-    '../static/images/promo2.png',
-    '../static/images/promo3.png',
-    '../static/images/promo4.png'
+    'images/promo1.png',
+    'images/promo2.png',
+    'images/promo3.png',
+    'images/promo4.png'
 ];
 
 // ========== INICIALIZACIÓN ==========
