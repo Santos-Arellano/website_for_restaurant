@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <!-- Vista adaptable para dispositivos móviles -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Descripción para buscadores -->
     <meta name="description" content="Burger Club - Las mejores hamburguesas gourmet. Cada ingrediente cuenta una historia.">
     <meta name="keywords" content="hamburguesas, burger, comida rápida, gourmet, restaurante">
     <meta name="author" content="Burger Club">
@@ -25,7 +27,7 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- Loader -->
+    <!-- Pantalla de carga con icono de hamburguesa -->
     <div class="loader" id="loader">
         <div class="loader-content">
             <div class="loader-burger">
@@ -36,6 +38,7 @@
     </div>
 
     <!-- Header -->
+    <!-- Encabezado del sitio web con logo, menú de navegación y botón de carrito -->
     <header class="site-header" id="header">
         <div class="container header-container">
             <a href="index.html" class="logo">
@@ -44,13 +47,14 @@
                 </div>
                 <span class="logo-text">BURGER CLUB</span>
             </a>
-            
+            <!-- Navegación principal del sitio -->
             <nav class="main-nav" id="mainNav">
                 <ul>
                     <li><a href="#hero" class="nav-link active">Inicio</a></li>
                     <li><a href="menu.html" class="nav-link">Menú</a></li>
                     <li><a href="#about" class="nav-link">Sobre Nosotros</a></li>
                     <li>
+                        <!-- Botón para ver el carrito -->
                         <a href="#" class="cart-link" id="cartBtn">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Carrito</span>
@@ -59,12 +63,12 @@
                     </li>
                 </ul>
             </nav>
-            
+            <!-- Información de ubicación -->
             <div class="location-info" id="locationBtn">
                 <i class="fas fa-map-marker-alt"></i>
                 <span>Encuéntranos acá</span>
             </div>
-            
+            <!-- Botón de menú móvil para responsive -->
             <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
                 <span class="hamburger-icon"></span>
             </button>
@@ -82,7 +86,7 @@
         </ul>
     </nav>
     <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
-<!-- Welcome Section (NUEVA) -->
+ <!-- Sección de bienvenida (landing inicial) con eslogan, beneficios y promoción -->
 <section id="welcome" class="welcome-section">
     <div class="container">
         <div class="welcome-content">
@@ -92,11 +96,13 @@
                     <span class="welcome-big">Burger Club</span>
                 </h1>
                 <p class="welcome-tagline">Donde cada hamburguesa cuenta una historia</p>
+               <!-- Beneficios destacados -->
                 <div class="welcome-features">
                     <div class="welcome-feature">
                         <i class="fas fa-clock"></i>
                         <span>Entrega Rápida</span>
                     </div>
+                    <!-- Botón de llamada a la acción -->
                     <div class="welcome-feature">
                         <i class="fas fa-star"></i>
                         <span>Calidad Premium</span>
@@ -122,6 +128,7 @@
                 </div>
             </div>
         </div>
+        <!-- Indicador visual para hacer scroll -->
         <div class="welcome-bottom">
             <div class="scroll-indicator">
                 <i class="fas fa-mouse"></i>
@@ -131,6 +138,7 @@
     </div>
 </section>
     <!-- Hero Section -->
+      <!-- Sección principal: promociones y hamburguesa destacada -->
     <section id="hero" class="hero-section">
         <div class="container hero-container">
             <div class="hero-left-column">
@@ -139,7 +147,7 @@
                     <h1 class="hero-title">BurGur</h1>
                     <p class="hero-tagline">Cada ingrediente cuenta una historia</p>
                 </div>
-                
+                <!-- Galería de promociones destacadas -->
                 <div class="promotions-content">
                     <h2 class="promo-title">Promociones Especiales</h2>
                     <p class="promo-description">Descubre nuestras ofertas exclusivas de temporada</p>
@@ -175,7 +183,7 @@
                     </a>
                 </div>
             </div>
-            
+            <!-- Columna derecha con imagen y CTA -->
             <div class="hero-right-column">
                 <div class="hero-image-wrapper">
                     <div class="hero-image-container">
@@ -186,6 +194,7 @@
                         <span>Ir al Menú</span>
                         <i class="fas fa-utensils"></i>
                     </a>
+                     <!-- Navegación entre promociones (dots) -->
                     <div class="promo-dots">
                         <span class="dot active" data-dot="0"></span>
                         <span class="dot" data-dot="1"></span>
@@ -196,7 +205,7 @@
             </div>
         </div>
         
-        <!-- Decorative Elements -->
+       <!-- Elementos decorativos flotantes -->
         <div class="hero-decorations">
             <div class="deco-ellipse-1"></div>
             <div class="deco-ellipse-2"></div>
@@ -206,7 +215,7 @@
         </div>
     </section>
 
-    <!-- About Section -->
+    <!-- Sección 'Sobre Nosotros' con historia y estadísticas -->
     <section id="about" class="about-section">
         <div class="container">
             <h2 class="section-title" data-animate="fade-in-up">Nuestra Historia</h2>
@@ -229,6 +238,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Estadísticas dinámicas -->
                 <div class="about-stats" data-animate="fade-in-right">
                     <div class="stat-item">
                         <span class="stat-number" data-count="50000">0</span>
@@ -254,14 +264,18 @@
     <footer id="footer" class="site-footer">
         <div class="container">
             <div class="footer-content">
+                 <!-- Sección del logo y descripción breve -->
                 <div class="footer-section">
                     <div class="footer-logo">
+                        <!-- Logo del sitio -->
                         <img src="images/logo.png" alt="Burger Club" class="footer-logo-img">
+                        <!-- Nombre de la marca -->
                         <h3>Burger Club</h3>
                     </div>
+                    <!-- Descripción corta sobre la marca -->
                     <p>Las mejores hamburguesas gourmet de la ciudad. Cada ingrediente cuenta una historia.</p>
                 </div>
-                
+                <!-- Sección de enlaces rápidos para navegación -->
                 <div class="footer-section">
                     <h3>Enlaces Rápidos</h3>
                     <ul class="footer-links">
@@ -271,7 +285,7 @@
                         <li><a href="#footer">Contacto</a></li>
                     </ul>
                 </div>
-                
+                 <!-- Sección con información de contacto -->
                 <div class="footer-section">
                     <h3>Contacto</h3>
                     <div class="contact-info">
@@ -282,7 +296,7 @@
                     </div>
                 </div>
             </div>
-            
+            <!-- Sección de redes sociales -->
             <div class="footer-social">
                 <h3 class="follow-us">¡Síguenos!</h3>
                 <div class="social-links">
@@ -304,7 +318,7 @@
                     </a>
                 </div>
             </div>
-            
+            <!-- Pie final con derechos y enlaces legales -->
             <div class="footer-bottom">
                 <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
                 <div class="footer-bottom-links">
