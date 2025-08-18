@@ -20,29 +20,6 @@ java -version
 mvn -version
 
 
-#📂 Estructura del proyecto
-
-burger-club/
-│
-├── burgur/                        # Proyecto Spring Boot
-│   ├── src/main/java/...          # Código Java (controllers, entities, etc.)
-│   ├── src/main/resources/
-│   │   ├── static/                # Archivos estáticos servidos por Spring Boot
-│   │   │   ├── css/
-│   │   │   │   ├── styles.css
-│   │   │   │   ├── responsive.css
-│   │   │   │   └── animations.css
-│   │   │   ├── js/
-│   │   │   │   ├── main.js
-│   │   │   │   ├── menu.js
-│   │   │   │   └── cart.js
-│   │   │   └── Images/            # Todas las imágenes
-│   │   └── templates/             # Páginas Thymeleaf
-│   │       ├── index.html
-│   │       └── menu.html
-│   └── pom.xml
-│
-└── README.md
 
 
 #▶️ Cómo correr el proyecto

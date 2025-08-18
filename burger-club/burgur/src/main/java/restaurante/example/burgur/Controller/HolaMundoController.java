@@ -10,5 +10,7 @@ public class HolaMundoController {
     public String index() {
         return "index";   // templates/index.html
     }
-
+    
+    // ELIMINAMOS la redirección /admin porque ya la maneja AdminController
+    // El AdminController maneja "/admin" con @RequestMapping("/admin") + @GetMapping("")
 }
