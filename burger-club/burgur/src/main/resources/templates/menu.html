@@ -1,186 +1,187 @@
+<!-- ==========================================
+     ARCHIVO: src/main/resources/templates/menu.html
+     ========================================== -->
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Menú - Burger Club. Descubre nuestras deliciosas hamburguesas gourmet.">
-  <title>Menú - Burger Club</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Menú - Burger Club. Descubre nuestras deliciosas hamburguesas gourmet.">
+    <title>Menú - Burger Club</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" th:href="@{images/Logo.png}">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{images/Logo.png}">
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- CSS -->
-  <link rel="stylesheet" th:href="@{css/styles.css}">
-  <link rel="stylesheet" th:href="@{css/animations.css}">
-  <link rel="stylesheet" th:href="@{css/responsive.css}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" th:href="@{css/main.css}">
 </head>
 <body>
-  <!-- Header -->
-  <header class="site-header" id="header">
-    <div class="container header-container">
-      <a href="/" class="logo">
-        <div class="logo-icon-wrapper">
-          <img th:src="@{images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
-        </div>
-        <span class="logo-text">BURGER CLUB</span>
-      </a>
-
-      <nav class="main-nav" id="mainNav">
-        <ul>
-          <li><a href="/" class="nav-link">Inicio</a></li>
-          <li><a href="menu" class="nav-link active">Menú</a></li>
-          <li><a href="/#about" class="nav-link">Sobre Nosotros</a></li>
-          <li>
-            <a href="#" class="cart-link" id="cartBtn">
-              <i class="fas fa-shopping-cart"></i>
-              <span>Carrito</span>
-              <span class="cart-count" id="cartCount">0</span>
+    <!-- Header -->
+    <header class="site-header" id="header">
+        <div class="container header-container">
+            <a href="/" class="logo">
+                <div class="logo-icon-wrapper">
+                    <img th:src="@{images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                </div>
+                <span class="logo-text">BURGER CLUB</span>
             </a>
-          </li>
+
+            <nav class="main-nav" id="mainNav">
+                <ul>
+                    <li><a href="/" class="nav-link">Inicio</a></li>
+                    <li><a href="menu" class="nav-link active">Menú</a></li>
+                    <li><a href="/#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li>
+                        <a href="#" class="cart-link" id="cartBtn">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Carrito</span>
+                            <span class="cart-count" id="cartCount">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="location-info" id="locationBtn">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Encuéntranos acá</span>
+            </div>
+
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <span class="hamburger-icon"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <nav class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="/" class="mobile-nav-link">Inicio</a></li>
+            <li><a href="/menu" class="mobile-nav-link">Menú</a></li>
+            <li><a href="/#about" class="mobile-nav-link">Sobre Nosotros</a></li>
+            <li><a href="#" class="mobile-nav-link" id="mobileCartLink">Carrito</a></li>
+            <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
         </ul>
-      </nav>
+    </nav>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
-      <div class="location-info" id="locationBtn">
-        <i class="fas fa-map-marker-alt"></i>
-        <span>Encuéntranos acá</span>
-      </div>
-
-      <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
-        <span class="hamburger-icon"></span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Mobile Menu -->
-  <nav class="mobile-menu" id="mobileMenu">
-    <ul>
-      <li><a href="/" class="mobile-nav-link">Inicio</a></li>
-      <li><a href="/menu" class="mobile-nav-link">Menú</a></li>
-      <li><a href="/#about" class="mobile-nav-link">Sobre Nosotros</a></li>
-      <li><a href="#" class="mobile-nav-link" id="mobileCartLink">Carrito</a></li>
-      <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
-    </ul>
-  </nav>
-  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
-
-  <!-- Menu Section -->
-  <main id="menu" class="menu-section">
-    <div class="page-wrapper">
-      <!-- Background Decorations -->
-      <div class="background-decorations">
-        <div class="deco-item deco-1">🍔</div>
-        <div class="deco-item deco-2">🍟</div>
-        <div class="deco-item deco-3">🥤</div>
-        <div class="deco-item deco-4">🍰</div>
-        <div class="deco-item deco-5">✨</div>
-        <div class="deco-item deco-6">💫</div>
-      </div>
-
-      <div class="container">
-        <div class="menu-header">
-          <h1 class="menu-title">NUESTRO MENÚ</h1>
-          <p class="menu-subtitle">Descubre nuestros sabores únicos</p>
-        </div>
-
-        <!-- Category Filter -->
-        <div class="menu-filters">
-          <button type="button" class="filter-btn active" data-category="all">
-            <i class="fas fa-th"></i><span>Todos</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="burgers">
-            <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="sides">
-            <i class="fas fa-utensils"></i><span>Acompañamientos</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="drinks">
-            <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="desserts">
-            <i class="fas fa-ice-cream"></i><span>Postres</span>
-          </button>
-        </div>
-
-        <!-- Menu Grid -->
-        <div class="menu-grid" id="menuGrid">
-        <article class="menu-card"
-                th:each="producto : ${productos}"
-                th:attr="data-category=${#strings.toLowerCase(producto.categoria ?: 'other')},
-                            data-price=${producto.precio},
-                            data-name=${producto.nombre},
-                            data-image=${producto.imgURL},
-                            data-desc=${producto.descripcion},
-                            data-ingredients=${#strings.listJoin(producto.ingredientes, ',')}"
-
-                role="button" tabindex="0">
-            
-            <div class="menu-card-badge"
-                th:if="${producto.nuevo}"
-                th:text="'Nuevo'"></div>
-
-            <div class="menu-card-image">
-            <img th:src="${producto.imgURL}" th:alt="${producto.nombre}" class="menu-card-img">
+    <!-- Menu Section -->
+    <main id="menu" class="menu-section">
+        <div class="page-wrapper">
+            <!-- Background Decorations -->
+            <div class="background-decorations">
+                <div class="deco-item deco-1">🍔</div>
+                <div class="deco-item deco-2">🍟</div>
+                <div class="deco-item deco-3">🥤</div>
+                <div class="deco-item deco-4">🍰</div>
+                <div class="deco-item deco-5">✨</div>
+                <div class="deco-item deco-6">💫</div>
             </div>
 
-            <div class="menu-card-content">
-            <h3 class="menu-card-name" th:text="${producto.nombre}"></h3>
-            <p class="menu-card-description" th:text="${producto.descripcion}"></p>
-            <div class="menu-card-footer">
-                <span class="menu-card-price" th:text="'$ ' + ${producto.precio}"></span>
-                <button class="btn-add-cart"
-                        th:data-product="${producto.nombre}"
-                        th:data-price="${producto.precio}"
-                        th:data-image="${producto.imgURL}">
-                <i class="fas fa-plus"></i>
-                </button>
+            <div class="container">
+                <div class="menu-header">
+                    <h1 class="menu-title">NUESTRO MENÚ</h1>
+                    <p class="menu-subtitle">Descubre nuestros sabores únicos</p>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="menu-filters">
+                    <button type="button" class="filter-btn active" data-category="all">
+                        <i class="fas fa-th"></i><span>Todos</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-category="burgers">
+                        <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-category="sides">
+                        <i class="fas fa-utensils"></i><span>Acompañamientos</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-category="drinks">
+                        <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-category="desserts">
+                        <i class="fas fa-ice-cream"></i><span>Postres</span>
+                    </button>
+                </div>
+
+                <!-- Menu Grid -->
+                <div class="menu-grid" id="menuGrid">
+                    <article class="menu-card"
+                            th:each="producto : ${productos}"
+                            th:attr="data-category=${#strings.toLowerCase(producto.categoria ?: 'other')},
+                                        data-price=${producto.precio},
+                                        data-name=${producto.nombre},
+                                        data-image=${producto.imgURL},
+                                        data-desc=${producto.descripcion},
+                                        data-ingredients=${#strings.listJoin(producto.ingredientes, ',')}"
+                            role="button" tabindex="0">
+                        
+                        <div class="menu-card-badge"
+                            th:if="${producto.nuevo}"
+                            th:text="'Nuevo'"></div>
+
+                        <div class="menu-card-image">
+                            <img th:src="${producto.imgURL}" th:alt="${producto.nombre}" class="menu-card-img">
+                        </div>
+
+                        <div class="menu-card-content">
+                            <h3 class="menu-card-name" th:text="${producto.nombre}"></h3>
+                            <p class="menu-card-description" th:text="${producto.descripcion}"></p>
+                            <div class="menu-card-footer">
+                                <span class="menu-card-price" th:text="'$ ' + ${producto.precio}"></span>
+                                <button class="btn-add-cart"
+                                        th:data-product="${producto.nombre}"
+                                        th:data-price="${producto.precio}"
+                                        th:data-image="${producto.imgURL}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Empty State -->
+                <p id="emptyState" style="display:none; text-align:center; margin-top:16px;">
+                    No hay productos en esta categoría.
+                </p>
+
+                <!-- Load More -->
+                <div class="load-more-container">
+                    <button class="btn-load-more" id="loadMoreBtn">
+                        <span>Ver Más Productos</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
             </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-social">
+                <h3 class="follow-us">¡Síguenos!</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i><span>Facebook</span></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i><span>Instagram</span></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i><span>Twitter</span></a>
+                    <a href="#" class="social-link"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></a>
+                </div>
             </div>
-        </article>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
+            </div>
         </div>
+    </footer>
 
-        <!-- Estado vacío opcional -->
-        <p id="emptyState" style="display:none; text-align:center; margin-top:16px;">
-          No hay productos en esta categoría.
-        </p>
-
-        <!-- Load More (sigue ahí si lo usas) -->
-        <div class="load-more-container">
-          <button class="btn-load-more" id="loadMoreBtn">
-            <span>Ver Más Productos</span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-social">
-        <h3 class="follow-us">¡Síguenos!</h3>
-        <div class="social-links">
-          <a href="#" class="social-link"><i class="fab fa-facebook-f"></i><span>Facebook</span></a>
-          <a href="#" class="social-link"><i class="fab fa-instagram"></i><span>Instagram</span></a>
-          <a href="#" class="social-link"><i class="fab fa-twitter"></i><span>Twitter</span></a>
-          <a href="#" class="social-link"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
-      </div>
-    </div>
-  </footer>
-  <!-- Cart Modal -->
-  <div class="cart-modal" id="cartModal">
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
         <div class="cart-modal-content">
             <div class="cart-modal-header">
                 <h2>Tu Carrito</h2>
@@ -199,9 +200,7 @@
         </div>
     </div>
 
-  <!-- JS -->
-  <script th:src="@{js/cart.js}" defer></script>
-  <script th:src="@{js/main.js}" defer></script>
-  <script th:src="@{js/menu.js}" defer></script>
+    <!-- JavaScript Files -->
+    <script type="module" th:src="@{js/app.js}" defer></script>
 </body>
 </html>

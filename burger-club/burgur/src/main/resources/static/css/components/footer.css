@@ -1,0 +1,324 @@
+/* ==========================================
+   BURGER CLUB - FOOTER COMPONENT
+   ========================================== */
+
+.site-footer {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+    padding: 80px 0 30px;
+    margin-top: 100px;
+    position: relative;
+}
+
+.site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-cta-stroke), transparent);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+}
+
+.footer-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    color: var(--color-text-primary);
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.footer-logo-img {
+    width: 40px;
+    height: 40px;
+    filter: brightness(1.2);
+}
+
+.footer-section p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-links li {
+    margin-bottom: 0;
+}
+
+.footer-links a {
+    color: var(--color-text-secondary);
+    transition: all var(--transition-speed) ease;
+    padding: 5px 0;
+    position: relative;
+}
+
+.footer-links a:hover {
+    color: var(--color-cta-stroke);
+    padding-left: 10px;
+}
+
+.footer-links a::before {
+    content: '→';
+    position: absolute;
+    left: -20px;
+    opacity: 0;
+    transition: all var(--transition-speed) ease;
+    color: var(--color-cta-stroke);
+}
+
+.footer-links a:hover::before {
+    opacity: 1;
+    left: -15px;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.contact-info p {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 0;
+}
+
+.contact-info i {
+    color: var(--color-cta-stroke);
+    width: 18px;
+    text-align: center;
+}
+
+.footer-social {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.follow-us {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: var(--color-text-primary);
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--color-card-bg);
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed) ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-secondary);
+    backdrop-filter: blur(10px);
+}
+
+.social-link:hover {
+    background: var(--color-cta-stroke);
+    color: var(--color-background);
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-light);
+}
+
+.social-link i {
+    font-size: 1.2rem;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer-bottom-links {
+    display: flex;
+    gap: 30px;
+}
+
+.footer-bottom-links a {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    transition: color var(--transition-speed) ease;
+}
+
+.footer-bottom-links a:hover {
+    color: var(--color-cta-stroke);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .footer-content {
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        text-align: left;
+    }
+    
+    .footer-content .footer-section:first-child {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .social-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .social-link {
+        min-width: 120px;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .social-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .footer-bottom-links {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-footer {
+        padding: 60px 0 20px;
+        margin-top: 60px;
+    }
+    
+    .footer-content {
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .footer-section h3 {
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+    }
+    
+    .footer-section p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    
+    .footer-logo {
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .footer-logo-img {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .contact-info {
+        gap: 10px;
+    }
+    
+    .contact-info p {
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    
+    .contact-info i {
+        width: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .footer-links {
+        gap: 8px;
+    }
+    
+    .footer-links a {
+        font-size: 0.9rem;
+        padding: 3px 0;
+    }
+    
+    .follow-us {
+        font-size: 1.6rem;
+        margin-bottom: 25px;
+    }
+    
+    .social-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .social-link {
+        padding: 10px 15px;
+        width: 100%;
+        max-width: 200px;
+        justify-content: center;
+    }
+    
+    .social-link i {
+        font-size: 1.1rem;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        gap: 15px;
+        padding-top: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .footer-bottom-links {
+        gap: 20px;
+    }
+    
+    .footer-bottom-links a {
+        font-size: 0.8rem;
+    }
+}

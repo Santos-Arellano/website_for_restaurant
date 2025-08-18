@@ -1,0 +1,53 @@
+/* ==========================================
+   BURGER CLUB - MAIN CSS FILE
+   ========================================== */
+
+/* Import all CSS modules */
+@import url('./base/variables.css');
+@import url('./base/reset.css');
+@import url('./base/typography.css');
+@import url('./layout/grid.css');
+@import url('./layout/mobile.css');
+@import url('./components/header.css');
+@import url('./components/welcome.css');
+@import url('./components/hero.css');
+@import url('./components/about.css');
+@import url('./components/menu.css');
+@import url('./components/footer.css');
+@import url('./components/cart.css');
+@import url('./components/modals.css');
+@import url('./utilities/animations.css');
+@import url('./utilities/responsive.css');
+
+/* Additional global styles */
+.page-wrapper {
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Print styles */
+@media print {
+    .loader,
+    .site-header,
+    .mobile-menu,
+    .mobile-menu-overlay,
+    .cart-modal,
+    .hero-decorations,
+    .background-decorations {
+        display: none !important;
+    }
+    
+    .hero-section {
+        padding-top: 20px;
+    }
+    
+    body {
+        color: #000;
+        background: #fff;
+    }
+    
+    .hero-title,
+    .section-title {
+        color: #000;
+    }
+}
