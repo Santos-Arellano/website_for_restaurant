@@ -1,5 +1,5 @@
 // ==========================================
-// BURGER CLUB - MAIN APPLICATION
+// BURGER CLUB - MAIN APPLICATION (MODULAR)
 // ==========================================
 
 // Import utilities
@@ -17,28 +17,39 @@ import {
     PROMO_IMAGES 
 } from './utils/constants.js';
 
-// Import modules
+// Import core modules
 import { HeaderManager } from './modules/navigation/header.js';
 import { MobileMenuManager } from './modules/navigation/mobile-menu.js';
 import { CartManager } from './modules/cart/CartManager.js';
-import { MenuManager } from './modules/menu/menu-manager.js';
 import { AnimationManager } from './modules/ui/animations.js';
 import { NotificationManager } from './modules/ui/notifications.js';
+
+// Import UI components
+import { PromoSlider } from './modules/ui/promo-slider.js';
+import { LocationModal } from './modules/ui/location-modal.js';
+import { ScrollEffects } from './modules/ui/scroll-effects.js';
+
+// Import menu enhancements (only visual effects, not logic)
+import { MenuEnhancements } from './modules/menu/menu-enhancements.js';
 
 // ========== MAIN APPLICATION CLASS ==========
 class BurgerClubApp {
     constructor() {
         this.isLoaded = false;
         this.scrollPosition = 0;
-        this.currentPromoIndex = 0;
         
         // Initialize managers
         this.headerManager = null;
         this.mobileMenuManager = null;
         this.cartManager = null;
-        this.menuManager = null;
         this.animationManager = null;
         this.notificationManager = null;
+        
+        // Initialize UI components
+        this.promoSlider = null;
+        this.locationModal = null;
+        this.scrollEffects = null;
+        this.menuEnhancements = null;
         
         this.init();
     }
@@ -53,7 +64,7 @@ class BurgerClubApp {
             // Initialize core managers
             this.initializeManagers();
             
-            // Initialize components
+            // Initialize UI components
             await this.initializeComponents();
             
             // Setup global event listeners
@@ -81,11 +92,6 @@ class BurgerClubApp {
         this.mobileMenuManager = new MobileMenuManager();
         this.cartManager = new CartManager();
         
-        // Initialize menu manager only on menu page
-        if (document.getElementById('menuGrid')) {
-            this.menuManager = new MenuManager();
-        }
-        
         // Make managers globally available
         window.BurgerClub = {
             app: this,
@@ -96,23 +102,24 @@ class BurgerClubApp {
             smoothScrollTo,
             formatPrice
         };
+        
+        console.log('🔧 Core managers initialized');
     }
     
     async initializeComponents() {
-        // Initialize promo slider
-        this.initializePromoSlider();
+        // Initialize UI components
+        this.promoSlider = new PromoSlider();
+        this.locationModal = new LocationModal(this.notificationManager);
+        this.scrollEffects = new ScrollEffects();
         
-        // Initialize location button
-        this.initializeLocationButton();
-        
-        // Initialize scroll animations
-        this.initializeScrollAnimations();
+        // Initialize menu enhancements only on menu page
+        if (document.getElementById('menuGrid')) {
+            this.menuEnhancements = new MenuEnhancements(this.notificationManager);
+            console.log('📋 Menu enhancements initialized');
+        }
         
         // Initialize counters
         this.initializeCounters();
-        
-        // Initialize parallax effects
-        this.initializeParallax();
         
         // Initialize back to top button
         this.initializeBackToTop();
@@ -154,296 +161,6 @@ class BurgerClubApp {
         }
     }
     
-    // ========== PROMO SLIDER ==========
-    initializePromoSlider() {
-        const promoDots = document.querySelectorAll('.promo-dots .dot');
-        const promoItems = document.querySelectorAll('.promo-item');
-        
-        if (promoDots.length === 0 && promoItems.length === 0) return;
-        
-        // Auto-rotate promos every 5 seconds
-        this.promoInterval = setInterval(() => {
-            if (!document.hidden) {
-                this.nextPromo();
-            }
-        }, 5000);
-        
-        // Pause on page visibility change
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                clearInterval(this.promoInterval);
-            } else {
-                this.promoInterval = setInterval(() => {
-                    this.nextPromo();
-                }, 5000);
-            }
-        });
-        
-        // Dot click handlers
-        promoDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                this.goToPromo(index);
-                clearInterval(this.promoInterval);
-            });
-        });
-        
-        // Promo item click handlers
-        promoItems.forEach((item, index) => {
-            item.addEventListener('click', () => {
-                this.goToPromo(index);
-                clearInterval(this.promoInterval);
-            });
-            
-            // Add hover effect
-            item.addEventListener('mouseenter', () => {
-                item.classList.add('animate-pulse');
-            });
-            
-            item.addEventListener('mouseleave', () => {
-                item.classList.remove('animate-pulse');
-            });
-        });
-        
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                this.previousPromo();
-                clearInterval(this.promoInterval);
-            } else if (e.key === 'ArrowRight') {
-                this.nextPromo();
-                clearInterval(this.promoInterval);
-            }
-        });
-    }
-    
-    nextPromo() {
-        this.currentPromoIndex = (this.currentPromoIndex + 1) % PROMO_IMAGES.length;
-        this.updatePromoDisplay();
-    }
-    
-    previousPromo() {
-        this.currentPromoIndex = (this.currentPromoIndex - 1 + PROMO_IMAGES.length) % PROMO_IMAGES.length;
-        this.updatePromoDisplay();
-    }
-    
-    goToPromo(index) {
-        this.currentPromoIndex = index;
-        this.updatePromoDisplay();
-    }
-    
-    updatePromoDisplay() {
-        const promoDots = document.querySelectorAll('.promo-dots .dot');
-        const promoItems = document.querySelectorAll('.promo-item');
-        const heroImage = document.querySelector('.hero-burger-img');
-        
-        // Update dots
-        promoDots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === this.currentPromoIndex);
-        });
-        
-        // Update promo items
-        promoItems.forEach((item, index) => {
-            item.classList.toggle('active', index === this.currentPromoIndex);
-        });
-        
-        // Update hero image with smooth animation
-        if (heroImage && PROMO_IMAGES[this.currentPromoIndex]) {
-            heroImage.style.opacity = '0.7';
-            heroImage.style.transform = 'scale(0.95)';
-            
-            setTimeout(() => {
-                heroImage.src = PROMO_IMAGES[this.currentPromoIndex];
-                heroImage.style.opacity = '1';
-                heroImage.style.transform = 'scale(1)';
-            }, 200);
-        }
-        
-        // Trigger animation for active elements
-        const activePromoItem = document.querySelector('.promo-item.active');
-        if (activePromoItem) {
-            activePromoItem.classList.add('animate-bounce');
-            setTimeout(() => {
-                activePromoItem.classList.remove('animate-bounce');
-            }, 1000);
-        }
-    }
-    
-    // ========== LOCATION BUTTON ==========
-    initializeLocationButton() {
-        const locationBtn = document.getElementById('locationBtn');
-        
-        if (locationBtn) {
-            locationBtn.addEventListener('click', () => {
-                this.showLocationModal();
-            });
-        }
-    }
-    
-    showLocationModal() {
-        const modal = document.createElement('div');
-        modal.className = 'location-modal';
-        modal.innerHTML = `
-            <div class="location-modal-content">
-                <div class="location-modal-header">
-                    <h3>🍔 Burger Club</h3>
-                    <button class="location-close" aria-label="Cerrar modal">&times;</button>
-                </div>
-                <div class="location-modal-body">
-                    <div class="location-info-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <strong>Dirección:</strong>
-                            <p>Carrera 13 #85-32, Bogotá, Colombia</p>
-                        </div>
-                    </div>
-                    
-                    <div class="location-info-item">
-                        <i class="fas fa-phone"></i>
-                        <div>
-                            <strong>Teléfono:</strong>
-                            <p>+57 123 456 7890</p>
-                        </div>
-                    </div>
-                    
-                    <div class="location-info-item">
-                        <i class="fas fa-clock"></i>
-                        <div>
-                            <strong>Horarios:</strong>
-                            <p>Lun - Dom: 11:00 AM - 11:00 PM</p>
-                        </div>
-                    </div>
-                    
-                    <div class="location-info-item">
-                        <i class="fas fa-motorcycle"></i>
-                        <div>
-                            <strong>Delivery:</strong>
-                            <p>Tiempo estimado: 25-35 minutos</p>
-                        </div>
-                    </div>
-                    
-                    <div class="location-actions">
-                        <button class="btn-location" onclick="window.BurgerClub.app.openMaps()">
-                            <i class="fas fa-directions"></i>
-                            Ver en Maps
-                        </button>
-                        <button class="btn-call" onclick="window.BurgerClub.app.makeCall()">
-                            <i class="fas fa-phone"></i>
-                            Llamar
-                        </button>
-                        <button class="btn-whatsapp" onclick="window.BurgerClub.app.openWhatsApp()">
-                            <i class="fab fa-whatsapp"></i>
-                            WhatsApp
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Event listeners
-        const closeBtn = modal.querySelector('.location-close');
-        closeBtn.addEventListener('click', () => {
-            this.closeLocationModal(modal);
-        });
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closeLocationModal(modal);
-            }
-        });
-        
-        // Escape key handler
-        const escapeHandler = (e) => {
-            if (e.key === 'Escape') {
-                this.closeLocationModal(modal);
-                document.removeEventListener('keydown', escapeHandler);
-            }
-        };
-        document.addEventListener('keydown', escapeHandler);
-        
-        // Show modal with animation
-        setTimeout(() => {
-            modal.classList.add('active');
-        }, 10);
-        
-        // Add styles if not exists
-        this.addLocationModalStyles();
-    }
-    
-    closeLocationModal(modal) {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            if (document.body.contains(modal)) {
-                document.body.removeChild(modal);
-            }
-        }, 300);
-    }
-    
-    openMaps() {
-        const address = 'Carrera 13 #85-32, Bogotá, Colombia';
-        const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(address)}`;
-        window.open(mapsUrl, '_blank');
-        this.notificationManager.show('Abriendo Google Maps...', 'info');
-    }
-    
-    makeCall() {
-        window.open('tel:+571234567890');
-        this.notificationManager.show('Iniciando llamada...', 'info');
-    }
-    
-    openWhatsApp() {
-        const message = encodeURIComponent('¡Hola! Me gustaría hacer un pedido en Burger Club 🍔');
-        window.open(`https://wa.me/571234567890?text=${message}`, '_blank');
-        this.notificationManager.show('Abriendo WhatsApp...', 'info');
-    }
-    
-    // ========== SCROLL ANIMATIONS ==========
-    initializeScrollAnimations() {
-        const animatedElements = document.querySelectorAll('[data-animate]');
-        
-        animatedElements.forEach(element => {
-            const animationType = element.dataset.animate;
-            element.classList.add('scroll-animate');
-            
-            if (animationType) {
-                element.classList.add(`scroll-animate-${animationType}`);
-            }
-        });
-        
-        this.initializeIntersectionObserver();
-    }
-    
-    initializeIntersectionObserver() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('in-view');
-                    
-                    // Trigger specific animations based on element type
-                    if (entry.target.classList.contains('stat-item')) {
-                        this.triggerCounterAnimation(entry.target);
-                    }
-                    
-                    // Unobserve after animation
-                    setTimeout(() => {
-                        observer.unobserve(entry.target);
-                    }, 1000);
-                }
-            });
-        }, observerOptions);
-        
-        const elementsToAnimate = document.querySelectorAll('.scroll-animate, [data-animate], .stat-item, .feature-item');
-        elementsToAnimate.forEach(element => {
-            observer.observe(element);
-        });
-    }
-    
     // ========== COUNTERS ==========
     initializeCounters() {
         const counters = document.querySelectorAll('[data-count]');
@@ -451,12 +168,30 @@ class BurgerClubApp {
         counters.forEach(counter => {
             counter.style.opacity = '0';
         });
+        
+        // Setup intersection observer for counters
+        this.setupCounterObserver();
     }
     
-    triggerCounterAnimation(statItem) {
-        const counter = statItem.querySelector('[data-count]');
-        if (!counter) return;
+    setupCounterObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target.querySelector('[data-count]');
+                    if (counter) {
+                        this.triggerCounterAnimation(counter);
+                        observer.unobserve(entry.target);
+                    }
+                }
+            });
+        }, { threshold: 0.3 });
         
+        document.querySelectorAll('.stat-item').forEach(item => {
+            observer.observe(item);
+        });
+    }
+    
+    triggerCounterAnimation(counter) {
         const target = parseInt(counter.dataset.count);
         const duration = 2000;
         const increment = target / (duration / 16);
@@ -473,26 +208,6 @@ class BurgerClubApp {
                 counter.textContent = Math.floor(current);
             }
         }, 16);
-    }
-    
-    // ========== PARALLAX EFFECTS ==========
-    initializeParallax() {
-        const parallaxElements = document.querySelectorAll('.hero-burger-img, .deco-ellipse-1, .deco-ellipse-2');
-        
-        window.addEventListener('scroll', throttle(() => {
-            const scrolled = window.pageYOffset;
-            
-            parallaxElements.forEach((element, index) => {
-                const rate = scrolled * (0.1 + index * 0.05);
-                const direction = index % 2 === 0 ? -1 : 1;
-                
-                if (element.classList.contains('hero-burger-img')) {
-                    element.style.transform = `translateY(${rate * direction * 0.3}px)`;
-                } else {
-                    element.style.transform = `translateY(${rate * direction}px)`;
-                }
-            });
-        }, 10));
     }
     
     // ========== BACK TO TOP ==========
@@ -541,8 +256,8 @@ class BurgerClubApp {
                 modals.forEach(modal => {
                     if (modal.classList.contains('cart-modal')) {
                         this.cartManager.closeCart();
-                    } else {
-                        this.closeLocationModal(modal);
+                    } else if (this.locationModal) {
+                        this.locationModal.close();
                     }
                 });
             }
@@ -607,179 +322,6 @@ class BurgerClubApp {
     }
     
     // ========== UTILITY METHODS ==========
-    addLocationModalStyles() {
-        if (document.getElementById('location-modal-styles')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'location-modal-styles';
-        style.textContent = `
-            .location-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                z-index: 2000;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                opacity: 0;
-                visibility: hidden;
-                transition: all 0.3s ease;
-                backdrop-filter: blur(5px);
-            }
-            .location-modal.active {
-                opacity: 1;
-                visibility: visible;
-            }
-            .location-modal-content {
-                background: var(--color-background);
-                border-radius: var(--border-radius);
-                width: 90%;
-                max-width: 500px;
-                border: 2px solid var(--color-cta-stroke);
-                transform: scale(0.9);
-                transition: transform 0.3s ease;
-                box-shadow: var(--box-shadow-hover);
-                overflow: hidden;
-            }
-            .location-modal.active .location-modal-content {
-                transform: scale(1);
-            }
-            .location-modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 25px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                background: rgba(255, 255, 255, 0.05);
-            }
-            .location-modal-header h3 {
-                color: var(--color-text-primary);
-                margin: 0;
-                font-size: 1.5rem;
-            }
-            .location-close {
-                background: none;
-                border: none;
-                font-size: 2rem;
-                color: var(--color-text-primary);
-                cursor: pointer;
-                transition: all 0.3s ease;
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-            }
-            .location-close:hover {
-                color: var(--color-danger);
-                background: rgba(244, 67, 54, 0.1);
-                transform: scale(1.1);
-            }
-            .location-modal-body {
-                padding: 25px;
-            }
-            .location-info-item {
-                display: flex;
-                align-items: flex-start;
-                gap: 15px;
-                margin-bottom: 20px;
-                padding: 15px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: var(--border-radius-small);
-                border-left: 4px solid var(--color-cta-stroke);
-            }
-            .location-info-item i {
-                color: var(--color-cta-stroke);
-                font-size: 1.2rem;
-                width: 20px;
-                text-align: center;
-                margin-top: 2px;
-            }
-            .location-info-item strong {
-                color: var(--color-text-primary);
-                display: block;
-                margin-bottom: 5px;
-            }
-            .location-info-item p {
-                color: var(--color-text-secondary);
-                margin: 0;
-                line-height: 1.4;
-            }
-            .location-actions {
-                display: flex;
-                gap: 10px;
-                margin-top: 25px;
-                flex-wrap: wrap;
-            }
-            .btn-location,
-            .btn-call,
-            .btn-whatsapp {
-                flex: 1;
-                min-width: 120px;
-                padding: 12px 15px;
-                border: none;
-                border-radius: var(--border-radius-small);
-                cursor: pointer;
-                font-family: var(--font-primary);
-                font-weight: 600;
-                font-size: 0.9rem;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-            }
-            .btn-location {
-                background: var(--color-cta-stroke);
-                color: var(--color-background);
-            }
-            .btn-location:hover {
-                background: var(--color-white);
-                transform: translateY(-2px);
-            }
-            .btn-call {
-                background: var(--color-info);
-                color: var(--color-white);
-            }
-            .btn-call:hover {
-                background: #1976D2;
-                transform: translateY(-2px);
-            }
-            .btn-whatsapp {
-                background: #25D366;
-                color: var(--color-white);
-            }
-            .btn-whatsapp:hover {
-                background: #128C7E;
-                transform: translateY(-2px);
-            }
-            @media (max-width: 768px) {
-                .location-modal-content {
-                    width: 95%;
-                    margin: 20px;
-                }
-                .location-modal-header,
-                .location-modal-body {
-                    padding: 20px;
-                }
-                .location-actions {
-                    flex-direction: column;
-                }
-                .btn-location,
-                .btn-call,
-                .btn-whatsapp {
-                    flex: none;
-                    width: 100%;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
     addBackToTopStyles() {
         if (document.getElementById('back-to-top-styles')) return;
         

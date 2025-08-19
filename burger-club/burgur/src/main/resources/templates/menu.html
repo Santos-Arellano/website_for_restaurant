@@ -1,6 +1,3 @@
-<!-- ==========================================
-     ARCHIVO: src/main/resources/templates/menu.html
-     ========================================== -->
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -10,7 +7,7 @@
     <title>Menú - Burger Club</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" th:href="@{images/Logo.png}">
+    <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,24 +18,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- Main CSS File -->
-    <link rel="stylesheet" th:href="@{css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
 </head>
 <body>
     <!-- Header -->
     <header class="site-header" id="header">
         <div class="container header-container">
-            <a href="/" class="logo">
+            <a th:href="@{/}" class="logo">
                 <div class="logo-icon-wrapper">
-                    <img th:src="@{images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                    <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
                 </div>
                 <span class="logo-text">BURGER CLUB</span>
             </a>
 
             <nav class="main-nav" id="mainNav">
                 <ul>
-                    <li><a href="/" class="nav-link">Inicio</a></li>
-                    <li><a href="menu" class="nav-link active">Menú</a></li>
-                    <li><a href="/#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li><a th:href="@{/}" class="nav-link">Inicio</a></li>
+                    <li><a th:href="@{/menu}" class="nav-link active">Menú</a></li>
+                    <li><a th:href="@{/#about}" class="nav-link">Sobre Nosotros</a></li>
                     <li>
                         <a href="#" class="cart-link" id="cartBtn">
                             <i class="fas fa-shopping-cart"></i>
@@ -63,9 +60,9 @@
     <!-- Mobile Menu -->
     <nav class="mobile-menu" id="mobileMenu">
         <ul>
-            <li><a href="/" class="mobile-nav-link">Inicio</a></li>
-            <li><a href="/menu" class="mobile-nav-link">Menú</a></li>
-            <li><a href="/#about" class="mobile-nav-link">Sobre Nosotros</a></li>
+            <li><a th:href="@{/}" class="mobile-nav-link">Inicio</a></li>
+            <li><a th:href="@{/menu}" class="mobile-nav-link">Menú</a></li>
+            <li><a th:href="@{/#about}" class="mobile-nav-link">Sobre Nosotros</a></li>
             <li><a href="#" class="mobile-nav-link" id="mobileCartLink">Carrito</a></li>
             <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
         </ul>
@@ -91,54 +88,170 @@
                     <p class="menu-subtitle">Descubre nuestros sabores únicos</p>
                 </div>
 
-                <!-- Category Filter -->
-                <div class="menu-filters">
-                    <button type="button" class="filter-btn active" data-category="all">
-                        <i class="fas fa-th"></i><span>Todos</span>
-                    </button>
-                    <button type="button" class="filter-btn" data-category="burgers">
-                        <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
-                    </button>
-                    <button type="button" class="filter-btn" data-category="sides">
-                        <i class="fas fa-utensils"></i><span>Acompañamientos</span>
-                    </button>
-                    <button type="button" class="filter-btn" data-category="drinks">
-                        <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
-                    </button>
-                    <button type="button" class="filter-btn" data-category="desserts">
-                        <i class="fas fa-ice-cream"></i><span>Postres</span>
-                    </button>
+                <!-- Barra de búsqueda (ÚNICA - Thymeleaf) -->
+                <div class="menu-search-container">
+                    <form class="menu-search-form" th:action="@{/menu/search}" method="get" role="search" aria-label="Buscar productos">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                            <input
+                                type="text"
+                                name="nombre"
+                                class="menu-search-input"
+                                placeholder="Buscar productos..."
+                                th:value="${param.nombre != null ? param.nombre[0] : ''}"
+                                autocomplete="off" />
+                            <button class="search-submit" type="submit" aria-label="Buscar" style="display: none;">Buscar</button>
+                            <!-- Botón limpiar búsqueda -->
+                            <th:block th:if="${param.nombre != null and param.nombre[0] != ''}">
+                                <a class="search-clear" th:href="@{/menu}" aria-label="Limpiar búsqueda">
+                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                </a>
+                            </th:block>
+                        </div>
+                    </form>
                 </div>
+
+                <!-- Filtros de categoría -->
+                <div class="menu-filters">
+                    <!-- Todos -->
+                    <a class="filter-btn" th:href="@{/menu}"
+                       th:classappend="${param.categoria == null} ? ' active' : ''">
+                        <i class="fas fa-th"></i><span>Todos</span>
+                    </a>
+
+                    <!-- Hamburguesas -->
+                    <a class="filter-btn" th:href="@{/menu/category(categoria='hamburguesa')}"
+                       th:classappend="${param.categoria != null and param.categoria[0] == 'hamburguesa'} ? ' active' : ''">
+                        <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
+                    </a>
+
+                    <!-- Acompañamientos -->
+                    <a class="filter-btn" th:href="@{/menu/category(categoria='acompañamiento')}"
+                       th:classappend="${param.categoria != null and param.categoria[0] == 'acompañamiento'} ? ' active' : ''">
+                        <i class="fas fa-utensils"></i><span>Acompañamientos</span>
+                    </a>
+
+                    <!-- Perros Calientes -->
+                    <a class="filter-btn" th:href="@{/menu/category(categoria='perro caliente')}"
+                       th:classappend="${param.categoria != null and param.categoria[0] == 'perro caliente'} ? ' active' : ''">
+                        <i class="fas fa-hotdog"></i><span>Perros</span>
+                    </a>
+
+                    <!-- Bebidas -->
+                    <a class="filter-btn" th:href="@{/menu/category(categoria='bebida')}"
+                       th:classappend="${param.categoria != null and param.categoria[0] == 'bebida'} ? ' active' : ''">
+                        <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
+                    </a>
+
+                    <!-- Postres -->
+                    <a class="filter-btn" th:href="@{/menu/category(categoria='postre')}"
+                       th:classappend="${param.categoria != null and param.categoria[0] == 'postre'} ? ' active' : ''">
+                        <i class="fas fa-ice-cream"></i><span>Postres</span>
+                    </a>
+                </div>
+                
+                <!-- Info de resultados de búsqueda -->
+                <th:block th:if="${param.nombre != null and param.nombre[0] != ''}">
+                    <div class="search-results-info">
+                        <p>
+                            <i class="fas fa-search"></i>
+                            Mostrando <strong th:text="${#lists.size(productos)}">0</strong>
+                            resultado<span th:text="${#lists.size(productos) == 1 ? '' : 's'}">s</span>
+                            para "<strong th:text="${param.nombre[0]}">término</strong>"
+                            · <a th:href="@{/menu}">Limpiar búsqueda</a>
+                        </p>
+                    </div>
+                </th:block>
+
+                <!-- Info de resultados de categoría -->
+                <th:block th:if="${param.categoria != null and param.categoria[0] != null and param.categoria[0] != ''}">
+                    <div class="search-results-info">
+                        <p>
+                            <i class="fas fa-filter"></i>
+                            Mostrando <strong th:text="${#lists.size(productos)}">0</strong>
+                            producto<span th:text="${#lists.size(productos) == 1 ? '' : 's'}">s</span>
+                            en la categoría "<strong th:text="${#strings.capitalize(param.categoria[0])}">Categoría</strong>"
+                            · <a th:href="@{/menu}">Ver todos</a>
+                        </p>
+                    </div>
+                </th:block>
 
                 <!-- Menu Grid -->
                 <div class="menu-grid" id="menuGrid">
-                    <article class="menu-card"
-                            th:each="producto : ${productos}"
-                            th:attr="data-category=${#strings.toLowerCase(producto.categoria ?: 'other')},
-                                        data-price=${producto.precio},
-                                        data-name=${producto.nombre},
-                                        data-image=${producto.imgURL},
-                                        data-desc=${producto.descripcion},
-                                        data-ingredients=${#strings.listJoin(producto.ingredientes, ',')}"
-                            role="button" tabindex="0">
+                    <!-- Mensaje si no hay productos -->
+                    <th:block th:if="${#lists.isEmpty(productos)}">
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-search"></i>
+                            <h3>No se encontraron productos</h3>
+                            
+                            <th:block th:if="${param.nombre != null and param.nombre[0] != ''}">
+                                <p>No hay productos que coincidan con "<strong th:text="${param.nombre[0]}">término</strong>".</p>
+                            </th:block>
+                            
+                            <th:block th:if="${param.categoria != null and param.categoria[0] != null and param.categoria[0] != ''}">
+                                <p>No hay productos en la categoría "<strong th:text="${#strings.capitalize(param.categoria[0])}">categoría</strong>".</p>
+                            </th:block>
+                            
+                            <th:block th:unless="${param.nombre != null or param.categoria != null}">
+                                <p>Actualmente no hay productos disponibles.</p>
+                            </th:block>
+                            
+                            <a th:href="@{/menu}" class="btn-load-more" style="display: inline-flex;">
+                                <span>Ver todos los productos</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </th:block>
+
+                    <!-- Loop de productos -->
+                    <article class="menu-card" th:each="producto : ${productos}"
+                             th:attr="data-category=${producto.categoria != null ? #strings.toLowerCase(producto.categoria) : 'other'},
+                                     data-price=${producto.precio},
+                                     data-name=${producto.nombre},
+                                     data-image=${producto.imgURL},
+                                     data-desc=${producto.descripcion}"
+                             role="button" tabindex="0">
                         
-                        <div class="menu-card-badge"
-                            th:if="${producto.nuevo}"
-                            th:text="'Nuevo'"></div>
+                        <!-- Badge de producto nuevo -->
+                        <div class="menu-card-badge" th:if="${producto.nuevo}" th:text="'Nuevo'"></div>
+                        
+                        <!-- Badge de producto popular -->
+                        <div class="menu-card-badge sale" th:if="${producto.popular and !producto.nuevo}" th:text="'Popular'"></div>
 
                         <div class="menu-card-image">
-                            <img th:src="${producto.imgURL}" th:alt="${producto.nombre}" class="menu-card-img">
+                            <img th:src="${producto.imgURL}" 
+                                 th:alt="${producto.nombre}" 
+                                 class="menu-card-img"
+                                 onerror="this.src='/images/default-burger.png'">
                         </div>
 
                         <div class="menu-card-content">
-                            <h3 class="menu-card-name" th:text="${producto.nombre}"></h3>
-                            <p class="menu-card-description" th:text="${producto.descripcion}"></p>
+                            <h3 class="menu-card-name" th:text="${producto.nombre}">Producto</h3>
+                            <p class="menu-card-description" th:text="${producto.descripcion}">Descripción del producto</p>
+                            
+                            <!-- Mostrar ingredientes simplificado -->
+                            <th:block th:if="${producto.ingredientes != null and !#lists.isEmpty(producto.ingredientes)}">
+                                <div class="menu-card-ingredients">
+                                    <small class="ingredients-label">Ingredientes:</small>
+                                    <small class="ingredients-text">
+                                        <!-- Mostrar solo los primeros 3 ingredientes -->
+                                        <th:block th:each="ing, iterStat : ${producto.ingredientes}">
+                                            <span th:if="${iterStat.index < 3}">
+                                                <span th:text="${ing}"></span><span th:unless="${iterStat.last or iterStat.index >= 2}">, </span>
+                                            </span>
+                                        </th:block>
+                                        <span th:if="${#lists.size(producto.ingredientes) > 3}">...</span>
+                                    </small>
+                                </div>
+                            </th:block>
+                            
                             <div class="menu-card-footer">
-                                <span class="menu-card-price" th:text="'$ ' + ${producto.precio}"></span>
+                                <span class="menu-card-price" th:text="'$' + ${#numbers.formatInteger(producto.precio, 0, 'COMMA')}">$0</span>
                                 <button class="btn-add-cart"
                                         th:data-product="${producto.nombre}"
                                         th:data-price="${producto.precio}"
-                                        th:data-image="${producto.imgURL}">
+                                        th:data-image="${producto.imgURL}"
+                                        title="Agregar al carrito">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -146,18 +259,21 @@
                     </article>
                 </div>
 
-                <!-- Empty State -->
-                <p id="emptyState" style="display:none; text-align:center; margin-top:16px;">
-                    No hay productos en esta categoría.
-                </p>
-
-                <!-- Load More -->
-                <div class="load-more-container">
-                    <button class="btn-load-more" id="loadMoreBtn">
-                        <span>Ver Más Productos</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                </div>
+                <!-- Información adicional -->
+                <th:block th:if="${!#lists.isEmpty(productos)}">
+                    <div class="menu-info">
+                        <div class="products-count">
+                            <p>
+                                <i class="fas fa-utensils"></i>
+                                Mostrando <strong th:text="${#lists.size(productos)}">0</strong> 
+                                producto<span th:text="${#lists.size(productos) == 1 ? '' : 's'}">s</span>
+                                <th:block th:if="${param.categoria != null and param.categoria[0] != null and param.categoria[0] != ''}">
+                                    en <strong th:text="${#strings.capitalize(param.categoria[0])}">categoría</strong>
+                                </th:block>
+                            </p>
+                        </div>
+                    </div>
+                </th:block>
             </div>
         </div>
     </main>
@@ -200,7 +316,47 @@
         </div>
     </div>
 
-    <!-- JavaScript Files -->
-    <script type="module" th:src="@{js/app.js}" defer></script>
+    <!-- JavaScript Files (SIMPLIFICADO) -->
+    <script type="module" th:src="@{/js/app.js}" defer></script>
+    
+    <!-- Script ÚNICAMENTE para auto-submit de búsqueda -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.querySelector('.menu-search-form');
+            const searchInput = document.querySelector('.menu-search-input');
+            const searchClear = document.querySelector('.search-clear');
+            
+            // Auto-submit al escribir (con debounce)
+            let searchTimeout;
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        if (this.value.length >= 2 || this.value.length === 0) {
+                            searchForm.submit();
+                        }
+                    }, 800); // Increased timeout to reduce server requests
+                });
+                
+                // Submit al presionar Enter
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        clearTimeout(searchTimeout);
+                        searchForm.submit();
+                    }
+                });
+            }
+            
+            // Funcionalidad del botón limpiar
+            if (searchClear) {
+                searchClear.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    searchInput.value = '';
+                    window.location.href = '/menu';
+                });
+            }
+        });
+    </script>
 </body>
 </html>
