@@ -25,8 +25,31 @@ public class ProductoRepository {
     productos.put(10, new Producto(10, "Veggie Burger", 23000, "Opción vegetariana llena de sabor y nutrientes", "/images/menu/veggieburger.png", true, "burgers", java.util.Arrays.asList("Proteína vegetal", "Vegetales asados", "Salsa verde", "Pan integral"), true));
     }
     // Consultas
+    // Obtener todos los productos
     public List<Producto> findAll() {
         return new ArrayList<>(productos.values());
+    }
+
+    // Obtener productos por nombre
+    public List<Producto> findByNombre(String nombre) {
+        List<Producto> resultados = new ArrayList<>();
+        for (Producto producto : productos.values()) {
+            if (producto.getNombre().toLowerCase().contains(nombre.toLowerCase())) {
+                resultados.add(producto);
+            }
+        }
+        return resultados;
+    }
+
+    // Obtener productos por categoria
+    public List<Producto> findByCategoria(String categoria) {
+        List<Producto> resultados = new ArrayList<>();
+        for (Producto producto : productos.values()) {
+            if (producto.getCategoria().equalsIgnoreCase(categoria)) {
+                resultados.add(producto);
+            }
+        }
+        return resultados;
     }
 
 }

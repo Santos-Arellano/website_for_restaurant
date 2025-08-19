@@ -19,9 +19,24 @@ public class ProductoController {
     ProductoService productoService;
     
     @GetMapping("")
+    // Mostrar todos los productos en el sistema
     public String mostrarProductos(Model model) {
         model.addAttribute("productos", productoService.findAll());
         return "menu";
     }
-    
+
+    // Mostrar productos por nombre
+    @GetMapping("/search")
+    public String buscarProductos(@RequestParam("nombre") String nombre, Model model) {
+        model.addAttribute("productos", productoService.findByNombre(nombre));
+        return "menu";
+    }
+
+    // Mostrar productos por categoria
+    @GetMapping("/category")
+    public String buscarProductosPorCategoria(@RequestParam("categoria") String categoria, Model model) {
+        model.addAttribute("productos", productoService.findByCategoria(categoria));
+        return "menu";
+    }
+
 }

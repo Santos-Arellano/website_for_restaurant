@@ -7,7 +7,7 @@
   <title>Menú - Burger Club</title>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" th:href="@{images/Logo.png}">
+  <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,26 +18,26 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- CSS -->
-  <link rel="stylesheet" th:href="@{css/styles.css}">
-  <link rel="stylesheet" th:href="@{css/animations.css}">
-  <link rel="stylesheet" th:href="@{css/responsive.css}">
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+  <link rel="stylesheet" th:href="@{/css/animations.css}">
+  <link rel="stylesheet" th:href="@{/css/responsive.css}">
 </head>
 <body>
   <!-- Header -->
   <header class="site-header" id="header">
     <div class="container header-container">
-      <a href="/" class="logo">
+      <a th:href="@{/}" class="logo">
         <div class="logo-icon-wrapper">
-          <img th:src="@{images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+          <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
         </div>
         <span class="logo-text">BURGER CLUB</span>
       </a>
 
       <nav class="main-nav" id="mainNav">
         <ul>
-          <li><a href="/" class="nav-link">Inicio</a></li>
-          <li><a href="menu" class="nav-link active">Menú</a></li>
-          <li><a href="/#about" class="nav-link">Sobre Nosotros</a></li>
+          <li><a th:href="@{/}" class="nav-link">Inicio</a></li>
+          <li><a th:href="@{/menu}" class="nav-link active">Menú</a></li>
+          <li><a th:href="@{/#about}" class="nav-link">Sobre Nosotros</a></li>
           <li>
             <a href="#" class="cart-link" id="cartBtn">
               <i class="fas fa-shopping-cart"></i>
@@ -62,9 +62,9 @@
   <!-- Mobile Menu -->
   <nav class="mobile-menu" id="mobileMenu">
     <ul>
-      <li><a href="/" class="mobile-nav-link">Inicio</a></li>
-      <li><a href="/menu" class="mobile-nav-link">Menú</a></li>
-      <li><a href="/#about" class="mobile-nav-link">Sobre Nosotros</a></li>
+      <li><a th:href="@{/}" class="mobile-nav-link">Inicio</a></li>
+      <li><a th:href="@{/menu}" class="mobile-nav-link">Menú</a></li>
+      <li><a th:href="@{/#about}" class="mobile-nav-link">Sobre Nosotros</a></li>
       <li><a href="#" class="mobile-nav-link" id="mobileCartLink">Carrito</a></li>
       <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
     </ul>
@@ -88,62 +88,115 @@
         <div class="menu-header">
           <h1 class="menu-title">NUESTRO MENÚ</h1>
           <p class="menu-subtitle">Descubre nuestros sabores únicos</p>
-        </div>
 
-        <!-- Category Filter -->
-        <div class="menu-filters">
-          <button type="button" class="filter-btn active" data-category="all">
-            <i class="fas fa-th"></i><span>Todos</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="burgers">
-            <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="sides">
-            <i class="fas fa-utensils"></i><span>Acompañamientos</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="drinks">
-            <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
-          </button>
-          <button type="button" class="filter-btn" data-category="desserts">
-            <i class="fas fa-ice-cream"></i><span>Postres</span>
-          </button>
-        </div>
+          <!-- 🔍 Barra de búsqueda -->
+          <div class="menu-search-container">
+            <form class="menu-search-form" th:action="@{/menu/search}" method="get" role="search" aria-label="Buscar productos">
+              <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  name="nombre"
+                  class="menu-search-input"
+                  placeholder="Buscar productos..."
+                  th:value="${param.nombre}" />
+                <button class="search-submit" type="submit" aria-label="Buscar" style="display: none;">Buscar</button>
+                <a class="search-clear" th:if="${param.nombre}" th:href="@{/menu}" aria-label="Limpiar búsqueda">
+                  <i class="fas fa-times" aria-hidden="true"></i>
+                </a>
+              </div>
+            </form>
+          </div>
+
+          <!-- Info de resultados -->
+          <div class="search-results-info" th:if="${param.nombre}">
+            <p>
+              <i class="fas fa-search"></i>
+              Mostrando <strong th:text="${#lists.size(productos)}">0</strong>
+              resultado<span th:text="${#lists.size(productos) == 1 ? '' : 's'}"></span>
+              para "<strong th:text="${param.nombre}">—</strong>"
+              · <a th:href="@{/menu}">Limpiar</a>
+            </p>
+          </div>
+        </div> 
+
+        <!-- Category Filter (server-side) -->
+      <div class="menu-filters"
+          th:with="cat=${param.categoria != null ? param.categoria[0] : null}">
+        <!-- Todos -->
+        <a class="filter-btn"
+          th:href="@{/menu}"
+          th:classappend="${cat} == null ? ' active' : ''">
+          <i class="fas fa-th"></i><span>Todos</span>
+        </a>
+
+        <!-- Hamburguesas -->
+        <a class="filter-btn"
+          th:href="@{/menu/category(categoria='burgers')}"
+          th:classappend="${cat} == 'burgers' ? ' active' : ''"
+          th:aria-current="${cat} == 'burgers' ? 'page' : null">
+          <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
+        </a>
+
+        <!-- Acompañamientos -->
+        <a class="filter-btn"
+          th:href="@{/menu/category(categoria='sides')}"
+          th:classappend="${cat} == 'sides' ? ' active' : ''"
+          th:aria-current="${cat} == 'sides' ? 'page' : null">
+          <i class="fas fa-utensils"></i><span>Acompañamientos</span>
+        </a>
+
+        <!-- Bebidas -->
+        <a class="filter-btn"
+          th:href="@{/menu/category(categoria='drinks')}"
+          th:classappend="${cat} == 'drinks' ? ' active' : ''"
+          th:aria-current="${cat} == 'drinks' ? 'page' : null">
+          <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
+        </a>
+
+        <!-- Postres -->
+        <a class="filter-btn"
+          th:href="@{/menu/category(categoria='desserts')}"
+          th:classappend="${cat} == 'desserts' ? ' active' : ''"
+          th:aria-current="${cat} == 'desserts' ? 'page' : null">
+          <i class="fas fa-ice-cream"></i><span>Postres</span>
+        </a>
+      </div>
 
         <!-- Menu Grid -->
         <div class="menu-grid" id="menuGrid">
-        <article class="menu-card"
-                th:each="producto : ${productos}"
-                th:attr="data-category=${#strings.toLowerCase(producto.categoria ?: 'other')},
-                            data-price=${producto.precio},
-                            data-name=${producto.nombre},
-                            data-image=${producto.imgURL},
-                            data-desc=${producto.descripcion},
-                            data-ingredients=${#strings.listJoin(producto.ingredientes, ',')}"
+          <article class="menu-card"
+            th:each="producto : ${productos}"
+            th:attr="data-category=${#strings.toLowerCase(producto.categoria ?: 'other')},
+                        data-price=${producto.precio},
+                        data-name=${producto.nombre},
+                        data-image=${producto.imgURL},
+                        data-desc=${producto.descripcion},
+                        data-ingredients=${#strings.listJoin(producto.ingredientes, ',')}"
+            role="button" tabindex="0">
 
-                role="button" tabindex="0">
-            
             <div class="menu-card-badge"
-                th:if="${producto.nuevo}"
-                th:text="'Nuevo'"></div>
+              th:if="${producto.nuevo}"
+              th:text="'Nuevo'"></div>
 
             <div class="menu-card-image">
-            <img th:src="${producto.imgURL}" th:alt="${producto.nombre}" class="menu-card-img">
+              <img th:src="${producto.imgURL}" th:alt="${producto.nombre}" class="menu-card-img">
             </div>
 
             <div class="menu-card-content">
-            <h3 class="menu-card-name" th:text="${producto.nombre}"></h3>
-            <p class="menu-card-description" th:text="${producto.descripcion}"></p>
-            <div class="menu-card-footer">
+              <h3 class="menu-card-name" th:text="${producto.nombre}"></h3>
+              <p class="menu-card-description" th:text="${producto.descripcion}"></p>
+              <div class="menu-card-footer">
                 <span class="menu-card-price" th:text="'$ ' + ${producto.precio}"></span>
                 <button class="btn-add-cart"
                         th:data-product="${producto.nombre}"
                         th:data-price="${producto.precio}"
                         th:data-image="${producto.imgURL}">
-                <i class="fas fa-plus"></i>
+                  <i class="fas fa-plus"></i>
                 </button>
+              </div>
             </div>
-            </div>
-        </article>
+          </article>
         </div>
 
         <!-- Estado vacío opcional -->
@@ -151,7 +204,7 @@
           No hay productos en esta categoría.
         </p>
 
-        <!-- Load More (sigue ahí si lo usas) -->
+        <!-- Load More -->
         <div class="load-more-container">
           <button class="btn-load-more" id="loadMoreBtn">
             <span>Ver Más Productos</span>
@@ -179,29 +232,30 @@
       </div>
     </div>
   </footer>
+
   <!-- Cart Modal -->
   <div class="cart-modal" id="cartModal">
-        <div class="cart-modal-content">
-            <div class="cart-modal-header">
-                <h2>Tu Carrito</h2>
-                <button class="cart-close" id="cartClose">&times;</button>
-            </div>
-            <div class="cart-modal-body" id="cartItems">
-                <p class="empty-cart">Tu carrito está vacío</p>
-            </div>
-            <div class="cart-modal-footer">
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <span id="cartTotal">$0</span>
-                </div>
-                <button class="btn-checkout">Proceder al Pago</button>
-            </div>
+    <div class="cart-modal-content">
+      <div class="cart-modal-header">
+        <h2>Tu Carrito</h2>
+        <button class="cart-close" id="cartClose">&times;</button>
+      </div>
+      <div class="cart-modal-body" id="cartItems">
+        <p class="empty-cart">Tu carrito está vacío</p>
+      </div>
+      <div class="cart-modal-footer">
+        <div class="cart-total">
+          <span>Total:</span>
+          <span id="cartTotal">$0</span>
         </div>
+        <button class="btn-checkout">Proceder al Pago</button>
+      </div>
     </div>
+  </div>
 
   <!-- JS -->
-  <script th:src="@{js/cart.js}" defer></script>
-  <script th:src="@{js/main.js}" defer></script>
-  <script th:src="@{js/menu.js}" defer></script>
+  <script th:src="@{/js/cart.js}" defer></script>
+  <script th:src="@{/js/main.js}" defer></script>
+  <script th:src="@{/js/menu.js}" defer></script>
 </body>
 </html>

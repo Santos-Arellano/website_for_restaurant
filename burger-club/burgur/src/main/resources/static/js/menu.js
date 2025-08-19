@@ -21,10 +21,9 @@ function initializeMenu() {
 
   if (hasServerCards) {
     // Camino DOM (Thymeleaf)
-    initializeFilters();          // filtra las cards ya renderizadas
+    //initializeFilters();          // filtra las cards ya renderizadas
     initializeCartButtons();      // engancha los botones existentes
     initializeMenuAnimations();   // animaciones iniciales
-    initializeMenuSearch();       //  
     initializeMenuItemInteractions()
 
     // Muestra todo al inicio
@@ -44,7 +43,6 @@ function initializeMenu() {
   initializeMenuGrid();
   initializeLoadMore();
   initializeMenuAnimations();
-  initializeMenuSearch();
 
   console.log('🍔 Menu system initialized');
 }
@@ -181,7 +179,6 @@ function initializeMenuItemInteractions() {
   const menuCards = document.querySelectorAll('.menu-card');
   const viewDetailsButtons = document.querySelectorAll('.btn-view-details');
 
-  // Hover (igual que tu compa)
   menuCards.forEach(card => {
     card.addEventListener('mouseenter', function() {
       this.style.transform = 'translateY(-10px)';
@@ -532,137 +529,6 @@ function addToCartFromModal(itemId) {
     }
 }
 
-// ========== SEARCH FUNCTIONALITY ==========
-function initializeMenuSearch() {
-    // Create search input
-    const menuHeader = document.querySelector('.menu-header');
-    if (menuHeader) {
-        const searchContainer = document.createElement('div');
-        searchContainer.className = 'menu-search-container';
-        searchContainer.innerHTML = `
-            <div class="search-input-wrapper">
-                <input type="text" id="menuSearchInput" placeholder="Buscar productos..." class="menu-search-input">
-                <i class="fas fa-search search-icon"></i>
-                <button class="search-clear" id="searchClear" style="display: none;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-
-        menuHeader.appendChild(searchContainer);
-
-        const searchInput = document.getElementById('menuSearchInput');
-        const searchClear = document.getElementById('searchClear');
-
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-        searchClear.addEventListener('click', clearSearch);
-
-        // Add search styles
-        addSearchStyles();
-    }
-}
-
-function handleSearch(e) {
-  const term = (e.target.value || '').toLowerCase().trim();
-  const searchClear = document.getElementById('searchClear');
-  const grid = document.getElementById('menuGrid');
-  if (!grid) return;
-
-  const cards = grid.querySelectorAll('.menu-card');
-  const emptyState = document.getElementById('emptyState'); // opcional
-  searchClear.style.display = term ? 'block' : 'none';
-
-  let shown = 0;
-
-  cards.forEach(card => {
-    // categoría del item (de tu atributo data-category puesto por Thymeleaf)
-    const cat = (card.getAttribute('data-category') || '').toLowerCase();
-
-    // textos de búsqueda (usa data-* si los pusiste; si no, lee el DOM)
-    const nameText = (card.dataset.name ??
-      (card.querySelector('.menu-card-name')?.textContent || '')
-    ).toLowerCase();
-
-    const descText = (card.dataset.desc ??
-      (card.querySelector('.menu-card-description')?.textContent || '')
-    ).toLowerCase();
-
-    const ingText  = (card.dataset.ingredients ?? '').toLowerCase();
-
-    // pasa filtro de categoría + término de búsqueda
-    const passesCategory = (currentFilter === 'all') || (cat === currentFilter);
-    const passesSearch = !term || nameText.includes(term) || descText.includes(term) || ingText.includes(term);
-    const show = passesCategory && passesSearch;
-
-    if (show) {
-      shown++;
-      card.style.display = 'block';
-      card.style.opacity = 0;
-      requestAnimationFrame(() => {
-        card.style.transition = 'opacity 0.2s ease';
-        card.style.opacity = 1;
-      });
-    } else {
-      card.style.transition = 'opacity 0.15s ease';
-      card.style.opacity = 0;
-      setTimeout(() => { card.style.display = 'none'; }, 120);
-    }
-  });
-
-  // estado vacío (si tienes un div#emptyState)
-  if (emptyState) emptyState.style.display = shown === 0 ? 'block' : 'none';
-
-  // contador de resultados (si usas esta UI)
-  if (typeof showSearchResults === 'function') {
-    // pásale también la lista para que cuente visibles
-    showSearchResults(term, cards);
-  }
-}
-
-
-function clearSearch() {
-    const searchInput = document.getElementById('menuSearchInput');
-    const searchClear = document.getElementById('searchClear');
-
-    searchInput.value = '';
-    searchClear.style.display = 'none';
-
-    // Reset to current filter
-    filterMenuItems(currentFilter);
-    hideSearchResults();
-}
-
-function showSearchResults(searchTerm) {
-    let resultsContainer = document.querySelector('.search-results-info');
-
-    if (!resultsContainer) {
-        resultsContainer = document.createElement('div');
-        resultsContainer.className = 'search-results-info';
-
-        const menuGrid = document.getElementById('menuGrid');
-        menuGrid.parentNode.insertBefore(resultsContainer, menuGrid);
-    }
-
-    if (searchTerm) {
-        resultsContainer.innerHTML = `
-            <p>
-                <i class="fas fa-search"></i>
-                Mostrando ${filteredItems.length} resultado${filteredItems.length !== 1 ? 's' : ''} para "<strong>${searchTerm}</strong>"
-            </p>
-        `;
-        resultsContainer.style.display = 'block';
-    } else {
-        resultsContainer.style.display = 'none';
-    }
-}
-
-function hideSearchResults() {
-    const resultsContainer = document.querySelector('.search-results-info');
-    if (resultsContainer) {
-        resultsContainer.style.display = 'none';
-    }
-}
-
 // ========== ANIMATIONS ==========
 function initializeMenuAnimations() {
     // Animate menu cards on load
@@ -780,76 +646,6 @@ function addFloatingAnimationStyles() {
                 transform: translate(var(--deltaX), var(--deltaY)) scale(0.3);
                 opacity: 0;
             }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-
-function addSearchStyles() {
-    if (document.getElementById('search-styles')) return;
-
-    const style = document.createElement('style');
-    style.id = 'search-styles';
-    style.textContent = `
-        .menu-search-container {
-            margin: 30px 0;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .search-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .menu-search-input {
-            width: 100%;
-            padding: 15px 50px 15px 50px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--border-radius-large);
-            color: var(--color-text-primary);
-            font-size: 1rem;
-            font-family: var(--font-primary);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-        .menu-search-input:focus {
-            outline: none;
-            border-color: var(--color-cta-stroke);
-            box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.2);
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .menu-search-input::placeholder {
-            color: var(--color-text-secondary);
-        }
-        .search-icon {
-            position: absolute;
-            left: 18px;
-            color: var(--color-text-secondary);
-            font-size: 1.1rem;
-            pointer-events: none;
-        }
-        .search-clear {
-            position: absolute;
-            right: 15px;
-            background: none;
-            border: none;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-        }
-        .search-clear:hover {
-            color: var(--color-danger);
-            background: rgba(244, 67, 54, 0.1);
         }
     `;
     document.head.appendChild(style);
