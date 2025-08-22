@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    // Validación simple (puedes cambiarla luego con BD)
+    // Validación simple
     if (email && password) {
       // Guardamos el "usuario" en localStorage
       localStorage.setItem("usuario", email);
