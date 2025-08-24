@@ -1,7 +1,8 @@
 package restaurante.example.burgur.Controller;
 
+import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Service.ProductoService;
-import restaurante.example.burgur.Entities.Producto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,16 +21,18 @@ public class ProductoController {
     private ProductoService productoService;
     
     // ==========================================
-    // PÁGINAS PÚBLICAS DEL MENÚ
+    // PÁGINAS CLIENTE DEL MENÚ
     // ==========================================
     
     /**
      * Mostrar todos los productos en el menú principal
      */
+    // http://localhost:8080/menu
     @GetMapping("")
     public String mostrarMenu(Model model) {
         try {
             List<Producto> productos = productoService.findAll();
+            productoService.updateAdicionalesDeTodosLosProductos();
             model.addAttribute("productos", productos != null ? productos : List.of());
             return "menu";
         } catch (Exception e) {
@@ -94,6 +97,10 @@ public class ProductoController {
             return "menu";
         }
     }
+
+    /**
+     * 
+    */
     
     // ==========================================
     // PANEL DE ADMINISTRACIÓN
@@ -102,6 +109,7 @@ public class ProductoController {
     /**
      * Panel de administración de productos
      */
+    // http://localhost:8080/menu/admin
     @GetMapping("/admin")
     public String adminDashboard(Model model) {
         try {
@@ -129,6 +137,33 @@ public class ProductoController {
             model.addAttribute("productosActivos", 0);
             model.addAttribute("stockBajo", 0);
             return "admin/admin-products";
+        }
+    }
+
+    /**
+     * Dashboard con estadísticas generales (opcional)
+     */
+    // http://localhost:8080/menu/admin/dashboard (Aún no está implementado)
+    @GetMapping("/admin/dashboard")
+    public String dashboard(Model model) {
+        try {
+            // Estadísticas básicas
+            long totalProductos = productoService.countTotal();
+            long productosNuevos = productoService.countByNuevo();
+            long productosPopulares = productoService.countByPopular();
+            long stockBajo = productoService.countByStockBajo();
+            
+            model.addAttribute("totalProductos", totalProductos);
+            model.addAttribute("productosNuevos", productosNuevos);
+            model.addAttribute("productosPopulares", productosPopulares);
+            model.addAttribute("stockBajo", stockBajo);
+            
+            return "admin/dashboard";
+            
+        } catch (Exception e) {
+            System.err.println("Error en admin dashboard: " + e.getMessage());
+            model.addAttribute("error", "Error al cargar las estadísticas");
+            return "admin/dashboard";
         }
     }
     
@@ -210,7 +245,7 @@ public class ProductoController {
      */
     @GetMapping("/api/productos/{id}")
     @ResponseBody
-    public ResponseEntity<Producto> obtenerProductoAPI(@PathVariable Integer id) {
+    public ResponseEntity<Producto> obtenerProductoAPI(@PathVariable Long id) {
         try {
             Optional<Producto> producto = productoService.findById(id);
             
@@ -263,7 +298,6 @@ public class ProductoController {
             
             // Crear producto
             Producto producto = new Producto(
-                null, // ID se genera automáticamente
                 request.getNombre(),
                 request.getPrecio(),
                 request.getDescripcion() != null ? request.getDescripcion() : "",
@@ -307,7 +341,7 @@ public class ProductoController {
     @PutMapping("/api/productos/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarProductoAPI(
-            @PathVariable Integer id, 
+            @PathVariable Long id, 
             @RequestBody ProductoRequest request) {
         try {
             // Verificar que el producto existe
@@ -372,7 +406,7 @@ public class ProductoController {
      */
     @DeleteMapping("/api/productos/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> eliminarProductoAPI(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> eliminarProductoAPI(@PathVariable Long id) {
         try {
             if (!productoService.existsById(id)) {
                 Map<String, Object> errorResponse = Map.of(

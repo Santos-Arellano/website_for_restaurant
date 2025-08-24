@@ -4,51 +4,50 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import restaurante.example.burgur.Entities.Producto;
 
+import restaurante.example.burgur.Model.Adicional;
+import restaurante.example.burgur.Model.Producto;
+@Service
 public interface ProductoService {
     
     // ==========================================
     // MÉTODOS BÁSICOS CRUD
-    // ==========================================
-    
-    /**
-     * Obtener todos los productos
-     */
+    // ==========================================    
+
+    //Obtener todos los productos
     List<Producto> findAll();
     
-    /**
-     * Buscar producto por ID
-     */
-    Optional<Producto> findById(Integer id);
+
+    //Buscar producto por ID
+    Optional<Producto> findById(Long id);
     
-    /**
-     * Guardar producto (crear o actualizar)
-     */
+    //Guardar producto (crear o actualizar)
     Producto save(Producto producto);
     
-    /**
-     * Eliminar producto por ID
-     */
-    void deleteById(Integer id);
+    //Eliminar producto por ID
+    void deleteById(Long id);
+
+    //Verificar si existe un producto por ID
+    boolean existsById(Long id);
+
+    // ==========================================
+    // MÉTODOS RELACIONADOS CON ADICIONALES
+    // ==========================================
     
-    /**
-     * Verificar si existe un producto por ID
-     */
-    boolean existsById(Integer id);
-    
+    // Actualizar los adicionales permitidos para todos los productos
+    Integer updateAdicionalesDeTodosLosProductos();
+    // Rebuild de los Adicionales Permitidos para todos los productos
+    Integer rebuildAdicionalesDeTodosLosProductos();
+
     // ==========================================
     // MÉTODOS DE BÚSQUEDA Y FILTRADO
     // ==========================================
     
-    /**
-     * Buscar productos por nombre (búsqueda parcial)
-     */
+    //Buscar productos por nombre (búsqueda parcial)
     List<Producto> findByNombre(String nombre);
     
-    /**
-     * Buscar productos por categoría
-     */
+    
+    //Buscar productos por categoría
     List<Producto> findByCategoria(String categoria);
     
     /**
@@ -76,7 +75,11 @@ public interface ProductoService {
      * Obtener productos activos
      */
     List<Producto> findByActivo(boolean activo);
+
+    //Proyectar los adicionales permitidos para un producto
+    List<Adicional> obtenerAdicionalesPermitidos(Long productoId); 
     
+
     // ==========================================
     // MÉTODOS DE ESTADÍSTICAS
     // ==========================================
@@ -113,20 +116,38 @@ public interface ProductoService {
     /**
      * Actualizar solo el stock de un producto
      */
-    Producto updateStock(Integer id, Integer nuevoStock);
+    Producto updateStock(Long id, Integer nuevoStock);
     
     /**
      * Cambiar estado de producto nuevo
      */
-    Producto toggleNuevo(Integer id);
+    Producto toggleNuevo(Long id);
     
     /**
      * Cambiar estado de producto popular
      */
-    Producto togglePopular(Integer id);
-    
+    Producto togglePopular(Long id);
+
     /**
      * Cambiar estado activo del producto
      */
-    Producto toggleActivo(Integer id);
+    Producto toggleActivo(Long id);
+
+    // ==========================================
+    // MÉTODOS ADICIONALES DE UTILIDAD
+    // ==========================================
+
+    // Búsqueda avanzada de productos
+    List<Producto> searchAdvanced(String nombre, String categoria,
+                                   Boolean nuevo, Boolean popular,
+                                   Boolean stockBajo);
+
+    // Obtener productos más vendidos
+    List<Producto> findTopSelling(int limit);
+
+    // Obtener productos por rango de precio
+    List<Producto> findByPriceRange(double minPrice, double maxPrice);
+
+
+
 }
