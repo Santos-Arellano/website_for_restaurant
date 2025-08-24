@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Controller
+//El mapping general sea a productos y no a menu
 @RequestMapping("/menu")
 public class ProductoController {
     
