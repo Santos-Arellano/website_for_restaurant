@@ -1,4 +1,4 @@
-//burger-club/burgur/src/main/resources/static/js/modules/menu/product-detail.js
+// burger-club/burgur/src/main/resources/static/js/modules/menu/product-detail.js
 
 class ProductDetailModal {
     constructor() {
@@ -193,7 +193,7 @@ class ProductDetailModal {
                 categoria: product.categoria,
                 cantidad: quantity,
                 adicionales: Array.from(this.selectedAdicionales.values()),
-                subtotal: this.calculateTotal(product.precio)
+                subtotal: this.calculateTotal(product.precio) * quantity
             };
             
             this.addToCart(cartItem);
@@ -746,8 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const productId = card.getAttribute('data-id') || 
-                            card.getAttribute('data-product-id') ||
-                            card.querySelector('[data-product]')?.getAttribute('data-product');
+                            card.getAttribute('data-product-id');
             
             if (productId) {
                 window.productDetailModal.showProductDetail(productId);

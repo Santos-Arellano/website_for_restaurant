@@ -1,4 +1,7 @@
-//burger-club/burgur/src/main/resources/static/js/admin/admin-modal-manager.js
+// burger-club/burgur/src/main/resources/static/js/admin/admin-modal-manager.js
+// ==========================================
+// BURGER CLUB - ADMIN MODAL MANAGER (FIXED)
+// ==========================================
 
 class AdminModalManager {
     constructor() {
@@ -8,7 +11,7 @@ class AdminModalManager {
     
     init() {
         this.addModalStyles();
-        console.log('🎯 Admin Modal Manager initialized');
+        console.log('Admin Modal Manager initialized');
     }
     
     // ==========================================
@@ -585,7 +588,7 @@ class AdminModalManager {
             }
         }, 300);
     }
-    
+
     addModalStyles() {
         if (document.getElementById('admin-modal-styles')) return;
         
@@ -904,5 +907,13 @@ class AdminModalManager {
     }
 }
 
-// Make it globally available
+// CRITICAL: Make AdminModalManager globally available immediately
 window.AdminModalManager = AdminModalManager;
+
+// Initialize global instance when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.globalModalManager) {
+        window.globalModalManager = new AdminModalManager();
+        console.log('Global AdminModalManager initialized');
+    }
+});
