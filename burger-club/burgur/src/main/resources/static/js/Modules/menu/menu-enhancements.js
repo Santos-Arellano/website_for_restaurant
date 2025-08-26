@@ -1,3 +1,4 @@
+//burger-club/burgur/src/main/resources/static/js/Modules/menu/menu-enhancements.js
 // ==========================================
 // BURGER CLUB - MENU ENHANCEMENTS MODULE
 // Solo efectos visuales - La lógica está en el servidor

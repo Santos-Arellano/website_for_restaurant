@@ -1,3 +1,4 @@
+//burger-club/burgur/src/main/java/restaurante/example/burgur/Repository/ProductoRepository.java
 package restaurante.example.burgur.Repository;
 
 import java.util.List;
@@ -63,11 +64,5 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     // ==========================================
 
     // verificar si existe con el mismo nombre pero distinto id
-    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Integer excludeId);
-
-
-
-
-
-
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long excludeId);
 }

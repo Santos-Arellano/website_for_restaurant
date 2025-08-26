@@ -1,10 +1,7 @@
+//burger-club/burgur/src/main/java/restaurante/example/burgur/Model/AdicionalesPermiXProducto.java
 package restaurante.example.burgur.Model;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,49 +13,31 @@ public class AdicionalesPermiXProducto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // lado MANY-TO-ONE hacia Producto
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "producto_id", nullable = false)
-    @JsonIgnore // o @JsonBackReference
+    
+    @ManyToOne
+    @JoinColumn(name = "producto_id")
     private Producto producto;
-
-    // lado MANY-TO-ONE hacia Adicional
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "adicional_id", nullable = false)
-    @JsonIgnore // o @JsonBackReference
+    
+    @ManyToOne
+    @JoinColumn(name = "adicional_id")
     private Adicional adicional;
-
-    // Constructor vacío
-    public AdicionalesPermiXProducto() {}
-
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
+    
+    // Constructor completo
+    public AdicionalesPermiXProducto(Producto producto, Adicional adicional) {
         this.producto = producto;
-    }
-
-    public Adicional getAdicional() {
-        return adicional;
-    }
-
-    public void setAdicional(Adicional adicional) {
         this.adicional = adicional;
     }
-
     
-
-
-
+    // Constructor vacío (requerido por JPA)
+    public AdicionalesPermiXProducto() {}
+    
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public Producto getProducto() { return producto; }
+    public void setProducto(Producto producto) { this.producto = producto; }
+    
+    public Adicional getAdicional() { return adicional; }
+    public void setAdicional(Adicional adicional) { this.adicional = adicional; }
 }

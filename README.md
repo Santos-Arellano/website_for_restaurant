@@ -120,3 +120,12 @@ js/
 
 <!-- JavaScript - Solo un archivo -->
 <script type="module" th:src="@{js/app.js}" defer></script>
+
+
+
+
+Ejecuta tu aplicación
+Ve a http://localhost:8080/h2 (tu consola H2)
+Ve a http://localhost:8080/menu/admin (gestión productos)
+Ve a http://localhost:8080/admin/clientes (gestión clientes)
+Ve a http://localhost:8080/admin/adicionales (gestión adicionales

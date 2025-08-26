@@ -1,0 +1,638 @@
+<!-- ==========================================
+     ARCHIVO: src/main/resources/templates/admin/dashboard.html
+     ========================================== -->
+     <!DOCTYPE html>
+     <html lang="es" xmlns:th="http://www.thymeleaf.org">
+     <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Dashboard Administrativo | Burger Club</title>
+         
+         <!-- Favicon -->
+         <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
+         
+         <!-- Google Fonts -->
+         <link rel="preconnect" href="https://fonts.googleapis.com">
+         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+         <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap" rel="stylesheet">
+         
+         <!-- Font Awesome -->
+         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+         
+         <!-- Main CSS -->
+         <link rel="stylesheet" th:href="@{/css/main.css}">
+         
+         <style>
+             :root {
+                 --bg-color: #12372a;
+                 --text-light: #fbfada;
+                 --text-white: #ffffff;
+                 --color-primary: #fbb5b5;
+                 --color-success: #4caf50;
+                 --color-warning: #ff9800;
+                 --color-danger: #f44336;
+                 --color-info: #2196f3;
+                 --border-radius: 8px;
+                 --font-primary: 'Sansita Swashed', cursive;
+                 --font-secondary: 'Lexend Zetta', sans-serif;
+             }
+     
+             body {
+                 background: var(--bg-color);
+                 color: var(--text-white);
+                 font-family: var(--font-primary);
+             }
+     
+             .dashboard-section {
+                 padding: 100px 0 80px 0;
+                 min-height: 100vh;
+             }
+     
+             .dashboard-header {
+                 text-align: center;
+                 margin-bottom: 40px;
+             }
+     
+             .dashboard-title {
+                 font-family: var(--font-secondary);
+                 font-size: clamp(2rem, 5vw, 3rem);
+                 color: var(--text-white);
+                 margin-bottom: 15px;
+                 background: linear-gradient(135deg, var(--text-white) 0%, var(--color-primary) 100%);
+                 -webkit-background-clip: text;
+                 -webkit-text-fill-color: transparent;
+                 background-clip: text;
+             }
+     
+             .dashboard-subtitle {
+                 color: var(--text-light);
+                 font-size: 1.1rem;
+                 margin-bottom: 30px;
+             }
+     
+             .stats-grid {
+                 display: grid;
+                 grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                 gap: 25px;
+                 margin-bottom: 40px;
+             }
+     
+             .stat-card {
+                 background: rgba(255, 255, 255, 0.05);
+                 border: 2px solid rgba(255, 255, 255, 0.1);
+                 border-radius: var(--border-radius);
+                 padding: 30px 25px;
+                 text-align: center;
+                 transition: all 0.3s ease;
+                 position: relative;
+                 overflow: hidden;
+             }
+     
+             .stat-card::before {
+                 content: '';
+                 position: absolute;
+                 top: 0;
+                 left: -100%;
+                 width: 100%;
+                 height: 100%;
+                 background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+                 transition: left 0.5s ease;
+             }
+     
+             .stat-card:hover::before {
+                 left: 100%;
+             }
+     
+             .stat-card:hover {
+                 transform: translateY(-5px);
+                 border-color: var(--color-primary);
+                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+             }
+     
+             .stat-icon {
+                 font-size: 3rem;
+                 margin-bottom: 15px;
+                 color: var(--color-primary);
+                 position: relative;
+                 z-index: 1;
+             }
+     
+             .stat-number {
+                 font-size: 2.5rem;
+                 font-weight: 700;
+                 color: var(--text-white);
+                 font-family: var(--font-secondary);
+                 margin-bottom: 10px;
+                 position: relative;
+                 z-index: 1;
+             }
+     
+             .stat-label {
+                 font-size: 1.1rem;
+                 color: var(--text-light);
+                 font-weight: 600;
+                 opacity: 0.9;
+                 position: relative;
+                 z-index: 1;
+             }
+     
+             .stat-card.productos { 
+                 border-color: var(--color-info); 
+             }
+             .stat-card.productos .stat-icon { 
+                 color: var(--color-info); 
+             }
+     
+             .stat-card.clientes { 
+                 border-color: var(--color-success); 
+             }
+             .stat-card.clientes .stat-icon { 
+                 color: var(--color-success); 
+             }
+     
+             .stat-card.adicionales { 
+                 border-color: var(--color-warning); 
+             }
+             .stat-card.adicionales .stat-icon { 
+                 color: var(--color-warning); 
+             }
+     
+             .stat-card.alertas { 
+                 border-color: var(--color-danger); 
+             }
+             .stat-card.alertas .stat-icon { 
+                 color: var(--color-danger); 
+             }
+     
+             .quick-actions {
+                 display: grid;
+                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                 gap: 20px;
+                 margin-bottom: 40px;
+             }
+     
+             .action-btn {
+                 background: rgba(255, 255, 255, 0.1);
+                 border: 2px solid rgba(255, 255, 255, 0.2);
+                 border-radius: var(--border-radius);
+                 padding: 20px;
+                 text-decoration: none;
+                 color: var(--text-white);
+                 display: flex;
+                 align-items: center;
+                 gap: 15px;
+                 transition: all 0.3s ease;
+                 font-family: var(--font-primary);
+                 font-weight: 600;
+             }
+     
+             .action-btn:hover {
+                 background: rgba(255, 255, 255, 0.15);
+                 border-color: var(--color-primary);
+                 transform: translateY(-3px);
+                 text-decoration: none;
+                 color: var(--color-primary);
+             }
+     
+             .action-btn i {
+                 font-size: 1.5rem;
+                 color: var(--color-primary);
+             }
+     
+             .system-info {
+                 display: grid;
+                 grid-template-columns: 1fr 1fr;
+                 gap: 30px;
+                 margin-top: 40px;
+             }
+     
+             .info-section {
+                 background: rgba(255, 255, 255, 0.05);
+                 border-radius: var(--border-radius);
+                 padding: 30px;
+                 border: 1px solid rgba(255, 255, 255, 0.1);
+             }
+     
+             .info-section h3 {
+                 color: var(--text-white);
+                 margin-bottom: 20px;
+                 font-family: var(--font-secondary);
+                 font-size: 1.5rem;
+                 display: flex;
+                 align-items: center;
+                 gap: 10px;
+             }
+     
+             .status-grid {
+                 display: grid;
+                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                 gap: 15px;
+             }
+     
+             .status-item {
+                 background: rgba(255, 255, 255, 0.05);
+                 border-radius: var(--border-radius);
+                 padding: 15px;
+                 text-align: center;
+                 border: 1px solid rgba(255, 255, 255, 0.1);
+             }
+     
+             .status-indicator {
+                 width: 20px;
+                 height: 20px;
+                 border-radius: 50%;
+                 margin: 0 auto 10px;
+                 background: var(--color-success);
+                 animation: pulse-green 2s infinite;
+             }
+     
+             .status-indicator.warning { 
+                 background: var(--color-warning);
+                 animation: pulse-warning 2s infinite;
+             }
+     
+             .status-indicator.danger { 
+                 background: var(--color-danger);
+                 animation: pulse-danger 2s infinite;
+             }
+     
+             @keyframes pulse-green {
+                 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+                 50% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+                 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+             }
+     
+             @keyframes pulse-warning {
+                 0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+                 50% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+                 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+             }
+     
+             @keyframes pulse-danger {
+                 0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+                 50% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+                 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+             }
+     
+             .status-label {
+                 color: var(--text-white);
+                 font-weight: 600;
+                 margin-bottom: 5px;
+             }
+     
+             .status-value {
+                 color: var(--text-light);
+                 font-size: 0.9rem;
+             }
+     
+             .activity-list {
+                 display: flex;
+                 flex-direction: column;
+                 gap: 15px;
+             }
+     
+             .activity-item {
+                 display: flex;
+                 align-items: center;
+                 gap: 15px;
+                 padding: 15px;
+                 background: rgba(255, 255, 255, 0.05);
+                 border-radius: 6px;
+                 border-left: 4px solid var(--color-primary);
+             }
+     
+             .activity-icon {
+                 width: 40px;
+                 height: 40px;
+                 border-radius: 50%;
+                 display: flex;
+                 align-items: center;
+                 justify-content: center;
+                 font-size: 1.1rem;
+                 color: var(--text-white);
+             }
+     
+             .activity-icon.success { background: var(--color-success); }
+             .activity-icon.info { background: var(--color-info); }
+             .activity-icon.warning { background: var(--color-warning); }
+     
+             .activity-text {
+                 flex: 1;
+                 color: var(--text-light);
+                 font-size: 0.95rem;
+             }
+     
+             .activity-time {
+                 color: var(--color-primary);
+                 font-size: 0.85rem;
+                 font-weight: 600;
+             }
+     
+             .update-btn {
+                 background: var(--color-info);
+                 color: white;
+                 border: none;
+                 padding: 12px 20px;
+                 border-radius: var(--border-radius);
+                 font-family: var(--font-primary);
+                 font-weight: 600;
+                 cursor: pointer;
+                 transition: all 0.3s ease;
+                 display: flex;
+                 align-items: center;
+                 gap: 8px;
+                 margin-top: 20px;
+             }
+     
+             .update-btn:hover {
+                 background: #1976d2;
+                 transform: translateY(-2px);
+             }
+     
+             @media (max-width: 768px) {
+                 .dashboard-section {
+                     padding: 80px 0 60px 0;
+                 }
+     
+                 .stats-grid {
+                     grid-template-columns: 1fr;
+                     gap: 15px;
+                 }
+     
+                 .quick-actions {
+                     grid-template-columns: 1fr;
+                     gap: 10px;
+                 }
+     
+                 .system-info {
+                     grid-template-columns: 1fr;
+                     gap: 20px;
+                 }
+     
+                 .stat-card {
+                     padding: 20px 15px;
+                 }
+     
+                 .stat-number {
+                     font-size: 2rem;
+                 }
+     
+                 .status-grid {
+                     grid-template-columns: 1fr 1fr;
+                 }
+             }
+         </style>
+     </head>
+     <body>
+         <!-- Header -->
+         <header class="site-header">
+             <div class="container header-container">
+                 <a th:href="@{/}" class="logo">
+                     <div class="logo-icon-wrapper">
+                         <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                     </div>
+                     <span class="logo-text">BURGER CLUB</span>
+                 </a>
+     
+                 <nav class="main-nav">
+                     <ul>
+                         <li><a th:href="@{/}">Inicio</a></li>
+                         <li><a th:href="@{/menu}">Menú</a></li>
+                         <li><a th:href="@{/admin/dashboard}" class="admin-nav">Dashboard</a></li>
+                         <li><a th:href="@{/menu/admin}">Productos</a></li>
+                         <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                         <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                     </ul>
+                 </nav>
+             </div>
+         </header>
+     
+         <!-- Dashboard Main -->
+         <main class="dashboard-section">
+             <div class="container">
+                 <!-- Header -->
+                 <div class="dashboard-header">
+                     <h1 class="dashboard-title">Panel de Administración</h1>
+                     <p class="dashboard-subtitle">Gestiona tu restaurante desde un solo lugar</p>
+                 </div>
+     
+                 <!-- Estadísticas principales -->
+                 <div class="stats-grid">
+                     <div class="stat-card productos">
+                         <i class="fas fa-hamburger stat-icon"></i>
+                         <div class="stat-number" th:text="${totalProductos ?: 0}">0</div>
+                         <div class="stat-label">Productos Totales</div>
+                     </div>
+     
+                     <div class="stat-card clientes">
+                         <i class="fas fa-users stat-icon"></i>
+                         <div class="stat-number" th:text="${totalClientes ?: 0}">0</div>
+                         <div class="stat-label">Clientes Registrados</div>
+                     </div>
+     
+                     <div class="stat-card adicionales">
+                         <i class="fas fa-plus-circle stat-icon"></i>
+                         <div class="stat-number" th:text="${totalAdicionales ?: 0}">0</div>
+                         <div class="stat-label">Adicionales Disponibles</div>
+                     </div>
+     
+                     <div class="stat-card alertas">
+                         <i class="fas fa-exclamation-triangle stat-icon"></i>
+                         <div class="stat-number" th:text="${stockBajo ?: 0}">0</div>
+                         <div class="stat-label">Productos Stock Bajo</div>
+                     </div>
+                 </div>
+     
+                 <!-- Acciones rápidas -->
+                 <div class="quick-actions">
+                     <a th:href="@{/menu/admin}" class="action-btn">
+                         <i class="fas fa-hamburger"></i>
+                         <span>Gestionar Productos</span>
+                     </a>
+                     
+                     <a th:href="@{/admin/clientes}" class="action-btn">
+                         <i class="fas fa-users"></i>
+                         <span>Gestionar Clientes</span>
+                     </a>
+                     
+                     <a th:href="@{/admin/adicionales}" class="action-btn">
+                         <i class="fas fa-plus-circle"></i>
+                         <span>Gestionar Adicionales</span>
+                     </a>
+                     
+                     <a href="#" class="action-btn" onclick="updateAdicionales()">
+                         <i class="fas fa-sync-alt"></i>
+                         <span>Actualizar Relaciones</span>
+                     </a>
+                 </div>
+     
+                 <!-- Información del sistema -->
+                 <div class="system-info">
+                     <!-- Estado del Sistema -->
+                     <div class="info-section">
+                         <h3><i class="fas fa-server"></i> Estado del Sistema</h3>
+                         <div class="status-grid">
+                             <div class="status-item">
+                                 <div class="status-indicator"></div>
+                                 <div class="status-label">Base de Datos</div>
+                                 <div class="status-value">Conectada</div>
+                             </div>
+                             
+                             <div class="status-item">
+                                 <div class="status-indicator"></div>
+                                 <div class="status-label">APIs</div>
+                                 <div class="status-value">Operativas</div>
+                             </div>
+                             
+                             <div class="status-item">
+                                 <div class="status-indicator warning" th:if="${stockBajo > 0}"></div>
+                                 <div class="status-indicator" th:unless="${stockBajo > 0}"></div>
+                                 <div class="status-label">Inventario</div>
+                                 <div class="status-value" th:text="${stockBajo > 0} ? 'Atención Requerida' : 'Normal'">Normal</div>
+                             </div>
+                             
+                             <div class="status-item">
+                                 <div class="status-indicator"></div>
+                                 <div class="status-label">Adicionales</div>
+                                 <div class="status-value">Sincronizados</div>
+                             </div>
+                         </div>
+     
+                         <button class="update-btn" onclick="updateAdicionales()">
+                             <i class="fas fa-sync-alt"></i>
+                             Actualizar Relaciones Adicionales
+                         </button>
+                     </div>
+     
+                     <!-- Actividad Reciente -->
+                     <div class="info-section">
+                         <h3><i class="fas fa-clock"></i> Actividad del Sistema</h3>
+                         <div class="activity-list">
+                             <div class="activity-item">
+                                 <div class="activity-icon success">
+                                     <i class="fas fa-check"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     Sistema iniciado correctamente con <span th:text="${totalProductos ?: 0}">0</span> productos
+                                 </div>
+                                 <div class="activity-time">Inicio</div>
+                             </div>
+                             
+                             <div class="activity-item" th:if="${stockBajo > 0}">
+                                 <div class="activity-icon warning">
+                                     <i class="fas fa-exclamation-triangle"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     <span th:text="${stockBajo}">0</span> productos con stock bajo requieren atención
+                                 </div>
+                                 <div class="activity-time">Revisar</div>
+                             </div>
+                             
+                             <div class="activity-item">
+                                 <div class="activity-icon info">
+                                     <i class="fas fa-users"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     <span th:text="${clientesActivos ?: 0}">0</span> clientes activos registrados
+                                 </div>
+                                 <div class="activity-time">Total</div>
+                             </div>
+     
+                             <div class="activity-item">
+                                 <div class="activity-icon success">
+                                     <i class="fas fa-plus-circle"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     <span th:text="${adicionalesActivos ?: 0}">0</span> adicionales disponibles
+                                 </div>
+                                 <div class="activity-time">Activos</div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </main>
+     
+         <!-- Footer -->
+         <footer class="site-footer">
+             <div class="container">
+                 <div class="footer-social">
+                     <h3>Panel Administrativo</h3>
+                     <p style="color: var(--text-light); opacity: 0.8;">
+                         Burger Club - Sistema de gestión v1.0
+                     </p>
+                 </div>
+                 <div class="footer-bottom">
+                     <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
+                 </div>
+             </div>
+         </footer>
+     
+         <!-- JavaScript -->
+         <script>
+             async function updateAdicionales() {
+                 try {
+                     const response = await fetch('/admin/api/update-adicionales', {
+                         method: 'POST'
+                     });
+                     
+                     const result = await response.json();
+                     
+                     if (result.success) {
+                         alert(`Éxito: ${result.message}\nAdicionales actualizados: ${result.count}`);
+                     } else {
+                         alert(`Error: ${result.message}`);
+                     }
+                 } catch (error) {
+                     console.error('Error:', error);
+                     alert('Error al actualizar adicionales');
+                 }
+             }
+     
+             // Animación de números
+             function animateNumbers() {
+                 const numbers = document.querySelectorAll('.stat-number');
+                 numbers.forEach(number => {
+                     const target = parseInt(number.textContent);
+                     if (isNaN(target)) return;
+                     
+                     let current = 0;
+                     const increment = target / 50;
+                     const timer = setInterval(() => {
+                         current += increment;
+                         if (current >= target) {
+                             number.textContent = target;
+                             clearInterval(timer);
+                         } else {
+                             number.textContent = Math.floor(current);
+                         }
+                     }, 30);
+                 });
+             }
+     
+             // Actualizar hora cada minuto
+             function updateTime() {
+                 const timeElements = document.querySelectorAll('.activity-time');
+                 const now = new Date();
+                 const timeStr = now.toLocaleTimeString('es-ES', { 
+                     hour: '2-digit', 
+                     minute: '2-digit' 
+                 });
+                 
+                 // Solo actualizar elementos que muestran "Inicio" o similares
+                 timeElements.forEach(el => {
+                     if (el.textContent === 'Inicio') {
+                         el.textContent = timeStr;
+                     }
+                 });
+             }
+     
+             // Inicializar funciones
+             document.addEventListener('DOMContentLoaded', () => {
+                 setTimeout(animateNumbers, 500);
+                 updateTime();
+                 setInterval(updateTime, 60000); // Actualizar cada minuto
+             });
+         </script>
+     </body>
+     </html>

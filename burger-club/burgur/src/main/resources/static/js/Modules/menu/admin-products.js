@@ -1,4 +1,4 @@
-///Users/santosa/Documents/GitHub/website_for_restaurant/burger-club/burgur/src/main/resources/static/js/Modules/menu/admin-products.js
+//burger-club/burgur/src/main/resources/static/js/Modules/menu/admin-products.js
 // ==========================================
 // BURGER CLUB - ADMIN PRODUCTS MODULE
 // ==========================================

@@ -1,3 +1,4 @@
+//burger-club/burgur/src/main/resources/static/js/utils/constants.js
 // ==========================================
 // BURGER CLUB - CONSTANTS
 // ==========================================
