@@ -1,8 +1,6 @@
 //burger-club/burgur/src/main/resources/static/js/admin-universal.js
-
-
 // ==========================================
-// BURGER CLUB - ADMIN UNIVERSAL MANAGER (UPDATED)
+// BURGER CLUB - ADMIN UNIVERSAL MANAGER (CORREGIDO)
 // ==========================================
 
 class UniversalAdminManager {
@@ -25,58 +23,79 @@ class UniversalAdminManager {
         this.setupKeyboardShortcuts();
         this.addNotificationStyles();
         
-        // Try to get modal manager - with multiple fallback strategies
+        // Inicializar modal manager con estrategias múltiples
         this.initializeModalManager();
     }
     
     initializeModalManager() {
-        // Strategy 1: Check if already available
-        if (window.AdminModalManager) {
-            this.modalManager = new window.AdminModalManager();
-            console.log('Modal manager initialized via window.AdminModalManager');
-            return;
-        }
-        
-        // Strategy 2: Check if global instance exists
+        // Estrategia 1: Buscar en window inmediatamente
         if (window.globalModalManager) {
             this.modalManager = window.globalModalManager;
-            console.log('Modal manager initialized via window.globalModalManager');
+            console.log('✅ Modal manager encontrado inmediatamente');
             return;
         }
         
-        // Strategy 3: Wait a bit for module loading
-        setTimeout(() => {
-            if (window.AdminModalManager && !this.modalManager) {
-                this.modalManager = new window.AdminModalManager();
-                console.log('Modal manager initialized after delay');
-            } else if (window.globalModalManager && !this.modalManager) {
-                this.modalManager = window.globalModalManager;
-                console.log('Modal manager found via global instance after delay');
-            } else {
-                console.warn('Modal manager not available after delay');
-            }
-        }, 500);
+        // Estrategia 2: Crear nuevo si AdminModalManager está disponible
+        if (window.AdminModalManager) {
+            this.modalManager = new window.AdminModalManager();
+            console.log('✅ Modal manager creado desde clase');
+            return;
+        }
         
-        // Strategy 4: Keep trying periodically
-        const maxAttempts = 10;
+        // Estrategia 3: Esperar y reintentar
         let attempts = 0;
+        const maxAttempts = 50; // 10 segundos máximo
         const checkInterval = setInterval(() => {
             attempts++;
-            if (this.modalManager || attempts >= maxAttempts) {
+            
+            if (window.globalModalManager) {
+                this.modalManager = window.globalModalManager;
+                console.log(`✅ Modal manager encontrado en intento ${attempts}`);
                 clearInterval(checkInterval);
                 return;
             }
             
             if (window.AdminModalManager) {
                 this.modalManager = new window.AdminModalManager();
-                console.log(`Modal manager initialized on attempt ${attempts}`);
+                console.log(`✅ Modal manager creado en intento ${attempts}`);
                 clearInterval(checkInterval);
-            } else if (window.globalModalManager) {
-                this.modalManager = window.globalModalManager;
-                console.log(`Modal manager found via global instance on attempt ${attempts}`);
+                return;
+            }
+            
+            if (attempts >= maxAttempts) {
+                console.error('❌ Modal manager no disponible después de', attempts, 'intentos');
                 clearInterval(checkInterval);
             }
         }, 200);
+        
+        // Estrategia 4: Fallback directo al DOM
+        setTimeout(() => {
+            if (!this.modalManager) {
+                console.warn('🔄 Intentando cargar modal manager directamente...');
+                this.loadModalManagerDirectly();
+            }
+        }, 1000);
+    }
+    
+    loadModalManagerDirectly() {
+        try {
+            // Cargar el script directamente si no está cargado
+            if (!document.querySelector('script[src*="admin-modal-manager"]')) {
+                const script = document.createElement('script');
+                script.src = '/js/admin/admin-modal-manager.js';
+                script.onload = () => {
+                    setTimeout(() => {
+                        if (window.globalModalManager) {
+                            this.modalManager = window.globalModalManager;
+                            console.log('✅ Modal manager cargado directamente');
+                        }
+                    }, 100);
+                };
+                document.head.appendChild(script);
+            }
+        } catch (error) {
+            console.error('Error cargando modal manager:', error);
+        }
     }
     
     getCurrentSection() {
@@ -378,11 +397,10 @@ class UniversalAdminManager {
     }
     
     // ==========================================
-    // MODAL OPERATIONS - UPDATED
+    // MODAL OPERATIONS - MEJORADO
     // ==========================================
     
     openEditModal(item) {
-        // Check if modal manager is available with multiple strategies
         const modalManager = this.getAvailableModalManager();
         
         if (modalManager) {
@@ -400,8 +418,8 @@ class UniversalAdminManager {
                     this.showNotification('Función de edición pendiente de implementación', 'info');
             }
         } else {
-            this.showNotification('Sistema de modales no disponible', 'warning');
-            this.debugModalManager();
+            this.showNotification('Sistema de modales no disponible. Recargando...', 'warning');
+            setTimeout(() => location.reload(), 2000);
         }
     }
     
@@ -423,17 +441,18 @@ class UniversalAdminManager {
                     this.showNotification('Función de agregar pendiente de implementación', 'info');
             }
         } else {
-            this.showNotification('Sistema de modales no disponible', 'warning');
-            this.debugModalManager();
+            this.showNotification('Sistema de modales no disponible. Recargando...', 'warning');
+            setTimeout(() => location.reload(), 2000);
         }
     }
     
     getAvailableModalManager() {
-        // Try multiple sources for modal manager
+        // Intentar obtener modal manager actualizado
         if (this.modalManager) {
             return this.modalManager;
         }
         
+        // Re-intentar desde window
         if (window.globalModalManager) {
             this.modalManager = window.globalModalManager;
             return this.modalManager;
@@ -444,15 +463,8 @@ class UniversalAdminManager {
             return this.modalManager;
         }
         
+        console.error('Modal manager no disponible');
         return null;
-    }
-    
-    debugModalManager() {
-        console.log('Modal Manager Debug Info:');
-        console.log('- this.modalManager:', this.modalManager);
-        console.log('- window.AdminModalManager:', window.AdminModalManager);
-        console.log('- window.globalModalManager:', window.globalModalManager);
-        console.log('- Current section:', this.currentSection);
     }
     
     // ==========================================
@@ -825,7 +837,7 @@ class UniversalAdminManager {
     }
 }
 
-// Global functions for backward compatibility with inline handlers
+// Funciones globales para compatibilidad con handlers inline
 window.editProduct = function(productId) {
     if (window.universalAdmin) {
         window.universalAdmin.editItem(productId);
@@ -880,7 +892,7 @@ window.openAddClienteModal = function() {
     }
 };
 
-// Initialize when DOM is loaded
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.universalAdmin = new UniversalAdminManager();
 });

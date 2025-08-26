@@ -1,6 +1,6 @@
 // burger-club/burgur/src/main/resources/static/js/admin/admin-modal-manager.js
 // ==========================================
-// BURGER CLUB - ADMIN MODAL MANAGER (FIXED)
+// BURGER CLUB - ADMIN MODAL MANAGER (CORREGIDO)
 // ==========================================
 
 class AdminModalManager {
@@ -11,7 +11,7 @@ class AdminModalManager {
     
     init() {
         this.addModalStyles();
-        console.log('Admin Modal Manager initialized');
+        console.log('✅ Admin Modal Manager initialized');
     }
     
     // ==========================================
@@ -94,7 +94,10 @@ class AdminModalManager {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn-cancel">Cancelar</button>
+                        <button type="button" class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
                         <button type="submit" class="btn-save">
                             <i class="fas fa-save"></i>
                             ${isEdit ? 'Actualizar' : 'Crear'} Producto
@@ -121,7 +124,6 @@ class AdminModalManager {
             await this.handleProductSubmit(e, modal, isEdit, productId);
         });
         
-        // Real-time validation
         this.setupFormValidation(form);
     }
     
@@ -135,10 +137,11 @@ class AdminModalManager {
             precio: parseFloat(formData.get('precio')),
             stock: parseInt(formData.get('stock')),
             descripcion: formData.get('descripcion'),
-            imagen: formData.get('imagen'),
+            imgURL: formData.get('imagen'),
             ingredientes: ingredientes ? ingredientes.split(',').map(i => i.trim()).filter(i => i) : [],
-            isNew: formData.get('isNew') === 'on',
-            isPopular: formData.get('isPopular') === 'on'
+            nuevo: formData.get('isNew') === 'on',
+            popular: formData.get('isPopular') === 'on',
+            activo: true
         };
         
         try {
@@ -155,7 +158,7 @@ class AdminModalManager {
             
             if (response.ok) {
                 this.closeModal(modal);
-                this.showSuccessMessage(result.message);
+                this.showSuccessMessage(result.message || 'Producto guardado correctamente');
                 setTimeout(() => location.reload(), 1000);
             } else {
                 this.showErrorMessage(result.message || 'Error al procesar la solicitud');
@@ -216,7 +219,10 @@ class AdminModalManager {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn-cancel">Cancelar</button>
+                        <button type="button" class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
                         <button type="submit" class="btn-save">
                             <i class="fas fa-save"></i>
                             ${isEdit ? 'Actualizar' : 'Crear'} Cliente
@@ -254,10 +260,10 @@ class AdminModalManager {
             apellido: formData.get('apellido'),
             correo: formData.get('correo'),
             telefono: formData.get('telefono'),
-            direccion: formData.get('direccion')
+            direccion: formData.get('direccion'),
+            activo: true
         };
         
-        // Only include password if provided
         const password = formData.get('contrasena');
         if (password && password.trim() !== '') {
             clienteData.contrasena = password;
@@ -277,7 +283,7 @@ class AdminModalManager {
             
             if (response.ok) {
                 this.closeModal(modal);
-                this.showSuccessMessage(result.message);
+                this.showSuccessMessage(result.message || 'Cliente guardado correctamente');
                 setTimeout(() => location.reload(), 1000);
             } else {
                 this.showErrorMessage(result.message || 'Error al procesar la solicitud');
@@ -354,7 +360,10 @@ class AdminModalManager {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn-cancel">Cancelar</button>
+                        <button type="button" class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
                         <button type="submit" class="btn-save">
                             <i class="fas fa-save"></i>
                             ${isEdit ? 'Actualizar' : 'Crear'} Adicional
@@ -414,7 +423,7 @@ class AdminModalManager {
             
             if (response.ok) {
                 this.closeModal(modal);
-                this.showSuccessMessage(result.message);
+                this.showSuccessMessage(result.message || 'Adicional guardado correctamente');
                 setTimeout(() => location.reload(), 1000);
             } else {
                 this.showErrorMessage(result.message || 'Error al procesar la solicitud');
@@ -452,14 +461,12 @@ class AdminModalManager {
             modal.classList.add('active');
         }, 10);
         
-        // Close on overlay click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closeModal(modal);
             }
         });
         
-        // Close on ESC key
         this.escapeHandler = (e) => {
             if (e.key === 'Escape') {
                 this.closeModal(modal);
@@ -509,7 +516,6 @@ class AdminModalManager {
             return false;
         }
         
-        // Specific validations
         if (field.type === 'email' && value && !this.isValidEmail(value)) {
             this.showFieldError(field, 'Formato de email inválido');
             return false;
@@ -768,11 +774,13 @@ class AdminModalManager {
                 color: rgba(255, 255, 255, 0.8);
             }
             
+
             .form-help {
                 color: rgba(255, 255, 255, 0.6);
                 font-size: 0.8rem;
                 margin-top: 4px;
             }
+ }
             
             .field-error {
                 color: #ff6b6b;
@@ -907,13 +915,17 @@ class AdminModalManager {
     }
 }
 
-// CRITICAL: Make AdminModalManager globally available immediately
+// INMEDIATAMENTE hacer AdminModalManager disponible globalmente
 window.AdminModalManager = AdminModalManager;
+window.globalModalManager = new AdminModalManager();
 
-// Initialize global instance when DOM is loaded
+// No esperar al DOM loaded - ya disponible
+console.log('AdminModalManager configurado globalmente');
+
+// También inicializar al cargar DOM por compatibilidad
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.globalModalManager) {
         window.globalModalManager = new AdminModalManager();
-        console.log('Global AdminModalManager initialized');
     }
+    console.log('AdminModalManager verificado en DOM ready');
 });

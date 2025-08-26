@@ -3,12 +3,14 @@
 class ProductDetailModal {
     constructor() {
         this.currentModal = null;
-        this.selectedAdicionales = new Map(); // Map<adicionalId, adicional>
+        this.selectedAdicionales = new Map();
         this.addModalStyles();
+        console.log('✅ ProductDetailModal inicializado');
     }
     
     async showProductDetail(productId) {
         try {
+            console.log('📦 Cargando detalles del producto:', productId);
             const response = await fetch(`/menu/api/productos/${productId}`);
             if (!response.ok) {
                 throw new Error('Error al cargar el producto');
@@ -17,6 +19,9 @@ class ProductDetailModal {
             const data = await response.json();
             const product = data.producto || data;
             const adicionales = data.adicionalesPermitidos || [];
+            
+            console.log('📦 Producto cargado:', product.nombre);
+            console.log('🍯 Adicionales disponibles:', adicionales.length);
             
             this.createProductModal(product, adicionales);
         } catch (error) {
@@ -33,7 +38,7 @@ class ProductDetailModal {
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>${product.nombre}</h2>
+                    <h2><i class="fas fa-hamburger"></i> ${product.nombre}</h2>
                     <button class="modal-close" type="button">&times;</button>
                 </div>
                 
@@ -112,9 +117,13 @@ class ProductDetailModal {
                 
                 <div class="modal-footer">
                     <div class="quantity-selector">
-                        <button type="button" class="qty-btn" id="decreaseQty">-</button>
+                        <button type="button" class="qty-btn" id="decreaseQty">
+                            <i class="fas fa-minus"></i>
+                        </button>
                         <span class="quantity-display" id="quantity">1</span>
-                        <button type="button" class="qty-btn" id="increaseQty">+</button>
+                        <button type="button" class="qty-btn" id="increaseQty">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                     
                     <button class="add-to-cart-btn" id="addToCartBtn" data-product='${JSON.stringify(product)}'>
@@ -151,6 +160,7 @@ class ProductDetailModal {
                 quantity--;
                 quantityDisplay.textContent = quantity;
                 this.updateTotalPrice(product.precio);
+                this.addButtonAnimation(decreaseBtn);
             }
         });
         
@@ -159,6 +169,7 @@ class ProductDetailModal {
                 quantity++;
                 quantityDisplay.textContent = quantity;
                 this.updateTotalPrice(product.precio);
+                this.addButtonAnimation(increaseBtn);
             }
         });
         
@@ -175,11 +186,14 @@ class ProductDetailModal {
                         nombre: adicionalName,
                         precio: adicionalPrice
                     });
+                    console.log('➕ Adicional agregado:', adicionalName);
                 } else {
                     this.selectedAdicionales.delete(adicionalId);
+                    console.log('➖ Adicional removido:', adicionalName);
                 }
                 
                 this.updateTotalPrice(product.precio);
+                this.addCheckboxAnimation(e.target.closest('.adicional-item'));
             });
         });
         
@@ -212,7 +226,17 @@ class ProductDetailModal {
     updateTotalPrice(basePrice) {
         const quantity = parseInt(document.querySelector('#quantity').textContent);
         const total = this.calculateTotal(basePrice) * quantity;
-        document.querySelector('#totalPrice').textContent = `$${this.formatPrice(total)}`;
+        const totalElement = document.querySelector('#totalPrice');
+        if (totalElement) {
+            totalElement.textContent = `$${this.formatPrice(total)}`;
+            // Animación de actualización de precio
+            totalElement.style.transform = 'scale(1.1)';
+            totalElement.style.color = '#4caf50';
+            setTimeout(() => {
+                totalElement.style.transform = 'scale(1)';
+                totalElement.style.color = '';
+            }, 200);
+        }
     }
     
     calculateTotal(basePrice) {
@@ -224,11 +248,13 @@ class ProductDetailModal {
     }
     
     addToCart(item) {
-        // Integration with existing cart system
+        console.log('🛒 Agregando al carrito:', item);
+        
+        // Integración con el sistema de carrito existente
         if (window.BurgerClub && window.BurgerClub.cart) {
             window.BurgerClub.cart.addItem(item);
         } else {
-            // Fallback: trigger cart event
+            // Fallback: trigger custom event
             const event = new CustomEvent('addToCart', { detail: item });
             document.dispatchEvent(event);
         }
@@ -267,6 +293,20 @@ class ProductDetailModal {
             document.removeEventListener('keydown', this.escHandler);
             this.escHandler = null;
         }
+    }
+    
+    addButtonAnimation(button) {
+        button.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            button.style.transform = 'scale(1)';
+        }, 150);
+    }
+    
+    addCheckboxAnimation(item) {
+        item.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            item.style.transform = 'scale(1)';
+        }, 200);
     }
     
     capitalizeFirst(str) {
@@ -312,7 +352,7 @@ class ProductDetailModal {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.85);
                 z-index: 1000;
                 display: flex;
                 justify-content: center;
@@ -320,6 +360,7 @@ class ProductDetailModal {
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
+                backdrop-filter: blur(5px);
             }
             
             .product-detail-modal.active {
@@ -332,11 +373,12 @@ class ProductDetailModal {
                 border: 2px solid #fbb5b5;
                 border-radius: 12px;
                 width: 90%;
-                max-width: 800px;
+                max-width: 900px;
                 max-height: 90vh;
                 overflow-y: auto;
                 transform: scale(0.9);
                 transition: transform 0.3s ease;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             }
             
             .product-detail-modal.active .modal-content {
@@ -357,6 +399,9 @@ class ProductDetailModal {
                 margin: 0;
                 font-family: 'Lexend Zetta', sans-serif;
                 font-size: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
             
             .product-detail-modal .modal-close {
@@ -366,8 +411,8 @@ class ProductDetailModal {
                 color: white;
                 cursor: pointer;
                 padding: 0;
-                width: 30px;
-                height: 30px;
+                width: 40px;
+                height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -376,7 +421,9 @@ class ProductDetailModal {
             }
             
             .product-detail-modal .modal-close:hover {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(244, 67, 54, 0.2);
+                color: #f44336;
+                transform: scale(1.1);
             }
             
             .product-detail-modal .modal-body {
@@ -396,32 +443,40 @@ class ProductDetailModal {
             
             .product-detail-image {
                 width: 100%;
-                height: 250px;
+                height: 280px;
                 object-fit: cover;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             }
             
             .product-badge {
                 position: absolute;
-                top: 10px;
-                right: 10px;
-                padding: 6px 12px;
+                top: 15px;
+                right: 15px;
+                padding: 8px 12px;
                 border-radius: 20px;
                 font-size: 0.8rem;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             }
             
             .product-badge.nuevo {
-                background: rgba(255, 20, 20, 0.9);
+                background: linear-gradient(135deg, #ff4444, #cc0000);
                 color: white;
+                animation: pulse 2s infinite;
             }
             
             .product-badge.popular {
-                background: rgba(249, 255, 0, 0.9);
+                background: linear-gradient(135deg, #ffd700, #ffb000);
                 color: #333;
+            }
+            
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
             }
             
             .product-info-section {
@@ -432,10 +487,13 @@ class ProductDetailModal {
             
             .product-category {
                 color: #fbb5b5;
-                font-weight: 600;
+                font-weight: 700;
                 text-transform: uppercase;
                 font-size: 0.9rem;
                 letter-spacing: 1px;
+                border-bottom: 2px solid #fbb5b5;
+                padding-bottom: 5px;
+                width: fit-content;
             }
             
             .product-description h3,
@@ -444,32 +502,52 @@ class ProductDetailModal {
                 font-size: 1.1rem;
                 margin-bottom: 10px;
                 font-family: 'Lexend Zetta', sans-serif;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .product-description h3::before {
+                content: '📝';
+                font-size: 0.9rem;
+            }
+            
+            .product-ingredients h3::before {
+                content: '🥗';
+                font-size: 0.9rem;
             }
             
             .product-description p {
                 color: rgba(255, 255, 255, 0.8);
-                line-height: 1.5;
+                line-height: 1.6;
             }
             
             .ingredients-list {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 6px;
+                gap: 8px;
             }
             
             .ingredient-tag {
                 background: rgba(251, 181, 181, 0.2);
                 color: #fbb5b5;
-                padding: 4px 8px;
+                padding: 6px 10px;
                 border-radius: 12px;
                 font-size: 0.8rem;
                 font-weight: 500;
+                border: 1px solid rgba(251, 181, 181, 0.3);
+                transition: all 0.3s ease;
+            }
+            
+            .ingredient-tag:hover {
+                background: rgba(251, 181, 181, 0.3);
+                transform: translateY(-1px);
             }
             
             .product-price-section {
                 background: rgba(255, 255, 255, 0.05);
-                padding: 15px;
-                border-radius: 8px;
+                padding: 20px;
+                border-radius: 12px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
             }
             
@@ -478,14 +556,15 @@ class ProductDetailModal {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
             }
             
             .total-price {
                 margin-bottom: 0;
-                padding-top: 8px;
-                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                padding-top: 10px;
+                border-top: 2px solid #fbb5b5;
                 font-weight: 700;
+                font-size: 1.1rem;
             }
             
             .price-label,
@@ -497,42 +576,50 @@ class ProductDetailModal {
             .total-price-value {
                 color: #fbb5b5;
                 font-weight: 700;
-                font-size: 1.1rem;
+                font-size: 1.2rem;
+                transition: all 0.3s ease;
             }
             
             .adicionales-section {
                 margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 25px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .adicionales-title {
                 color: white;
-                font-size: 1.2rem;
+                font-size: 1.3rem;
                 margin-bottom: 20px;
                 font-family: 'Lexend Zetta', sans-serif;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 12px;
+                text-align: center;
+                justify-content: center;
             }
             
             .adicionales-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 15px;
             }
             
             .adicional-item {
                 background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                padding: 12px;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
                 transition: all 0.3s ease;
+                cursor: pointer;
             }
             
             .adicional-item:hover {
                 background: rgba(255, 255, 255, 0.1);
                 border-color: #fbb5b5;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             }
             
             .adicional-content {
@@ -544,48 +631,49 @@ class ProductDetailModal {
             .adicional-info {
                 display: flex;
                 flex-direction: column;
-                gap: 4px;
+                gap: 5px;
+                flex: 1;
             }
             
             .adicional-name {
                 color: white;
                 font-weight: 600;
-                font-size: 0.95rem;
+                font-size: 1rem;
             }
             
             .adicional-price {
-                color: #fbb5b5;
-                font-weight: 600;
+                color: #4caf50;
+                font-weight: 700;
                 font-size: 0.9rem;
             }
             
             .adicional-checkbox {
                 cursor: pointer;
                 position: relative;
-                display: flex;
-                align-items: center;
             }
             
             .adicional-checkbox input[type="checkbox"] {
-                width: 20px;
-                height: 20px;
+                width: 22px;
+                height: 22px;
                 margin: 0;
                 cursor: pointer;
+                accent-color: #fbb5b5;
             }
             
             .no-adicionales {
                 text-align: center;
-                padding: 30px;
+                padding: 40px;
                 color: rgba(255, 255, 255, 0.6);
-                border: 1px dashed rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
+                border: 2px dashed rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
                 margin-top: 20px;
             }
             
             .no-adicionales i {
-                font-size: 2rem;
-                margin-bottom: 10px;
+                font-size: 3rem;
+                margin-bottom: 15px;
                 opacity: 0.5;
+                color: #fbb5b5;
             }
             
             .modal-footer {
@@ -595,28 +683,34 @@ class ProductDetailModal {
                 justify-content: space-between;
                 align-items: center;
                 background: rgba(255, 255, 255, 0.02);
+                gap: 20px;
+                flex-wrap: wrap;
             }
             
             .quantity-selector {
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 15px;
                 background: rgba(255, 255, 255, 0.1);
-                padding: 8px;
-                border-radius: 8px;
+                padding: 10px 15px;
+                border-radius: 25px;
+                border: 2px solid rgba(255, 255, 255, 0.2);
             }
             
             .qty-btn {
-                width: 30px;
-                height: 30px;
+                width: 35px;
+                height: 35px;
                 border: none;
                 background: #fbb5b5;
                 color: #12372a;
-                border-radius: 4px;
+                border-radius: 50%;
                 cursor: pointer;
                 font-weight: 700;
-                font-size: 1.1rem;
+                font-size: 1rem;
                 transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .qty-btn:hover {
@@ -627,31 +721,39 @@ class ProductDetailModal {
             .quantity-display {
                 color: white;
                 font-weight: 700;
-                font-size: 1.1rem;
-                min-width: 20px;
+                font-size: 1.2rem;
+                min-width: 30px;
                 text-align: center;
             }
             
             .add-to-cart-btn {
-                background: #4caf50;
+                background: linear-gradient(135deg, #4caf50, #45a049);
                 color: white;
                 border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
+                padding: 15px 25px;
+                border-radius: 25px;
                 font-family: 'Sansita Swashed', cursive;
                 font-weight: 700;
-                font-size: 1rem;
+                font-size: 1.1rem;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 10px;
                 transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+                flex: 1;
+                justify-content: center;
+                min-width: 200px;
             }
             
             .add-to-cart-btn:hover {
-                background: #45a049;
+                background: linear-gradient(135deg, #45a049, #388e3c);
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+                box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            }
+            
+            .add-to-cart-btn:active {
+                transform: translateY(0);
             }
             
             .detail-notification {
@@ -704,11 +806,16 @@ class ProductDetailModal {
                 .modal-footer {
                     flex-direction: column;
                     gap: 15px;
+                    align-items: stretch;
                 }
                 
                 .add-to-cart-btn {
                     width: 100%;
-                    justify-content: center;
+                    min-width: auto;
+                }
+                
+                .quantity-selector {
+                    align-self: center;
                 }
             }
             
@@ -723,25 +830,34 @@ class ProductDetailModal {
                 .product-detail-modal .modal-footer {
                     padding: 20px 15px;
                 }
+                
+                .detail-notification {
+                    right: 10px;
+                    left: 10px;
+                    min-width: auto;
+                }
             }
         `;
         document.head.appendChild(style);
     }
 }
 
-// Initialize and make globally available
+// Hacer ProductDetailModal disponible globalmente
 window.ProductDetailModal = ProductDetailModal;
 
-// Auto-initialize when DOM is loaded
+// Auto-inicializar cuando DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.productDetailModal = new ProductDetailModal();
     
-    // Add click handlers to existing menu cards
+    // Agregar click handlers a las tarjetas de menú existentes
     const menuCards = document.querySelectorAll('.menu-card');
-    menuCards.forEach(card => {
+    console.log(`Encontradas ${menuCards.length} tarjetas de menú`);
+    
+    menuCards.forEach((card, index) => {
         card.addEventListener('click', (e) => {
-            // Don't trigger if clicking the add to cart button directly
+            // No abrir modal si se hace clic en el botón de agregar al carrito
             if (e.target.closest('.btn-add-cart')) {
+                console.log('Click en botón add-cart, no abrir modal');
                 return;
             }
             
@@ -749,14 +865,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             card.getAttribute('data-product-id');
             
             if (productId) {
+                console.log('Abriendo detalles del producto:', productId);
                 window.productDetailModal.showProductDetail(productId);
+            } else {
+                console.warn('No se encontró ID del producto en la tarjeta');
             }
         });
         
-        // Add cursor pointer and hover effect
+        // Mejorar el cursor y título
         card.style.cursor = 'pointer';
-        card.title = 'Click para ver detalles y adicionales';
+        card.title = 'Click para ver detalles y adicionales disponibles';
+        
+        // Agregar indicador visual de que es clickeable
+        if (!card.querySelector('.card-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'card-overlay';
+            overlay.innerHTML = `
+                <div class="overlay-content">
+                    <p class="overlay-text">Ver detalles y adicionales</p>
+                    <i class="fas fa-eye overlay-icon"></i>
+                </div>
+            `;
+            card.querySelector('.menu-card-image').appendChild(overlay);
+        }
     });
+    
+    console.log(`ProductDetailModal configurado para ${menuCards.length} productos`);
 });
 
-export default ProductDetailModal;

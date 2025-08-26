@@ -1,6 +1,7 @@
 //burger-club/burgur/src/main/java/restaurante/example/burgur/Controller/ProductoController.java
 package restaurante.example.burgur.Controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,149 @@ public class ProductoController {
     private ProductoService productoService;
     
     // ==========================================
-    // VISTA ADMIN
+    // API REST PARA PRODUCTOS
+    // ==========================================
+    
+    @GetMapping("/api/productos/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> obtenerProductoPorId(@PathVariable Long id) {
+        try {
+            var productoOpt = productoService.findById(id);
+            if (productoOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Producto producto = productoOpt.get();
+            List<Adicional> adicionales = productoService.obtenerAdicionalesPermitidos(id);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("producto", producto);
+            response.put("adicionalesPermitidos", adicionales);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/api/productos")
+    @ResponseBody
+    public ResponseEntity<List<Producto>> obtenerTodosLosProductos() {
+        try {
+            return ResponseEntity.ok(productoService.findAll());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @PostMapping("/api/productos")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> crearProducto(@RequestBody ProductoRequest request) {
+        try {
+            if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El nombre es requerido"));
+            }
+            if (request.getCategoria() == null || request.getCategoria().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "La categoría es requerida"));
+            }
+            if (request.getPrecio() == null || request.getPrecio() <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El precio debe ser mayor a 0"));
+            }
+            if (request.getStock() == null || request.getStock() < 0) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El stock no puede ser negativo"));
+            }
+            
+            Producto producto = new Producto();
+            producto.setNombre(request.getNombre());
+            producto.setCategoria(request.getCategoria());
+            producto.setPrecio(request.getPrecio());
+            producto.setStock(request.getStock());
+            producto.setDescripcion(request.getDescripcion());
+            producto.setImgURL(request.getImgURL());
+            producto.setIngredientes(request.getIngredientes());
+            producto.setNuevo(request.getNuevo() != null ? request.getNuevo() : false);
+            producto.setPopular(request.getPopular() != null ? request.getPopular() : false);
+            producto.setActivo(request.getActivo() != null ? request.getActivo() : true);
+            
+            Producto savedProducto = productoService.save(producto);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Producto creado correctamente",
+                "producto", savedProducto
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+        }
+    }
+    
+    @PutMapping("/api/productos/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> actualizarProducto(
+            @PathVariable Long id, @RequestBody ProductoRequest request) {
+        try {
+            if (!productoService.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El nombre es requerido"));
+            }
+            if (request.getCategoria() == null || request.getCategoria().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "La categoría es requerida"));
+            }
+            if (request.getPrecio() == null || request.getPrecio() <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El precio debe ser mayor a 0"));
+            }
+            if (request.getStock() == null || request.getStock() < 0) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El stock no puede ser negativo"));
+            }
+            
+            Producto producto = productoService.findById(id).get();
+            producto.setNombre(request.getNombre());
+            producto.setCategoria(request.getCategoria());
+            producto.setPrecio(request.getPrecio());
+            producto.setStock(request.getStock());
+            producto.setDescripcion(request.getDescripcion());
+            producto.setImgURL(request.getImgURL());
+            producto.setIngredientes(request.getIngredientes());
+            producto.setNuevo(request.getNuevo() != null ? request.getNuevo() : false);
+            producto.setPopular(request.getPopular() != null ? request.getPopular() : false);
+            producto.setActivo(request.getActivo() != null ? request.getActivo() : true);
+            
+            Producto updatedProducto = productoService.save(producto);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Producto actualizado correctamente",
+                "producto", updatedProducto
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+        }
+    }
+    
+    @DeleteMapping("/api/productos/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> eliminarProducto(@PathVariable Long id) {
+        try {
+            if (!productoService.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            productoService.deleteById(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Producto eliminado correctamente"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error al eliminar el producto"));
+        }
+    }
+    
+    // ==========================================
+    // VISTAS DE ADMINISTRACIÓN
     // ==========================================
     
     @GetMapping("/admin")
@@ -31,9 +174,15 @@ public class ProductoController {
             List<Producto> productos = productoService.findAll();
             
             long totalProductos = productos.size();
-            long productosNuevos = productos.stream().filter(p -> p != null && p.isNuevo()).count();
-            long productosActivos = productos.stream().filter(p -> p != null && p.isActivo()).count();
-            long stockBajo = productos.stream().filter(p -> p != null && p.getStock() != null && p.getStock() < 5).count();
+            long productosNuevos = productos.stream()
+                .filter(p -> p != null && p.isNuevo())
+                .count();
+            long productosActivos = productos.stream()
+                .filter(p -> p != null && p.isActivo())
+                .count();
+            long stockBajo = productos.stream()
+                .filter(p -> p != null && p.isStockBajo())
+                .count();
             
             model.addAttribute("productos", productos);
             model.addAttribute("totalProductos", totalProductos);
@@ -50,140 +199,6 @@ public class ProductoController {
     }
     
     // ==========================================
-    // API REST
-    // ==========================================
-    
-    @GetMapping("/api/productos")
-    @ResponseBody
-    public ResponseEntity<List<Producto>> obtenerTodosLosProductos() {
-        try {
-            return ResponseEntity.ok(productoService.findAll());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @GetMapping("/api/productos/{id}")
-    @ResponseBody
-    public ResponseEntity<ProductoResponse> obtenerProductoPorId(@PathVariable Long id) {
-        try {
-            var productoOpt = productoService.findById(id);
-            if (productoOpt.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Producto producto = productoOpt.get();
-            List<Adicional> adicionales = productoService.obtenerAdicionalesPermitidos(id);
-            
-            return ResponseEntity.ok(new ProductoResponse(producto, adicionales));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-    
-    @PostMapping("/api/productos")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> crearProducto(@RequestBody ProductoRequest request) {
-        try {
-            Producto producto = new Producto();
-            producto.setNombre(request.getNombre());
-            producto.setCategoria(request.getCategoria());
-            producto.setPrecio(request.getPrecio());
-            producto.setStock(request.getStock());
-            producto.setDescripcion(request.getDescripcion());
-            producto.setImgURL(request.getImagen());
-            producto.setIngredientes(request.getIngredientes());
-            producto.setNuevo(request.getIsNew() != null ? request.getIsNew() : false);
-            producto.setPopular(request.getIsPopular() != null ? request.getIsPopular() : false);
-            producto.setActivo(true);
-            
-            Producto savedProducto = productoService.save(producto);
-            
-            // Actualizar adicionales después de crear
-            productoService.updateAdicionalesDeTodosLosProductos();
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Producto creado correctamente",
-                "producto", savedProducto
-            ));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false, 
-                "message", "Error interno del servidor"
-            ));
-        }
-    }
-    
-    @PutMapping("/api/productos/{id}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> actualizarProducto(
-            @PathVariable Long id, @RequestBody ProductoRequest request) {
-        try {
-            var productoOpt = productoService.findById(id);
-            if (productoOpt.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Producto producto = productoOpt.get();
-            producto.setNombre(request.getNombre());
-            producto.setCategoria(request.getCategoria());
-            producto.setPrecio(request.getPrecio());
-            producto.setStock(request.getStock());
-            producto.setDescripcion(request.getDescripcion());
-            producto.setImgURL(request.getImagen());
-            producto.setIngredientes(request.getIngredientes());
-            producto.setNuevo(request.getIsNew() != null ? request.getIsNew() : false);
-            producto.setPopular(request.getIsPopular() != null ? request.getIsPopular() : false);
-            
-            Producto updatedProducto = productoService.save(producto);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Producto actualizado correctamente",
-                "producto", updatedProducto
-            ));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false, 
-                "message", "Error interno del servidor"
-            ));
-        }
-    }
-    
-    @DeleteMapping("/api/productos/{id}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> eliminarProducto(@PathVariable Long id) {
-        try {
-            productoService.deleteById(id);
-            return ResponseEntity.ok(Map.of(
-                "success", true, 
-                "message", "Producto eliminado correctamente"
-            ));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false, 
-                "message", "Error al eliminar el producto"
-            ));
-        }
-    }
-    
-    // ==========================================
     // CLASES DE APOYO
     // ==========================================
     
@@ -193,10 +208,11 @@ public class ProductoController {
         private Double precio;
         private Integer stock;
         private String descripcion;
-        private String imagen;
+        private String imgURL;
         private List<String> ingredientes;
-        private Boolean isNew;
-        private Boolean isPopular;
+        private Boolean nuevo;
+        private Boolean popular;
+        private Boolean activo;
         
         // Getters y Setters
         public String getNombre() { return nombre; }
@@ -214,34 +230,19 @@ public class ProductoController {
         public String getDescripcion() { return descripcion; }
         public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
         
-        public String getImagen() { return imagen; }
-        public void setImagen(String imagen) { this.imagen = imagen; }
+        public String getImgURL() { return imgURL; }
+        public void setImgURL(String imgURL) { this.imgURL = imgURL; }
         
         public List<String> getIngredientes() { return ingredientes; }
         public void setIngredientes(List<String> ingredientes) { this.ingredientes = ingredientes; }
         
-        public Boolean getIsNew() { return isNew; }
-        public void setIsNew(Boolean isNew) { this.isNew = isNew; }
+        public Boolean getNuevo() { return nuevo; }
+        public void setNuevo(Boolean nuevo) { this.nuevo = nuevo; }
         
-        public Boolean getIsPopular() { return isPopular; }
-        public void setIsPopular(Boolean isPopular) { this.isPopular = isPopular; }
-    }
-    
-    public static class ProductoResponse {
-        private Producto producto;
-        private List<Adicional> adicionalesPermitidos;
+        public Boolean getPopular() { return popular; }
+        public void setPopular(Boolean popular) { this.popular = popular; }
         
-        public ProductoResponse(Producto producto, List<Adicional> adicionalesPermitidos) {
-            this.producto = producto;
-            this.adicionalesPermitidos = adicionalesPermitidos;
-        }
-        
-        public Producto getProducto() { return producto; }
-        public void setProducto(Producto producto) { this.producto = producto; }
-        
-        public List<Adicional> getAdicionalesPermitidos() { return adicionalesPermitidos; }
-        public void setAdicionalesPermitidos(List<Adicional> adicionalesPermitidos) { 
-            this.adicionalesPermitidos = adicionalesPermitidos; 
-        }
+        public Boolean getActivo() { return activo; }
+        public void setActivo(Boolean activo) { this.activo = activo; }
     }
 }

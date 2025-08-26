@@ -77,6 +77,19 @@ public class ClienteController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> crearCliente(@RequestBody ClienteRequest request) {
         try {
+            if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El nombre es requerido"));
+            }
+            if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El apellido es requerido"));
+            }
+            if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El correo es requerido"));
+            }
+            if (request.getContrasena() == null || request.getContrasena().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "La contraseña es requerida"));
+            }
+            
             Cliente cliente = new Cliente();
             cliente.setNombre(request.getNombre());
             cliente.setApellido(request.getApellido());
@@ -94,15 +107,9 @@ public class ClienteController {
                 "cliente", savedCliente
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false, 
-                "message", "Error interno del servidor"
-            ));
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
         }
     }
     
@@ -111,15 +118,30 @@ public class ClienteController {
     public ResponseEntity<Map<String, Object>> actualizarCliente(
             @PathVariable Long id, @RequestBody ClienteRequest request) {
         try {
+            if (!clienteService.existeClientePorId(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El nombre es requerido"));
+            }
+            if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El apellido es requerido"));
+            }
+            if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El correo es requerido"));
+            }
+            
             Cliente cliente = clienteService.obtenerClientePorId(id);
             cliente.setNombre(request.getNombre());
             cliente.setApellido(request.getApellido());
             cliente.setCorreo(request.getCorreo());
+            cliente.setTelefono(request.getTelefono());
+            cliente.setDireccion(request.getDireccion());
+            
+            // Solo actualizar contraseña si se proporcionó una nueva
             if (request.getContrasena() != null && !request.getContrasena().trim().isEmpty()) {
                 cliente.setContrasena(request.getContrasena());
             }
-            cliente.setTelefono(request.getTelefono());
-            cliente.setDireccion(request.getDireccion());
             
             Cliente updatedCliente = clienteService.save(cliente);
             
@@ -129,15 +151,9 @@ public class ClienteController {
                 "cliente", updatedCliente
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false, 
-                "message", "Error interno del servidor"
-            ));
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
         }
     }
     
@@ -145,21 +161,15 @@ public class ClienteController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> eliminarCliente(@PathVariable Long id) {
         try {
+            if (!clienteService.existeClientePorId(id)) {
+                return ResponseEntity.notFound().build();
+            }
             clienteService.eliminarCliente(id);
-            return ResponseEntity.ok(Map.of(
-                "success", true, 
-                "message", "Cliente eliminado correctamente"
-            ));
+            return ResponseEntity.ok(Map.of("success", true, "message", "Cliente eliminado correctamente"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false, 
-                "message", "Error al eliminar el cliente"
-            ));
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error al eliminar el cliente"));
         }
     }
     
@@ -175,7 +185,6 @@ public class ClienteController {
         private String telefono;
         private String direccion;
         
-        // Getters y Setters
         public String getNombre() { return nombre; }
         public void setNombre(String nombre) { this.nombre = nombre; }
         
