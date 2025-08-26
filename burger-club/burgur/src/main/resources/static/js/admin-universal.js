@@ -1,5 +1,6 @@
 //burger-club/burgur/src/main/resources/static/js/admin-universal.js
 
+
 // ==========================================
 // BURGER CLUB - ADMIN UNIVERSAL MANAGER
 // ==========================================

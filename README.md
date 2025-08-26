@@ -129,3 +129,13 @@ Ve a http://localhost:8080/h2 (tu consola H2)
 Ve a http://localhost:8080/menu/admin (gestión productos)
 Ve a http://localhost:8080/admin/clientes (gestión clientes)
 Ve a http://localhost:8080/admin/adicionales (gestión adicionales
+
+
+
+Para Probar el Sistema:
+
+Inicia la aplicación: Las tablas se crean automáticamente con datos de prueba
+Administración: Ve a /admin/dashboard para gestionar todo
+Registro: Ve a /auth/register para crear cuentas de cliente
+Login: Ve a /auth/login para iniciar sesión
+Menú: En /menu, click en cualquier producto para ver adicionales

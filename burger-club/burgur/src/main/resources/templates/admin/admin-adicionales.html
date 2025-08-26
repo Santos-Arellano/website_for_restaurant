@@ -1,5 +1,5 @@
 <!-- ==========================================
-     ARCHIVO:burger-club/burgur/src/main/resources/templates/admin/admin-adicionales.html
+     ARCHIVO: src/main/resources/templates/admin/admin-adicionales.html
      ========================================== -->
      <!DOCTYPE html>
      <html lang="es" xmlns:th="http://www.thymeleaf.org">
@@ -40,7 +40,9 @@
              }
      
              .admin-adicionales-section {
-                 padding: 30px 0 80px 0;
+                 padding-top: 30px;
+                 padding-bottom: 80px;
+                 position: relative;
                  min-height: 100vh;
              }
      
@@ -54,6 +56,10 @@
                  font-size: clamp(2rem, 5vw, 3rem);
                  color: var(--text-white);
                  margin-bottom: 15px;
+                 background: linear-gradient(135deg, var(--text-white) 0%, #fbb5b5 100%);
+                 -webkit-background-clip: text;
+                 -webkit-text-fill-color: transparent;
+                 background-clip: text;
              }
      
              .admin-stats {
@@ -70,6 +76,14 @@
                  display: flex;
                  align-items: center;
                  gap: 15px;
+                 backdrop-filter: blur(10px);
+                 border: 1px solid rgba(255, 255, 255, 0.2);
+                 transition: all 0.3s ease;
+             }
+     
+             .stat-card:hover {
+                 transform: translateY(-3px);
+                 background: rgba(255, 255, 255, 0.15);
              }
      
              .search-bar {
@@ -80,6 +94,8 @@
                  justify-content: space-between;
                  align-items: center;
                  margin-bottom: 40px;
+                 backdrop-filter: blur(10px);
+                 border: 1px solid rgba(255, 255, 255, 0.1);
              }
      
              .search-input-group {
@@ -110,6 +126,7 @@
                  font-weight: 600;
                  font-size: 14px;
                  cursor: pointer;
+                 transition: all var(--transition-speed) ease;
                  display: flex;
                  align-items: center;
                  gap: 8px;
@@ -119,12 +136,13 @@
                  background: rgba(255, 255, 255, 0.02);
                  border-radius: var(--border-radius);
                  padding: 20px;
+                 backdrop-filter: blur(5px);
              }
      
              .table-header,
              .table-row {
                  display: grid;
-                 grid-template-columns: 25% 20% 20% 20% 15%;
+                 grid-template-columns: 25% 20% 35% 20%;
                  align-items: center;
                  text-align: center;
                  gap: 10px;
@@ -137,6 +155,7 @@
                  color: var(--text-white);
                  padding: 0 15px 25px 15px;
                  text-transform: uppercase;
+                 letter-spacing: 1px;
                  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
                  margin-bottom: 20px;
              }
@@ -149,6 +168,12 @@
                  margin-bottom: 15px;
                  padding: 10px 15px;
                  transition: all var(--transition-speed) ease;
+             }
+     
+             .table-row:hover {
+                 transform: translateY(-3px);
+                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+                 border-color: #1a5a52;
              }
      
              .table-row .cell {
@@ -181,22 +206,14 @@
              }
      
              .categoria-badge {
-                 background: rgba(251, 181, 181, 0.3);
+                 background: rgba(251, 181, 181, 0.2);
                  color: #fbb5b5;
                  padding: 2px 8px;
                  border-radius: 12px;
                  font-size: 10px;
-                 text-transform: uppercase;
                  font-weight: 600;
-             }
-     
-             .status--activo {
-                 background: var(--status-activo-bg);
-                 padding: 6px 14px;
-                 border-radius: 20px;
-                 font-size: 9px;
                  text-transform: uppercase;
-                 font-weight: 700;
+                 letter-spacing: 0.5px;
              }
      
              .actions-cell {
@@ -229,22 +246,53 @@
                  color: white;
              }
      
-             .empty-state {
-                 text-align: center;
-                 padding: 60px 20px;
-                 color: var(--text-light);
-                 opacity: 0.7;
+             .btn-edit:hover {
+                 background: #1976d2;
+                 transform: translateY(-2px) scale(1.05);
              }
      
-             .empty-state i {
-                 font-size: 4rem;
-                 margin-bottom: 20px;
+             .btn-delete:hover {
+                 background: #d32f2f;
+                 transform: translateY(-2px) scale(1.05);
              }
      
-             .empty-state h3 {
-                 font-size: 1.5rem;
-                 margin-bottom: 10px;
-                 color: var(--text-white);
+             @media (max-width: 768px) {
+                 .table-header {
+                     display: none;
+                 }
+                 
+                 .table-row {
+                     grid-template-columns: 1fr 1fr;
+                     gap: 15px;
+                     text-align: left;
+                 }
+                 
+                 .table-row .cell:nth-child(1) { /* Nombre */
+                     grid-column: 1 / 2;
+                     grid-row: 1 / 2;
+                     font-size: 16px;
+                     font-weight: bold;
+                     justify-content: flex-start;
+                 }
+                 
+                 .table-row .cell:nth-child(2) { /* Precio */
+                     grid-column: 2 / 3;
+                     grid-row: 1 / 2;
+                     font-size: 16px;
+                     justify-content: flex-end;
+                 }
+                 
+                 .table-row .cell:nth-child(3) { /* Categorías */
+                     grid-column: 1 / 3;
+                     grid-row: 2 / 3;
+                     justify-content: flex-start;
+                 }
+                 
+                 .table-row .cell:nth-child(4) { /* Acciones */
+                     grid-column: 1 / 3;
+                     grid-row: 3 / 4;
+                     justify-content: center;
+                 }
              }
          </style>
      </head>
@@ -263,8 +311,10 @@
                      <ul>
                          <li><a th:href="@{/}">Inicio</a></li>
                          <li><a th:href="@{/menu}">Menú</a></li>
+                         <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
                          <li><a th:href="@{/menu/admin}">Productos</a></li>
                          <li><a th:href="@{/admin/adicionales}" class="admin-nav">Adicionales</a></li>
+                         <li><a th:href="@{/admin/clientes}">Clientes</a></li>
                      </ul>
                  </nav>
              </div>
@@ -276,7 +326,7 @@
                  <!-- Admin Header -->
                  <div class="admin-header">
                      <h1 class="admin-title">Gestión de Adicionales</h1>
-                     <p class="admin-subtitle">Administra los adicionales disponibles</p>
+                     <p class="admin-subtitle">Administra los adicionales disponibles para los productos</p>
                      
                      <!-- Stats Cards -->
                      <div class="admin-stats">
@@ -291,7 +341,7 @@
                              <i class="fas fa-check-circle"></i>
                              <div class="stat-info">
                                  <span class="stat-number" th:text="${adicionalesActivos}">0</span>
-                                 <span class="stat-label">Activos</span>
+                                 <span class="stat-label">Adicionales Activos</span>
                              </div>
                          </div>
                      </div>
@@ -304,7 +354,7 @@
                          <input type="text" class="search-input" placeholder="Buscar adicionales..." id="adminSearchInput">
                      </div>
                      <div class="filter-controls">
-                         <button class="btn-add-adicional" onclick="alert('Funcionalidad pendiente')">
+                         <button class="btn-add-adicional" onclick="openAddAdicionalModal()">
                              <i class="fas fa-plus"></i>
                              Agregar Adicional
                          </button>
@@ -317,7 +367,6 @@
                          <span>NOMBRE</span>
                          <span>PRECIO</span>
                          <span>CATEGORÍAS</span>
-                         <span>ESTADO</span>
                          <span>ACCIONES</span>
                      </div>
      
@@ -326,7 +375,7 @@
                           th:each="adicional : ${adicionales}" 
                           th:attr="data-adicional-id=${adicional.id}">
                          <div class="cell">
-                             <span class="adicional-name" th:text="${adicional.nombre}">Adicional</span>
+                             <span class="adicional-name" th:text="${adicional.nombre}">Nombre</span>
                          </div>
                          <div class="cell">
                              <span class="adicional-price" th:text="'$' + ${#numbers.formatInteger(adicional.precio, 0, 'COMMA')}">$0</span>
@@ -334,21 +383,17 @@
                          <div class="cell">
                              <div class="categoria-badges">
                                  <span class="categoria-badge" 
-                                       th:each="cat : ${adicional.categoria}" 
-                                       th:text="${#strings.capitalize(cat)}">Categoría</span>
+                                       th:each="categoria : ${adicional.categoria}"
+                                       th:text="${#strings.capitalize(categoria)}">Categoría</span>
                              </div>
                          </div>
-                         <div class="cell">
-                             <span th:if="${adicional.activo}" class="status--activo">ACTIVO</span>
-                             <span th:unless="${adicional.activo}" class="status--inactivo">INACTIVO</span>
-                         </div>
                          <div class="cell actions-cell">
-                             <button class="btn-action btn-edit"
-                                     th:attr="onclick=|alert('Editar adicional: ${adicional.nombre}')|">
+                             <button class="btn-action btn-edit" 
+                                     th:onclick="'editAdicional(' + ${adicional.id} + ')'">
                                  <i class="fas fa-edit"></i>
                              </button>
-                             <button class="btn-action btn-delete"
-                                     th:attr="onclick=|if(confirm('¿Eliminar adicional?')) alert('Eliminado: ${adicional.nombre}')|">
+                             <button class="btn-action btn-delete" 
+                                     th:onclick="'deleteAdicional(' + ${adicional.id} + ')'">
                                  <i class="fas fa-trash"></i>
                              </button>
                          </div>
@@ -359,6 +404,10 @@
                          <i class="fas fa-plus-circle"></i>
                          <h3>No hay adicionales</h3>
                          <p>Comienza agregando tu primer adicional</p>
+                         <button class="btn-add-adicional" onclick="openAddAdicionalModal()">
+                             <i class="fas fa-plus"></i>
+                             Agregar Primer Adicional
+                         </button>
                      </div>
                  </div>
              </div>
@@ -377,8 +426,12 @@
                  </div>
              </div>
          </footer>
-     </body>
-     <!-- JavaScript Universal -->
-<script src="/js/admin-universal.js"></script>
-     </html>
      
+         <!-- JavaScript -->
+         <script type="module" src="/js/admin-universal.js" defer></script>
+         <script type="module" th:src="@{/js/admin/admin-modal-manager.js}" defer></script>
+    
+
+         
+     </body>
+     </html>
