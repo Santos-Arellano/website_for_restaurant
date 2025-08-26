@@ -31,10 +31,10 @@ export const Z_INDEX = {
 };
 
 export const PROMO_IMAGES = [
-    'images/Promo1.png',
-    'images/Promo2.png',
-    'images/Promo3.png',
-    'images/Promo4.png'
+    'images/menu/BURGER.png',        // Hamburguesa Classic
+    'images/menu/BBQ-especial.png',  // BBQ Deluxe
+    'images/menu/Hot-Dog-Supreme.png', // Perro Supremo
+    'images/menu/Chocolate-milkshake.png' // Malteada Chocolate
 ];
 
 export const CRITICAL_IMAGES = [
@@ -94,7 +94,7 @@ export const ERROR_MESSAGES = {
 };
 
 export const SUCCESS_MESSAGES = {
-    itemAdded: 'agregado al carrito 🍔',
+    itemAdded: 'agregado al carrito',
     itemRemoved: 'eliminado del carrito',
     cartCleared: 'Carrito limpiado',
     orderPlaced: 'Pedido confirmado',
