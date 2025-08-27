@@ -120,7 +120,7 @@ public class DataBaseInit implements CommandLineRunner {
             
             new Producto("Hamburguesa Vegetariana", 
                         "Deliciosa hamburguesa vegetal con ingredientes frescos", 
-                        16000.0, "hamburguesa", "/images/menu/BURGER.png", 15, true, false, true,
+                        16000.0, "hamburguesa", "/images/menu/veggieburger.png", 15, true, false, true,
                         Arrays.asList("Hamburguesa de lentejas", "Aguacate", "Lechuga", "Tomate", "Pan integral")),
             
             new Producto("Perro Caliente Especial", 
@@ -145,7 +145,7 @@ public class DataBaseInit implements CommandLineRunner {
             
             new Producto("Anillos de Cebolla", 
                         "Crujientes anillos de cebolla empanizados", 
-                        7000.0, "acompañamiento", "/images/menu/Fries.png", 40, false, false, true,
+                        7000.0, "acompañamiento", "/images/menu/aros-cebolla.png", 40, false, false, true,
                         Arrays.asList("Cebolla", "Empanizado especial", "Aceite de girasol")),
             
             new Producto("Coca Cola 350ml", 
