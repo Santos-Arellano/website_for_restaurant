@@ -82,32 +82,36 @@ export class CartManager {
         this.initializeCartButtonsDelegation();
     }
     
-    // ========== FIXED: USAR DELEGACIÓN DE EVENTOS ==========
-    initializeCartButtonsDelegation() {
-        if (this.cartButtonsInitialized) return; // Evitar duplicados
+   // ========== FIXED: USAR DELEGACIÓN DE EVENTOS ==========
+initializeCartButtonsDelegation() {
+    if (this.cartButtonsInitialized) return; // Evitar duplicados
+    
+    // Usar delegación de eventos en el documento
+    document.addEventListener('click', (e) => {
+        const addButton = e.target.closest('.btn-add-cart');
+        if (!addButton) return;
         
-        // Usar delegación de eventos en el documento
-        document.addEventListener('click', (e) => {
-            const addButton = e.target.closest('.btn-add-cart');
-            if (!addButton) return;
-            
-            e.stopPropagation();
-            
-            const product = {
-                name: addButton.dataset.product,
-                price: parseInt(addButton.dataset.price),
-                image: addButton.dataset.image
-            };
-            
-            this.addItem(product);
-            
-            // Visual feedback
-            this.createAddToCartAnimation(addButton, product);
-        });
+        e.stopPropagation();
         
-        this.cartButtonsInitialized = true;
-        console.log('🛒 Cart buttons delegation initialized');
-    }
+        // Crear objeto producto básico desde los data attributes del botón
+        const product = {
+            name: addButton.dataset.product || 'Producto',
+            price: parseInt(addButton.dataset.price) || 0,
+            image: addButton.dataset.image || 'images/default-burger.png',
+            adicionales: [] // Los botones del menú no tienen adicionales
+        };
+        
+        console.log('🛒 Adding product from menu button:', product);
+        
+        this.addItem(product);
+        
+        // Visual feedback
+        this.createAddToCartAnimation(addButton, product);
+    });
+    
+    this.cartButtonsInitialized = true;
+    console.log('🛒 Cart buttons delegation initialized');
+}
     
     // MÉTODO PÚBLICO para que otros módulos agreguen productos sin duplicar eventos
     addProductToCart(product, sourceButton = null) {

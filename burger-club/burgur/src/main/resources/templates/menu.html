@@ -426,28 +426,7 @@
                 });
             });
             
-            // Enhance add to cart buttons with better feedback
-            const addToCartButtons = document.querySelectorAll('.btn-add-cart');
-            addToCartButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent triggering the card click
-                    
-                    // Add visual feedback
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i>';
-                    btn.style.background = '#4caf50';
-                    btn.disabled = true;
-                    
-                    setTimeout(() => {
-                        btn.innerHTML = originalHTML;
-                        btn.style.background = '';
-                        btn.disabled = false;
-                    }, 1000);
-                    
-                    // Show notification
-                    showQuickNotification('Producto agregado al carrito', 'success');
-                });
-            });
+          
             
             // Quick notification function
             function showQuickNotification(message, type = 'info') {
