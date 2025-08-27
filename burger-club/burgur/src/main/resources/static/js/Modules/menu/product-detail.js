@@ -250,9 +250,23 @@ class ProductDetailModal {
     addToCart(item) {
         console.log('🛒 Agregando al carrito:', item);
         
+        // Preparar el objeto para el carrito con la estructura correcta
+        const cartProduct = {
+            id: item.id,
+            nombre: item.nombre,  // Mantener nombre para la normalización
+            precio: item.subtotal / item.cantidad, // Precio unitario total (base + adicionales)
+            imagen: item.imagen,
+            categoria: item.categoria,
+            adicionales: item.adicionales,
+            cantidad: item.cantidad
+        };
+        
         // Integración con el sistema de carrito existente
         if (window.BurgerClub && window.BurgerClub.cart) {
-            window.BurgerClub.cart.addItem(item);
+            // Agregar cada unidad individualmente para manejar correctamente la cantidad
+            for (let i = 0; i < item.cantidad; i++) {
+                window.BurgerClub.cart.addItem(cartProduct);
+            }
         } else {
             // Fallback: trigger custom event
             const event = new CustomEvent('addToCart', { detail: item });

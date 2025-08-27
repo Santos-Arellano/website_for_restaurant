@@ -35,6 +35,13 @@
     --box-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
+.cart-item-extras {
+    font-size: 0.8rem;
+    color: #4caf50;
+    margin: 2px 0;
+    font-style: italic;
+}
+
 /* Reset básico */
 * {
     margin: 0;

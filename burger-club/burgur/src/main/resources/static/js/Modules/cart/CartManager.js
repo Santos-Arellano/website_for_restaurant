@@ -120,17 +120,37 @@ export class CartManager {
     
     // ========== CART OPERATIONS ==========
     addItem(product) {
-        const existingItem = this.items.find(item => item.name === product.name);
+        // Normalizar el objeto producto para manejar diferentes estructuras
+        const normalizedProduct = {
+            id: product.id || Date.now(),
+            name: product.name || product.nombre || 'Producto sin nombre',
+            price: product.price || product.precio || 0,
+            image: product.image || product.imagen || product.imgURL || 'images/default-burger.png',
+            categoria: product.categoria || 'sin categoria',
+            adicionales: product.adicionales || []
+        };
+        
+        // Calcular precio total incluyendo adicionales
+        const precioTotal = this.calculateItemPrice(normalizedProduct.price, normalizedProduct.adicionales);
+        
+        // Buscar item existente con el mismo nombre Y adicionales
+        const existingItem = this.items.find(item => 
+            item.name === normalizedProduct.name && 
+            this.compareAdicionales(item.adicionales || [], normalizedProduct.adicionales)
+        );
         
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
             this.items.push({
                 id: Date.now(),
-                name: product.name,
-                price: product.price,
-                image: product.image || 'images/default-burger.png',
-                quantity: 1
+                name: normalizedProduct.name,
+                price: normalizedProduct.price,
+                image: normalizedProduct.image,
+                quantity: 1,
+                adicionales: normalizedProduct.adicionales,
+                precioBase: normalizedProduct.price,
+                precioTotal: precioTotal
             });
         }
         
@@ -139,20 +159,41 @@ export class CartManager {
         this.saveToStorage();
         this.showAddAnimation();
         
-        console.log(`➕ Added to cart: ${product.name}`);
+        console.log(`➕ Added to cart: ${normalizedProduct.name}`);
         
         // Show notification
         if (window.BurgerClub?.showNotification) {
             window.BurgerClub.showNotification(
-                `${product.name} agregado al carrito 🍔`, 
+                `${normalizedProduct.name} agregado al carrito`, 
                 'success'
             );
         }
         
         // Dispatch custom event
         document.dispatchEvent(new CustomEvent('itemAdded', {
-            detail: { product, cart: this.items }
+            detail: { product: normalizedProduct, cart: this.items }
         }));
+    }
+
+    // Método para comparar adicionales
+    compareAdicionales(adicionales1, adicionales2) {
+        if (adicionales1.length !== adicionales2.length) return false;
+        
+        const sorted1 = adicionales1.map(a => a.id || a.nombre).sort();
+        const sorted2 = adicionales2.map(a => a.id || a.nombre).sort();
+        
+        return sorted1.every((item, index) => item === sorted2[index]);
+    }
+
+    // Método para calcular precio con adicionales
+    calculateItemPrice(basePrice, adicionales) {
+        let total = basePrice;
+        if (adicionales && adicionales.length > 0) {
+            adicionales.forEach(adicional => {
+                total += adicional.precio || 0;
+            });
+        }
+        return total;
     }
     
     removeItem(itemId) {
@@ -210,7 +251,8 @@ export class CartManager {
     
     calculateTotal() {
         this.total = this.items.reduce((sum, item) => {
-            return sum + (item.price * item.quantity);
+            const itemPrice = item.precioTotal || item.price;
+            return sum + (itemPrice * item.quantity);
         }, 0);
     }
     
@@ -247,29 +289,37 @@ export class CartManager {
             return;
         }
         
-        this.cartItems.innerHTML = this.items.map(item => `
-            <div class="cart-item" data-id="${item.id}">
-                <div class="cart-item-image">
-                    <img src="${item.image}" alt="${item.name}" loading="lazy">
-                </div>
-                <div class="cart-item-details">
-                    <h4 class="cart-item-name">${item.name}</h4>
-                    <p class="cart-item-price">${formatPrice(item.price)}</p>
-                </div>
-                <div class="cart-item-controls">
-                    <button class="quantity-btn" onclick="window.BurgerClub.cart.updateQuantity(${item.id}, ${item.quantity - 1})">
-                        <i class="fas fa-minus"></i>
+        this.cartItems.innerHTML = this.items.map(item => {
+            const itemPrice = item.precioTotal || item.price;
+            const adicionalesText = item.adicionales && item.adicionales.length > 0
+                ? `<div class="cart-item-extras">+ ${item.adicionales.map(a => a.nombre).join(', ')}</div>`
+                : '';
+                
+            return `
+                <div class="cart-item" data-id="${item.id}">
+                    <div class="cart-item-image">
+                        <img src="${item.image}" alt="${item.name}" loading="lazy">
+                    </div>
+                    <div class="cart-item-details">
+                        <h4 class="cart-item-name">${item.name}</h4>
+                        ${adicionalesText}
+                        <p class="cart-item-price">${formatPrice(itemPrice)}</p>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button class="quantity-btn" onclick="window.BurgerClub.cart.updateQuantity(${item.id}, ${item.quantity - 1})">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <span class="quantity-display">${item.quantity}</span>
+                        <button class="quantity-btn" onclick="window.BurgerClub.cart.updateQuantity(${item.id}, ${item.quantity + 1})">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <button class="remove-item-btn" onclick="window.BurgerClub.cart.removeItem(${item.id})" title="Eliminar">
+                        <i class="fas fa-trash"></i>
                     </button>
-                    <span class="quantity-display">${item.quantity}</span>
-                    <button class="quantity-btn" onclick="window.BurgerClub.cart.updateQuantity(${item.id}, ${item.quantity + 1})">
-                        <i class="fas fa-plus"></i>
-                    </button>
                 </div>
-                <button class="remove-item-btn" onclick="window.BurgerClub.cart.removeItem(${item.id})" title="Eliminar">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
     
     updateCartTotal() {
@@ -410,12 +460,18 @@ export class CartManager {
                     <div class="checkout-summary">
                         <h4>Resumen del pedido:</h4>
                         <div class="checkout-items">
-                            ${this.items.map(item => `
-                                <div class="checkout-item">
-                                    <span>${item.name} x${item.quantity}</span>
-                                    <span>${formatPrice(item.price * item.quantity)}</span>
-                                </div>
-                            `).join('')}
+                            ${this.items.map(item => {
+                                const itemPrice = item.precioTotal || item.price;
+                                const adicionalesText = item.adicionales && item.adicionales.length > 0
+                                    ? ` (+ ${item.adicionales.map(a => a.nombre).join(', ')})`
+                                    : '';
+                                return `
+                                    <div class="checkout-item">
+                                        <span>${item.name}${adicionalesText} x${item.quantity}</span>
+                                        <span>${formatPrice(itemPrice * item.quantity)}</span>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                         <div class="checkout-total">
                             <strong>Total: ${formatPrice(this.total)}</strong>
@@ -484,7 +540,7 @@ export class CartManager {
             
             if (window.BurgerClub?.showNotification) {
                 window.BurgerClub.showNotification(
-                    `¡Pedido confirmado! #${orderNumber}. Tiempo estimado: 25-35 min 🍔`,
+                    `¡Pedido confirmado! #${orderNumber}. Tiempo estimado: 25-35 min`,
                     'success'
                 );
             }
