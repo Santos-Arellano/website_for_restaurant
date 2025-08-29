@@ -1,5 +1,4 @@
 //burger-club/burgur/src/main/java/restaurante/example/burgur/Controller/AdicionalController
-//burger-club/burgur/src/main/java/restaurante/example/burgur/Controller/AdicionalController.java
 package restaurante.example.burgur.Controller;
 
 import java.util.List;

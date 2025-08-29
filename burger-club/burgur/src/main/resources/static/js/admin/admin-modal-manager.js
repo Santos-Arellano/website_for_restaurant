@@ -1,452 +1,705 @@
 // burger-club/burgur/src/main/resources/static/js/admin/admin-modal-manager.js
 // ==========================================
-// BURGER CLUB - ADMIN MODAL MANAGER (CORREGIDO)
+// BURGER CLUB - ADMIN MODAL MANAGER (COMPLETO)
 // ==========================================
 
 class AdminModalManager {
     constructor() {
         this.currentModal = null;
+        this.currentSection = this.getCurrentSection();
         this.init();
     }
     
     init() {
+        console.log('🎨 Admin Modal Manager initialized for:', this.currentSection);
         this.addModalStyles();
-        console.log('✅ Admin Modal Manager initialized');
+    }
+    
+    getCurrentSection() {
+        const path = window.location.pathname;
+        if (path.includes('/admin/adicionales')) return 'adicionales';
+        if (path.includes('/admin/clientes')) return 'clientes';
+        if (path.includes('/admin') || path.includes('/menu/admin')) return 'productos';
+        return 'dashboard';
     }
     
     // ==========================================
-    // PRODUCT MODALS
+    // MODAL DE PRODUCTOS (COMPLETO)
     // ==========================================
     
-    openProductModal(mode, product = {}) {
+    async openProductModal(mode, productData = {}) {
         const isEdit = mode === 'edit';
         const title = isEdit ? 'Editar Producto' : 'Agregar Producto';
         
-        const modal = this.createModal(`
-            <div class="modal-header">
-                <h3><i class="fas fa-hamburger"></i> ${title}</h3>
-                <button class="modal-close" type="button">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form class="admin-form" id="productForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="productNombre">Nombre del Producto <span class="required">*</span></label>
-                            <input type="text" id="productNombre" name="nombre" value="${product.nombre || ''}" required maxlength="100">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="productCategoria">Categoría <span class="required">*</span></label>
-                            <select id="productCategoria" name="categoria" required>
-                                <option value="">Seleccionar categoría</option>
-                                <option value="hamburguesa" ${product.categoria === 'hamburguesa' ? 'selected' : ''}>Hamburguesa</option>
-                                <option value="perro caliente" ${product.categoria === 'perro caliente' ? 'selected' : ''}>Perro Caliente</option>
-                                <option value="acompañamiento" ${product.categoria === 'acompañamiento' ? 'selected' : ''}>Acompañamiento</option>
-                                <option value="bebida" ${product.categoria === 'bebida' ? 'selected' : ''}>Bebida</option>
-                                <option value="postre" ${product.categoria === 'postre' ? 'selected' : ''}>Postre</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="productPrecio">Precio <span class="required">*</span></label>
-                            <input type="number" id="productPrecio" name="precio" value="${product.precio || ''}" required min="0" step="100">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="productStock">Stock <span class="required">*</span></label>
-                            <input type="number" id="productStock" name="stock" value="${product.stock || ''}" required min="0">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="productDescripcion">Descripción</label>
-                        <textarea id="productDescripcion" name="descripcion" rows="3" maxlength="500" placeholder="Describe el producto...">${product.descripcion || ''}</textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="productImagen">URL de Imagen</label>
-                        <input type="url" id="productImagen" name="imagen" value="${product.imgURL || ''}" placeholder="https://ejemplo.com/imagen.jpg">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="productIngredientes">Ingredientes (separados por coma)</label>
-                        <textarea id="productIngredientes" name="ingredientes" rows="2" placeholder="Carne, lechuga, tomate...">${product.ingredientes ? product.ingredientes.join(', ') : ''}</textarea>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="productNuevo" name="isNew" ${product.nuevo ? 'checked' : ''}>
-                                <span class="checkmark"></span>
-                                Producto Nuevo
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="productPopular" name="isPopular" ${product.popular ? 'checked' : ''}>
-                                <span class="checkmark"></span>
-                                Producto Popular
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" class="btn-cancel">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-save">
-                            <i class="fas fa-save"></i>
-                            ${isEdit ? 'Actualizar' : 'Crear'} Producto
-                        </button>
-                    </div>
-                </form>
-            </div>
-        `);
+        // Si es edición y no tenemos todos los datos, cargarlos del servidor
+        if (isEdit && productData && typeof productData === 'number') {
+            try {
+                const response = await fetch(`/menu/api/productos/${productData}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    productData = data.producto || data;
+                } else {
+                    this.showNotification('Error al cargar los datos del producto', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error cargando producto:', error);
+                this.showNotification('Error de conexión al cargar el producto', 'error');
+                return;
+            }
+        }
         
-        this.bindProductFormEvents(modal, isEdit, product.id);
+        // Asegurar que productData sea un objeto válido
+        if (!productData || typeof productData !== 'object') {
+            productData = {};
+        }
+        
+        const modal = document.createElement('div');
+        modal.className = 'admin-modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-${isEdit ? 'edit' : 'plus'}"></i> ${title}</h3>
+                    <button class="modal-close" type="button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form class="admin-form" id="productForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productName">Nombre del Producto *</label>
+                                <input type="text" id="productName" name="nombre" 
+                                       value="${this.escapeHtml(productData.nombre || '')}" 
+                                       required placeholder="Ej: Hamburguesa Classic">
+                            </div>
+                            <div class="form-group">
+                                <label for="productCategory">Categoría *</label>
+                                <select id="productCategory" name="categoria" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="hamburguesa" ${productData.categoria === 'hamburguesa' ? 'selected' : ''}>Hamburguesa</option>
+                                    <option value="acompañamiento" ${productData.categoria === 'acompañamiento' ? 'selected' : ''}>Acompañamiento</option>
+                                    <option value="perro caliente" ${productData.categoria === 'perro caliente' ? 'selected' : ''}>Perro Caliente</option>
+                                    <option value="bebida" ${productData.categoria === 'bebida' ? 'selected' : ''}>Bebida</option>
+                                    <option value="postre" ${productData.categoria === 'postre' ? 'selected' : ''}>Postre</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productPrice">Precio *</label>
+                                <div class="input-with-prefix">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="productPrice" name="precio" 
+                                           value="${productData.precio || ''}" 
+                                           min="0" step="100" required placeholder="25000">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="productStock">Stock Disponible *</label>
+                                <input type="number" id="productStock" name="stock" 
+                                       value="${productData.stock || ''}" 
+                                       min="0" required placeholder="50">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productDescription">Descripción</label>
+                            <textarea id="productDescription" name="descripcion" rows="3" 
+                                      placeholder="Describe brevemente el producto...">${this.escapeHtml(productData.descripcion || '')}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productImage">URL de la Imagen (Opcional)</label>
+                            <input type="text" id="productImage" name="imgURL" 
+                                   value="${this.escapeHtml(productData.imgURL || '')}" 
+                                   placeholder="https://ejemplo.com/imagen.jpg">
+                            <small class="field-hint">Opcional: Deja vacío para usar imagen por defecto</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productIngredients">Ingredientes</label>
+                            <input type="text" id="productIngredients" name="ingredientes" 
+                                   value="${productData.ingredientes ? this.escapeHtml(productData.ingredientes.join(', ')) : ''}" 
+                                   placeholder="Ej: Carne, Lechuga, Tomate, Queso">
+                            <small class="field-hint">Separa los ingredientes con comas</small>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h4 class="section-title"><i class="fas fa-tags"></i> Estado del Producto</h4>
+                            <div class="form-row">
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="nuevo" ${productData.nuevo ? 'checked' : ''}>
+                                        <span class="checkbox-custom"></span>
+                                        <span class="checkbox-text">
+                                            <strong>Producto Nuevo</strong>
+                                            <small>Se mostrará con etiqueta "Nuevo"</small>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="popular" ${productData.popular ? 'checked' : ''}>
+                                        <span class="checkbox-custom"></span>
+                                        <span class="checkbox-text">
+                                            <strong>Producto Popular</strong>
+                                            <small>Se destacará como recomendado</small>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="activo" ${productData.activo !== false ? 'checked' : ''}>
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>Producto Activo</strong>
+                                        <small>Visible para los clientes en el menú</small>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-${isEdit ? 'save' : 'plus'}"></i>
+                                ${isEdit ? 'Actualizar' : 'Crear'} Producto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        this.bindModalEvents(modal, isEdit, productData.id);
         this.showModal(modal);
     }
     
-    bindProductFormEvents(modal, isEdit, productId) {
-        const form = modal.querySelector('#productForm');
-        const cancelBtn = modal.querySelector('.btn-cancel');
-        const closeBtn = modal.querySelector('.modal-close');
+    // ==========================================
+    // MODAL DE CLIENTES (COMPLETO)
+    // ==========================================
+    
+    async openClienteModal(mode, clienteData = {}) {
+        const isEdit = mode === 'edit';
+        const title = isEdit ? 'Editar Cliente' : 'Agregar Cliente';
         
-        cancelBtn.addEventListener('click', () => this.closeModal(modal));
-        closeBtn.addEventListener('click', () => this.closeModal(modal));
+        // Si es edición y solo tenemos ID, cargar datos del servidor
+        if (isEdit && clienteData && typeof clienteData === 'number') {
+            try {
+                const response = await fetch(`/admin/clientes/api/${clienteData}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    clienteData = data.cliente || data;
+                } else {
+                    this.showNotification('Error al cargar los datos del cliente', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error cargando cliente:', error);
+                this.showNotification('Error de conexión al cargar el cliente', 'error');
+                return;
+            }
+        }
         
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleProductSubmit(e, modal, isEdit, productId);
-        });
+        if (!clienteData || typeof clienteData !== 'object') {
+            clienteData = {};
+        }
         
-        this.setupFormValidation(form);
+        const modal = document.createElement('div');
+        modal.className = 'admin-modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-${isEdit ? 'user-edit' : 'user-plus'}"></i> ${title}</h3>
+                    <button class="modal-close" type="button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form class="admin-form" id="clienteForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="clienteNombre">Nombre *</label>
+                                <input type="text" id="clienteNombre" name="nombre" 
+                                       value="${this.escapeHtml(clienteData.nombre || '')}" 
+                                       required placeholder="Juan">
+                            </div>
+                            <div class="form-group">
+                                <label for="clienteApellido">Apellido *</label>
+                                <input type="text" id="clienteApellido" name="apellido" 
+                                       value="${this.escapeHtml(clienteData.apellido || '')}" 
+                                       required placeholder="Pérez">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clienteCorreo">Correo Electrónico *</label>
+                            <input type="email" id="clienteCorreo" name="correo" 
+                                   value="${this.escapeHtml(clienteData.correo || '')}" 
+                                   required placeholder="juan.perez@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clienteContrasena">Contraseña ${isEdit ? '(dejar vacío para mantener actual)' : '*'}</label>
+                            <input type="password" id="clienteContrasena" name="contrasena" 
+                                   ${!isEdit ? 'required' : ''} minlength="8"
+                                   placeholder="${isEdit ? 'Nueva contraseña (opcional)' : 'Mínimo 8 caracteres'}">
+                            <small class="field-hint">${isEdit ? 'Solo completa si deseas cambiar la contraseña' : 'Mínimo 8 caracteres'}</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clienteTelefono">Teléfono</label>
+                            <input type="tel" id="clienteTelefono" name="telefono" 
+                                   value="${this.escapeHtml(clienteData.telefono || '')}" 
+                                   placeholder="+57 300 123 4567">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clienteDireccion">Dirección</label>
+                            <textarea id="clienteDireccion" name="direccion" rows="2" 
+                                      placeholder="Dirección completa del cliente">${this.escapeHtml(clienteData.direccion || '')}</textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-${isEdit ? 'save' : 'user-plus'}"></i>
+                                ${isEdit ? 'Actualizar' : 'Crear'} Cliente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        this.bindModalEvents(modal, isEdit, clienteData.id);
+        this.showModal(modal);
     }
     
-    async handleProductSubmit(e, modal, isEdit, productId) {
-        const formData = new FormData(e.target);
-        const ingredientes = formData.get('ingredientes');
+    // ==========================================
+    // MODAL DE ADICIONALES (COMPLETO)
+    // ==========================================
+    
+    async openAdicionalModal(mode, adicionalData = {}) {
+        const isEdit = mode === 'edit';
+        const title = isEdit ? 'Editar Adicional' : 'Agregar Adicional';
         
-        const productData = {
+        // Si es edición y solo tenemos ID, cargar datos del servidor
+        if (isEdit && adicionalData && typeof adicionalData === 'number') {
+            try {
+                const response = await fetch(`/admin/adicionales/api/${adicionalData}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    adicionalData = data.adicional || data;
+                } else {
+                    this.showNotification('Error al cargar los datos del adicional', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error cargando adicional:', error);
+                this.showNotification('Error de conexión al cargar el adicional', 'error');
+                return;
+            }
+        }
+        
+        if (!adicionalData || typeof adicionalData !== 'object') {
+            adicionalData = {};
+        }
+        
+        // Función helper para verificar si una categoría está seleccionada
+        const isCategoriaSelected = (categoria) => {
+            if (!adicionalData.categoria) return false;
+            return Array.isArray(adicionalData.categoria) && adicionalData.categoria.includes(categoria);
+        };
+        
+        const modal = document.createElement('div');
+        modal.className = 'admin-modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-${isEdit ? 'edit' : 'plus-circle'}"></i> ${title}</h3>
+                    <button class="modal-close" type="button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form class="admin-form" id="adicionalForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="adicionalNombre">Nombre del Adicional *</label>
+                                <input type="text" id="adicionalNombre" name="nombre" 
+                                       value="${this.escapeHtml(adicionalData.nombre || '')}" 
+                                       required placeholder="Ej: Queso Extra">
+                            </div>
+                            <div class="form-group">
+                                <label for="adicionalPrecio">Precio *</label>
+                                <div class="input-with-prefix">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="adicionalPrecio" name="precio" 
+                                           value="${adicionalData.precio || ''}" 
+                                           min="0" step="100" required placeholder="3000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h4 class="section-title"><i class="fas fa-tags"></i> Categorías Compatibles *</h4>
+                            <p class="section-description">Selecciona las categorías de productos con las que este adicional será compatible</p>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="categoria" value="hamburguesa" ${isCategoriaSelected('hamburguesa') ? 'checked' : ''}>
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🍔 Hamburguesas</strong>
+                                        <small>Compatible con todas las hamburguesas</small>
+                                    </span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="categoria" value="perro caliente" ${isCategoriaSelected('perro caliente') ? 'checked' : ''}>
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🌭 Perros Calientes</strong>
+                                        <small>Compatible con perros calientes</small>
+                                    </span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="categoria" value="acompañamiento" ${isCategoriaSelected('acompañamiento') ? 'checked' : ''}>
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🍟 Acompañamientos</strong>
+                                        <small>Compatible con papas, aros, etc.</small>
+                                    </span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="categoria" value="bebida" ${isCategoriaSelected('bebida') ? 'checked' : ''}>
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🥤 Bebidas</strong>
+                                        <small>Compatible con todas las bebidas</small>
+                                    </span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="categoria" value="postre" ${isCategoriaSelected('postre') ? 'checked' : ''}>
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🍰 Postres</strong>
+                                        <small>Compatible con postres y malteadas</small>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-${isEdit ? 'save' : 'plus-circle'}"></i>
+                                ${isEdit ? 'Actualizar' : 'Crear'} Adicional
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        this.bindModalEvents(modal, isEdit, adicionalData.id);
+        this.showModal(modal);
+    }
+    
+    // ==========================================
+    // EVENT HANDLERS (COMPLETOS)
+    // ==========================================
+    
+    bindModalEvents(modal, isEdit, itemId) {
+        const closeBtn = modal.querySelector('.modal-close');
+        const cancelBtn = modal.querySelector('.btn-cancel');
+        const form = modal.querySelector('form');
+        
+        // Close handlers
+        closeBtn.addEventListener('click', () => this.closeModal(modal));
+        cancelBtn.addEventListener('click', () => this.closeModal(modal));
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal(modal);
+        });
+        
+        // Form submission con loading y validación mejorada
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleFormSubmit(form, modal, isEdit, itemId);
+        });
+        
+        // Validación en tiempo real
+        this.setupRealTimeValidation(form);
+        
+        // ESC key
+        this.escHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeModal(modal);
+            }
+        };
+        document.addEventListener('keydown', this.escHandler);
+    }
+    
+    setupRealTimeValidation(form) {
+        const inputs = form.querySelectorAll('input[required], select[required]');
+        
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => {
+                this.validateField(input);
+            });
+            
+            input.addEventListener('input', () => {
+                // Limpiar errores mientras escribe
+                input.classList.remove('error');
+                const errorMsg = input.parentNode.querySelector('.error-message');
+                if (errorMsg) errorMsg.remove();
+            });
+        });
+        
+        // Validación especial para campos numéricos
+        const numberInputs = form.querySelectorAll('input[type="number"]');
+        numberInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value < 0) {
+                    e.target.value = 0;
+                }
+            });
+        });
+    }
+    
+    validateField(field) {
+        const value = field.value.trim();
+        const isRequired = field.hasAttribute('required');
+        
+        // Limpiar mensajes de error anteriores
+        const existingError = field.parentNode.querySelector('.error-message');
+        if (existingError) existingError.remove();
+        
+        field.classList.remove('error', 'success');
+        
+        if (isRequired && !value) {
+            this.showFieldError(field, 'Este campo es requerido');
+            return false;
+        }
+        
+        // Validaciones específicas
+        if (field.type === 'email' && value && !this.isValidEmail(value)) {
+            this.showFieldError(field, 'Ingresa un correo válido');
+            return false;
+        }
+        
+        if (field.name === 'imgURL' && value && value.trim() !== '' && !this.isValidUrl(value)) {
+            this.showFieldError(field, 'Ingresa una URL válida');
+            return false;
+        }
+        
+        if (field.type === 'password' && value && value.length < 8) {
+            this.showFieldError(field, 'La contraseña debe tener al menos 8 caracteres');
+            return false;
+        }
+        
+        if (field.type === 'number' && value && parseFloat(value) <= 0) {
+            this.showFieldError(field, 'Debe ser mayor a 0');
+            return false;
+        }
+        
+        if (value) {
+            field.classList.add('success');
+        }
+        
+        return true;
+    }
+    
+    showFieldError(field, message) {
+        field.classList.add('error');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+    
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    isValidUrl(url) {
+        // Si la URL está vacía o solo tiene espacios, se considera válida (opcional)
+        if (!url || url.trim() === '') {
+            return true;
+        }
+        
+        try {
+            const urlObj = new URL(url.trim());
+            // Verificar que tenga un protocolo válido
+            return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+        } catch {
+            return false;
+        }
+    }
+    
+    async handleFormSubmit(form, modal, isEdit, itemId) {
+        // Mostrar loading
+        this.showLoading(true);
+        
+        // Validar formulario completo
+        if (!this.validateForm(form)) {
+            this.showLoading(false);
+            return;
+        }
+        
+        const formData = new FormData(form);
+        let data = {};
+        
+        // Extract form data based on section
+        switch (this.currentSection) {
+            case 'productos':
+                data = this.extractProductData(formData);
+                break;
+            case 'clientes':
+                data = this.extractClienteData(formData);
+                break;
+            case 'adicionales':
+                data = this.extractAdicionalData(formData);
+                break;
+        }
+        
+        try {
+            const url = this.getApiUrl(isEdit, itemId);
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            console.log('Enviando datos:', data);
+            console.log('URL:', url);
+            console.log('Método:', method);
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            console.log('Respuesta del servidor:', result);
+            
+            if (response.ok && result.success) {
+                this.showNotification(result.message || 'Operación exitosa', 'success');
+                this.closeModal(modal);
+                
+                // Recargar página después de un breve delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                this.showNotification(result.message || 'Error en la operación', 'error');
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            this.showNotification('Error de conexión', 'error');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+    
+    validateForm(form) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!this.validateField(field)) {
+                isValid = false;
+            }
+        });
+        
+        // Validaciones especiales según el tipo
+        if (this.currentSection === 'adicionales') {
+            const checkboxes = form.querySelectorAll('input[name="categoria"]:checked');
+            if (checkboxes.length === 0) {
+                this.showNotification('Debes seleccionar al menos una categoría', 'error');
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+    
+    // ==========================================
+    // DATA EXTRACTION (COMPLETOS)
+    // ==========================================
+    
+    extractProductData(formData) {
+        const ingredientes = formData.get('ingredientes');
+        return {
             nombre: formData.get('nombre'),
             categoria: formData.get('categoria'),
             precio: parseFloat(formData.get('precio')),
             stock: parseInt(formData.get('stock')),
-            descripcion: formData.get('descripcion'),
-            imgURL: formData.get('imagen'),
+            descripcion: formData.get('descripcion') || null,
+            imgURL: formData.get('imgURL') || null,
             ingredientes: ingredientes ? ingredientes.split(',').map(i => i.trim()).filter(i => i) : [],
-            nuevo: formData.get('isNew') === 'on',
-            popular: formData.get('isPopular') === 'on',
-            activo: true
+            nuevo: formData.has('nuevo'),
+            popular: formData.has('popular'),
+            activo: formData.has('activo')
         };
-        
-        try {
-            const url = isEdit ? `/menu/api/productos/${productId}` : '/menu/api/productos';
-            const method = isEdit ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(productData)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                this.closeModal(modal);
-                this.showSuccessMessage(result.message || 'Producto guardado correctamente');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                this.showErrorMessage(result.message || 'Error al procesar la solicitud');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.showErrorMessage('Error de conexión');
-        }
     }
     
-    // ==========================================
-    // CLIENT MODALS
-    // ==========================================
-    
-    openClienteModal(mode, cliente = {}) {
-        const isEdit = mode === 'edit';
-        const title = isEdit ? 'Editar Cliente' : 'Agregar Cliente';
-        
-        const modal = this.createModal(`
-            <div class="modal-header">
-                <h3><i class="fas fa-user"></i> ${title}</h3>
-                <button class="modal-close" type="button">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form class="admin-form" id="clienteForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="clienteNombre">Nombre <span class="required">*</span></label>
-                            <input type="text" id="clienteNombre" name="nombre" value="${cliente.nombre || ''}" required maxlength="100">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="clienteApellido">Apellido <span class="required">*</span></label>
-                            <input type="text" id="clienteApellido" name="apellido" value="${cliente.apellido || ''}" required maxlength="100">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="clienteCorreo">Correo Electrónico <span class="required">*</span></label>
-                        <input type="email" id="clienteCorreo" name="correo" value="${cliente.correo || ''}" required maxlength="150">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="clienteContrasena">${isEdit ? 'Nueva Contraseña (dejar vacío para mantener actual)' : 'Contraseña'} ${!isEdit ? '<span class="required">*</span>' : ''}</label>
-                        <input type="password" id="clienteContrasena" name="contrasena" ${!isEdit ? 'required' : ''} minlength="8" maxlength="64">
-                        <small class="form-help">Mínimo 8 caracteres, debe contener al menos una letra y un número</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="clienteTelefono">Teléfono</label>
-                        <input type="tel" id="clienteTelefono" name="telefono" value="${cliente.telefono || ''}" placeholder="+57 123 456 7890" pattern="^\\+?[0-9]{7,15}$">
-                        <small class="form-help">Formato: +57 1234567890 (7-15 dígitos)</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="clienteDireccion">Dirección</label>
-                        <textarea id="clienteDireccion" name="direccion" rows="2" maxlength="200" placeholder="Dirección completa">${cliente.direccion || ''}</textarea>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" class="btn-cancel">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-save">
-                            <i class="fas fa-save"></i>
-                            ${isEdit ? 'Actualizar' : 'Crear'} Cliente
-                        </button>
-                    </div>
-                </form>
-            </div>
-        `);
-        
-        this.bindClienteFormEvents(modal, isEdit, cliente.id);
-        this.showModal(modal);
-    }
-    
-    bindClienteFormEvents(modal, isEdit, clienteId) {
-        const form = modal.querySelector('#clienteForm');
-        const cancelBtn = modal.querySelector('.btn-cancel');
-        const closeBtn = modal.querySelector('.modal-close');
-        
-        cancelBtn.addEventListener('click', () => this.closeModal(modal));
-        closeBtn.addEventListener('click', () => this.closeModal(modal));
-        
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleClienteSubmit(e, modal, isEdit, clienteId);
-        });
-        
-        this.setupFormValidation(form);
-    }
-    
-    async handleClienteSubmit(e, modal, isEdit, clienteId) {
-        const formData = new FormData(e.target);
-        
-        const clienteData = {
+    extractClienteData(formData) {
+        const data = {
             nombre: formData.get('nombre'),
             apellido: formData.get('apellido'),
             correo: formData.get('correo'),
-            telefono: formData.get('telefono'),
-            direccion: formData.get('direccion'),
-            activo: true
+            telefono: formData.get('telefono') || null,
+            direccion: formData.get('direccion') || null
         };
         
-        const password = formData.get('contrasena');
-        if (password && password.trim() !== '') {
-            clienteData.contrasena = password;
+        // Solo incluir contraseña si no está vacía
+        const contrasena = formData.get('contrasena');
+        if (contrasena && contrasena.trim()) {
+            data.contrasena = contrasena;
         }
         
-        try {
-            const url = isEdit ? `/admin/clientes/api/${clienteId}` : '/admin/clientes/api';
-            const method = isEdit ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(clienteData)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                this.closeModal(modal);
-                this.showSuccessMessage(result.message || 'Cliente guardado correctamente');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                this.showErrorMessage(result.message || 'Error al procesar la solicitud');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.showErrorMessage('Error de conexión');
-        }
+        return data;
     }
     
-    // ==========================================
-    // ADICIONAL MODALS
-    // ==========================================
-    
-    openAdicionalModal(mode, adicional = {}) {
-        const isEdit = mode === 'edit';
-        const title = isEdit ? 'Editar Adicional' : 'Agregar Adicional';
-        
-        const modal = this.createModal(`
-            <div class="modal-header">
-                <h3><i class="fas fa-plus-circle"></i> ${title}</h3>
-                <button class="modal-close" type="button">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form class="admin-form" id="adicionalForm">
-                    <div class="form-group">
-                        <label for="adicionalNombre">Nombre del Adicional <span class="required">*</span></label>
-                        <input type="text" id="adicionalNombre" name="nombre" value="${adicional.nombre || ''}" required maxlength="100">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="adicionalPrecio">Precio <span class="required">*</span></label>
-                        <input type="number" id="adicionalPrecio" name="precio" value="${adicional.precio || ''}" required min="0" step="100">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Categorías Aplicables <span class="required">*</span></label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="categoria" value="hamburguesa" ${this.isChecked(adicional.categoria, 'hamburguesa')}>
-                                <span class="checkmark"></span>
-                                Hamburguesas
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="categoria" value="perro caliente" ${this.isChecked(adicional.categoria, 'perro caliente')}>
-                                <span class="checkmark"></span>
-                                Perros Calientes
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="categoria" value="acompañamiento" ${this.isChecked(adicional.categoria, 'acompañamiento')}>
-                                <span class="checkmark"></span>
-                                Acompañamientos
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="categoria" value="bebida" ${this.isChecked(adicional.categoria, 'bebida')}>
-                                <span class="checkmark"></span>
-                                Bebidas
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="categoria" value="postre" ${this.isChecked(adicional.categoria, 'postre')}>
-                                <span class="checkmark"></span>
-                                Postres
-                            </label>
-                        </div>
-                        <small class="form-help">Selecciona al menos una categoría</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="adicionalActivo" name="activo" ${adicional.activo !== false ? 'checked' : ''}>
-                            <span class="checkmark"></span>
-                            Adicional Activo
-                        </label>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" class="btn-cancel">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-save">
-                            <i class="fas fa-save"></i>
-                            ${isEdit ? 'Actualizar' : 'Crear'} Adicional
-                        </button>
-                    </div>
-                </form>
-            </div>
-        `);
-        
-        this.bindAdicionalFormEvents(modal, isEdit, adicional.id);
-        this.showModal(modal);
-    }
-    
-    bindAdicionalFormEvents(modal, isEdit, adicionalId) {
-        const form = modal.querySelector('#adicionalForm');
-        const cancelBtn = modal.querySelector('.btn-cancel');
-        const closeBtn = modal.querySelector('.modal-close');
-        
-        cancelBtn.addEventListener('click', () => this.closeModal(modal));
-        closeBtn.addEventListener('click', () => this.closeModal(modal));
-        
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleAdicionalSubmit(e, modal, isEdit, adicionalId);
-        });
-        
-        this.setupFormValidation(form);
-    }
-    
-    async handleAdicionalSubmit(e, modal, isEdit, adicionalId) {
-        const formData = new FormData(e.target);
+    extractAdicionalData(formData) {
         const categorias = formData.getAll('categoria');
-        
-        if (categorias.length === 0) {
-            this.showErrorMessage('Debe seleccionar al menos una categoría');
-            return;
-        }
-        
-        const adicionalData = {
+        return {
             nombre: formData.get('nombre'),
             precio: parseFloat(formData.get('precio')),
             categoria: categorias,
-            activo: formData.get('activo') === 'on'
+            activo: true
         };
-        
-        try {
-            const url = isEdit ? `/admin/adicionales/api/${adicionalId}` : '/admin/adicionales/api';
-            const method = isEdit ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(adicionalData)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                this.closeModal(modal);
-                this.showSuccessMessage(result.message || 'Adicional guardado correctamente');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                this.showErrorMessage(result.message || 'Error al procesar la solicitud');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.showErrorMessage('Error de conexión');
-        }
     }
     
     // ==========================================
-    // UTILITY METHODS
+    // UTILITY METHODS (COMPLETOS)
     // ==========================================
     
-    createModal(content) {
-        const modal = document.createElement('div');
-        modal.className = 'admin-modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                ${content}
-            </div>
-        `;
-        return modal;
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    getApiUrl(isEdit, itemId) {
+        const baseUrls = {
+            productos: '/menu/api/productos',
+            clientes: '/admin/clientes/api',
+            adicionales: '/admin/adicionales/api'
+        };
+        
+        const baseUrl = baseUrls[this.currentSection];
+        return isEdit ? `${baseUrl}/${itemId}` : baseUrl;
     }
     
     showModal(modal) {
@@ -456,27 +709,16 @@ class AdminModalManager {
         
         this.currentModal = modal;
         document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
         
         setTimeout(() => {
-            modal.classList.add('active');
+            modal.classList.add('show');
         }, 10);
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closeModal(modal);
-            }
-        });
-        
-        this.escapeHandler = (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal(modal);
-            }
-        };
-        document.addEventListener('keydown', this.escapeHandler);
     }
     
     closeModal(modal) {
-        modal.classList.remove('active');
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
         
         setTimeout(() => {
             if (document.body.contains(modal)) {
@@ -487,101 +729,51 @@ class AdminModalManager {
             }
         }, 300);
         
-        if (this.escapeHandler) {
-            document.removeEventListener('keydown', this.escapeHandler);
-            this.escapeHandler = null;
+        if (this.escHandler) {
+            document.removeEventListener('keydown', this.escHandler);
+            this.escHandler = null;
         }
     }
     
-    isChecked(categorias, categoria) {
-        return categorias && categorias.includes(categoria) ? 'checked' : '';
-    }
-    
-    setupFormValidation(form) {
-        const inputs = form.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            input.addEventListener('blur', () => this.validateField(input));
-            input.addEventListener('input', () => this.clearFieldError(input));
-        });
-    }
-    
-    validateField(field) {
-        const value = field.value.trim();
-        const isRequired = field.hasAttribute('required');
-        
-        this.clearFieldError(field);
-        
-        if (isRequired && !value) {
-            this.showFieldError(field, 'Este campo es requerido');
-            return false;
-        }
-        
-        if (field.type === 'email' && value && !this.isValidEmail(value)) {
-            this.showFieldError(field, 'Formato de email inválido');
-            return false;
-        }
-        
-        if (field.name === 'contrasena' && value && value.length < 8) {
-            this.showFieldError(field, 'Mínimo 8 caracteres');
-            return false;
-        }
-        
-        if (field.type === 'number' && value && parseFloat(value) < 0) {
-            this.showFieldError(field, 'El valor debe ser positivo');
-            return false;
-        }
-        
-        return true;
-    }
-    
-    showFieldError(field, message) {
-        field.classList.add('error');
-        let errorElement = field.parentNode.querySelector('.field-error');
-        if (!errorElement) {
-            errorElement = document.createElement('small');
-            errorElement.className = 'field-error';
-            field.parentNode.appendChild(errorElement);
-        }
-        errorElement.textContent = message;
-    }
-    
-    clearFieldError(field) {
-        field.classList.remove('error');
-        const errorElement = field.parentNode.querySelector('.field-error');
-        if (errorElement) {
-            errorElement.remove();
+    showLoading(show) {
+        const body = document.body;
+        if (show) {
+            body.classList.add('modal-loading');
+        } else {
+            body.classList.remove('modal-loading');
         }
     }
     
-    isValidEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-    
-    showSuccessMessage(message) {
-        this.showNotification(message, 'success');
-    }
-    
-    showErrorMessage(message) {
-        this.showNotification(message, 'error');
-    }
-    
-    showNotification(message, type) {
+    showNotification(message, type = 'info') {
+        // Crear notificación mejorada
         const notification = document.createElement('div');
-        notification.className = `admin-notification ${type}`;
+        notification.className = `modal-notification modal-notification-${type}`;
         notification.innerHTML = `
             <div class="notification-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                <span>${message}</span>
-                <button class="notification-close">&times;</button>
+                <div class="notification-icon">
+                    <i class="fas fa-${this.getNotificationIcon(type)}"></i>
+                </div>
+                <div class="notification-text">
+                    <span class="notification-message">${message}</span>
+                </div>
+                <button class="notification-close" type="button">&times;</button>
             </div>
         `;
         
         document.body.appendChild(notification);
         
-        setTimeout(() => notification.classList.add('show'), 10);
-        setTimeout(() => this.closeNotification(notification), 5000);
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
         
+        // Auto-close
+        const autoCloseTimer = setTimeout(() => {
+            this.closeNotification(notification);
+        }, type === 'success' ? 4000 : 6000);
+        
+        // Manual close
         notification.querySelector('.notification-close').addEventListener('click', () => {
+            clearTimeout(autoCloseTimer);
             this.closeNotification(notification);
         });
     }
@@ -594,7 +786,21 @@ class AdminModalManager {
             }
         }, 300);
     }
-
+    
+    getNotificationIcon(type) {
+        const icons = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        return icons[type] || 'info-circle';
+    }
+    
+    // ==========================================
+    // MODAL STYLES (COMPLETOS)
+    // ==========================================
+    
     addModalStyles() {
         if (document.getElementById('admin-modal-styles')) return;
         
@@ -607,7 +813,7 @@ class AdminModalManager {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.85);
                 z-index: 1000;
                 display: flex;
                 justify-content: center;
@@ -615,55 +821,447 @@ class AdminModalManager {
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
+                backdrop-filter: blur(8px);
             }
             
-            .admin-modal.active {
+            .admin-modal.show {
                 opacity: 1;
                 visibility: visible;
             }
             
-            .modal-content {
+            .admin-modal .modal-content {
                 background: #12372a;
                 border: 2px solid #fbb5b5;
-                border-radius: 8px;
+                border-radius: 15px;
                 width: 90%;
-                max-width: 600px;
+                max-width: 800px;
                 max-height: 90vh;
                 overflow-y: auto;
                 transform: scale(0.9);
                 transition: transform 0.3s ease;
+                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
             }
             
-            .admin-modal.active .modal-content {
+            .admin-modal.show .modal-content {
                 transform: scale(1);
             }
             
-            .modal-header {
-                padding: 25px;
+            .admin-modal .modal-header {
+                padding: 30px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                background: linear-gradient(135deg, rgba(251, 181, 181, 0.2) 0%, rgba(18, 55, 42, 0.8) 100%);
+                background: linear-gradient(135deg, rgba(251, 181, 181, 0.2) 0%, rgba(18, 55, 42, 0.9) 100%);
+                border-radius: 13px 13px 0 0;
             }
-            
-            .modal-header h3 {
+
+            .admin-modal .modal-header h3 {
                 color: white;
                 margin: 0;
                 font-family: 'Lexend Zetta', sans-serif;
-                font-size: 1.2rem;
+                font-size: 1.4rem;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 12px;
             }
-            
-            .modal-close {
+
+            .admin-modal .modal-close {
                 background: none;
                 border: none;
                 font-size: 2rem;
                 color: white;
                 cursor: pointer;
-                padding: 0;
+                padding: 5px;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+
+            .admin-modal .modal-close:hover {
+                background: rgba(244, 67, 54, 0.2);
+                color: #f44336;
+                transform: scale(1.1);
+            }
+            
+            .admin-modal .modal-body {
+                padding: 35px;
+            }
+
+            .admin-form {
+                display: flex;
+                flex-direction: column;
+                gap: 25px;
+            }
+
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 25px;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .form-group label {
+                color: white;
+                font-weight: 600;
+                font-size: 0.95rem;
+                font-family: 'Sansita Swashed', cursive;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 15px 18px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                color: white;
+                font-family: 'Sansita Swashed', cursive;
+                transition: all 0.3s ease;
+                font-size: 14px;
+            }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #fbb5b5;
+                background: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .form-group input.success {
+                border-color: #4caf50;
+                background: rgba(76, 175, 80, 0.1);
+            }
+
+            .form-group input.error {
+                border-color: #f44336;
+                background: rgba(244, 67, 54, 0.1);
+                animation: shake 0.5s ease-in-out;
+            }
+
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+
+            .error-message {
+                color: #f44336;
+                font-size: 0.8rem;
+                margin-top: 5px;
+                font-weight: 500;
+            }
+
+            .field-hint {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 0.8rem;
+                margin-top: 5px;
+                font-style: italic;
+            }
+
+            .input-with-prefix {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .input-prefix {
+                position: absolute;
+                left: 15px;
+                color: #fbb5b5;
+                font-weight: 700;
+                font-size: 1.1rem;
+                z-index: 1;
+            }
+
+            .input-with-prefix input {
+                padding-left: 35px;
+            }
+
+            .form-group input::placeholder,
+            .form-group textarea::placeholder {
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .form-group select option {
+                background: #12372a;
+                color: white;
+            }
+
+            .form-section {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 25px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .section-title {
+                color: #fbb5b5;
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+                font-family: 'Lexend Zetta', sans-serif;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section-description {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+
+            .checkbox-group,
+            .checkbox-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .checkbox-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 15px;
+            }
+
+            .checkbox-label {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                cursor: pointer;
+                padding: 15px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .checkbox-label:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: #fbb5b5;
+            }
+
+            .checkbox-label input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                margin: 0;
+                cursor: pointer;
+                accent-color: #fbb5b5;
+                flex-shrink: 0;
+            }
+
+            .checkbox-text {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .checkbox-text strong {
+                color: white;
+                font-size: 0.95rem;
+            }
+
+            .checkbox-text small {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 0.8rem;
+            }
+
+            .form-actions {
+                display: flex;
+                gap: 20px;
+                justify-content: flex-end;
+                padding-top: 25px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                margin-top: 15px;
+            }
+
+            .btn-cancel,
+            .btn-primary {
+                padding: 15px 25px;
+                border: none;
+                border-radius: 8px;
+                font-family: 'Sansita Swashed', cursive;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 14px;
+                min-width: 140px;
+                justify-content: center;
+            }
+
+            .btn-cancel {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .btn-cancel:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+                border-color: rgba(255, 255, 255, 0.4);
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #4caf50, #45a049);
+                color: white;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                border: 2px solid transparent;
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #45a049, #388e3c);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+            }
+
+            .btn-primary:active,
+            .btn-cancel:active {
+                transform: translateY(0);
+            }
+
+            /* Loading State */
+            .modal-loading {
+                pointer-events: none;
+                position: relative;
+            }
+
+            .modal-loading::after {
+                content: '';
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 50px;
+                height: 50px;
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-top: 4px solid #fbb5b5;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                transform: translate(-50%, -50%);
+                z-index: 3000;
+            }
+
+            @keyframes spin {
+                0% { transform: translate(-50%, -50%) rotate(0deg); }
+                100% { transform: translate(-50%, -50%) rotate(360deg); }
+            }
+
+            /* Notifications */
+            .modal-notification {
+                position: fixed;
+                top: 25px;
+                right: 25px;
+                background: #12372a;
+                border: 2px solid;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 2000;
+                transform: translateX(120%);
+                transition: transform 0.4s ease;
+                min-width: 350px;
+                max-width: 450px;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(10px);
+            }
+
+            .modal-notification.show {
+                transform: translateX(0);
+            }
+
+            .modal-notification-success { 
+                border-color: #4caf50;
+                background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), #12372a);
+            }
+            
+            .modal-notification-error { 
+                border-color: #f44336; 
+                background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), #12372a);
+            }
+            
+            .modal-notification-warning { 
+                border-color: #ff9800; 
+                background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), #12372a);
+            }
+            
+            .modal-notification-info { 
+                border-color: #2196f3; 
+                background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), #12372a);
+            }
+
+            .modal-notification .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .modal-notification .notification-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.2rem;
+                flex-shrink: 0;
+            }
+
+            .modal-notification-success .notification-icon {
+                background: rgba(76, 175, 80, 0.2);
+                color: #4caf50;
+            }
+
+            .modal-notification-error .notification-icon {
+                background: rgba(244, 67, 54, 0.2);
+                color: #f44336;
+            }
+
+            .modal-notification-warning .notification-icon {
+                background: rgba(255, 152, 0, 0.2);
+                color: #ff9800;
+            }
+
+            .modal-notification-info .notification-icon {
+                background: rgba(33, 150, 243, 0.2);
+                color: #2196f3;
+            }
+
+            .modal-notification .notification-text {
+                flex: 1;
+            }
+
+            .modal-notification .notification-message {
+                color: white;
+                font-family: 'Sansita Swashed', cursive;
+                font-size: 14px;
+                font-weight: 500;
+                line-height: 1.4;
+            }
+
+            .modal-notification .notification-close {
+                background: none;
+                border: none;
+                color: rgba(255, 255, 255, 0.7);
+                cursor: pointer;
+                font-size: 1.5rem;
+                padding: 5px;
                 width: 30px;
                 height: 30px;
                 display: flex;
@@ -671,243 +1269,91 @@ class AdminModalManager {
                 justify-content: center;
                 border-radius: 50%;
                 transition: all 0.3s ease;
+                flex-shrink: 0;
             }
-            
-            .modal-close:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
-            
-            .modal-body {
-                padding: 25px;
-            }
-            
-            .admin-form {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .form-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-            }
-            
-            .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .form-group label {
-                color: white;
-                font-weight: 600;
-                font-size: 0.9rem;
-                font-family: 'Sansita Swashed', cursive;
-            }
-            
-            .required {
-                color: #ff6b6b;
-            }
-            
-            .form-group input,
-            .form-group textarea,
-            .form-group select {
-                padding: 12px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                border-radius: 6px;
-                color: white;
-                font-family: 'Sansita Swashed', cursive;
-                font-size: 14px;
-                transition: all 0.3s ease;
-            }
-            
-            .form-group input:focus,
-            .form-group textarea:focus,
-            .form-group select:focus {
-                outline: none;
-                border-color: #fbb5b5;
-                background: rgba(255, 255, 255, 0.15);
-            }
-            
-            .form-group input.error,
-            .form-group textarea.error,
-            .form-group select.error {
-                border-color: #ff6b6b;
-            }
-            
-            .form-group input::placeholder,
-            .form-group textarea::placeholder {
-                color: rgba(255, 255, 255, 0.5);
-            }
-            
-            .checkbox-group {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            
-            .checkbox-label {
-                display: flex !important;
-                flex-direction: row !important;
-                align-items: center;
-                gap: 10px;
-                cursor: pointer;
-                padding: 8px;
-                border-radius: 4px;
-                transition: background 0.3s ease;
-            }
-            
-            .checkbox-label:hover {
-                background: rgba(255, 255, 255, 0.05);
-            }
-            
-            .checkbox-label input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
-                margin: 0;
-            }
-            
-            .checkmark {
-                font-size: 0.9rem;
-                color: rgba(255, 255, 255, 0.8);
-            }
-            
 
-            .form-help {
-                color: rgba(255, 255, 255, 0.6);
-                font-size: 0.8rem;
-                margin-top: 4px;
-            }
- }
-            
-            .field-error {
-                color: #ff6b6b;
-                font-size: 0.8rem;
-                margin-top: 4px;
-            }
-            
-            .form-actions {
-                display: flex;
-                gap: 15px;
-                justify-content: flex-end;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .btn-cancel,
-            .btn-save {
-                padding: 12px 24px;
-                border: none;
-                border-radius: 6px;
-                font-family: 'Sansita Swashed', cursive;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .btn-cancel {
+            .modal-notification .notification-close:hover {
                 background: rgba(255, 255, 255, 0.1);
                 color: white;
-                border: 2px solid rgba(255, 255, 255, 0.2);
             }
-            
-            .btn-cancel:hover {
-                background: rgba(255, 255, 255, 0.2);
-                border-color: rgba(255, 255, 255, 0.3);
+
+            /* Scrollbar personalizado */
+            .admin-modal .modal-content::-webkit-scrollbar {
+                width: 8px;
             }
-            
-            .btn-save {
-                background: #4caf50;
-                color: white;
-                border: 2px solid #4caf50;
+
+            .admin-modal .modal-content::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
             }
-            
-            .btn-save:hover {
-                background: #45a049;
-                border-color: #45a049;
-                transform: translateY(-2px);
+
+            .admin-modal .modal-content::-webkit-scrollbar-thumb {
+                background: #fbb5b5;
+                border-radius: 4px;
             }
-            
-            .admin-notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #12372a;
-                border: 2px solid;
-                border-radius: 8px;
-                padding: 15px 20px;
-                z-index: 2000;
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-                min-width: 300px;
-                max-width: 400px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                opacity: 0;
-                visibility: hidden;
+
+            .admin-modal .modal-content::-webkit-scrollbar-thumb:hover {
+                background: #e8a3a3;
             }
-            
-            .admin-notification.show {
-                transform: translateX(0);
-                opacity: 1;
-                visibility: visible;
-            }
-            
-            .admin-notification.success { border-color: #4caf50; }
-            .admin-notification.error { border-color: #ff6b6b; }
-            
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                color: white;
-                font-family: 'Sansita Swashed', cursive;
-                font-size: 14px;
-            }
-            
-            .notification-close {
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                margin-left: auto;
-                font-size: 1.2rem;
-                padding: 0;
-                width: 20px;
-                height: 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
+
+            /* Responsive Design */
             @media (max-width: 768px) {
-                .modal-content {
+                .admin-modal .modal-content {
                     width: 95%;
-                    margin: 10px;
+                    margin: 20px 10px;
+                    max-height: 95vh;
                 }
-                
+
+                .admin-modal .modal-header,
+                .admin-modal .modal-body {
+                    padding: 25px 20px;
+                }
+
                 .form-row {
                     grid-template-columns: 1fr;
+                    gap: 20px;
                 }
-                
-                .checkbox-group {
+
+                .checkbox-grid {
                     grid-template-columns: 1fr;
                 }
-                
+
                 .form-actions {
                     flex-direction: column;
+                    gap: 15px;
                 }
-                
-                .admin-notification {
-                    right: 10px;
-                    left: 10px;
+
+                .btn-cancel,
+                .btn-primary {
+                    width: 100%;
+                    justify-content: center;
+                }
+
+                .modal-notification {
+                    right: 15px;
+                    left: 15px;
                     min-width: auto;
                     max-width: none;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .admin-modal .modal-header h3 {
+                    font-size: 1.2rem;
+                }
+
+                .form-group input,
+                .form-group select,
+                .form-group textarea {
+                    padding: 12px 15px;
+                }
+
+                .section-title {
+                    font-size: 1rem;
+                }
+
+                .checkbox-label {
+                    padding: 12px;
                 }
             }
         `;
@@ -915,17 +1361,46 @@ class AdminModalManager {
     }
 }
 
-// INMEDIATAMENTE hacer AdminModalManager disponible globalmente
-window.AdminModalManager = AdminModalManager;
+// Crear instancia global
 window.globalModalManager = new AdminModalManager();
+window.AdminModalManager = AdminModalManager;
 
-// No esperar al DOM loaded - ya disponible
-console.log('AdminModalManager configurado globalmente');
-
-// También inicializar al cargar DOM por compatibilidad
-document.addEventListener('DOMContentLoaded', () => {
-    if (!window.globalModalManager) {
-        window.globalModalManager = new AdminModalManager();
+// Funciones globales para compatibilidad
+window.openAddProductModal = function() {
+    if (window.globalModalManager) {
+        window.globalModalManager.openProductModal('add');
     }
-    console.log('AdminModalManager verificado en DOM ready');
-});
+};
+
+window.openAddClienteModal = function() {
+    if (window.globalModalManager) {
+        window.globalModalManager.openClienteModal('add');
+    }
+};
+
+window.openAddAdicionalModal = function() {
+    if (window.globalModalManager) {
+        window.globalModalManager.openAdicionalModal('add');
+    }
+};
+
+// Funciones de edición que cargan los datos automáticamente
+window.editProduct = function(productId) {
+    if (window.globalModalManager) {
+        window.globalModalManager.openProductModal('edit', productId);
+    }
+};
+
+window.editCliente = function(clienteId) {
+    if (window.globalModalManager) {
+        window.globalModalManager.openClienteModal('edit', clienteId);
+    }
+};
+
+window.editAdicional = function(adicionalId) {
+    if (window.globalModalManager) {
+        window.globalModalManager.openAdicionalModal('edit', adicionalId);
+    }
+};
+
+console.log('Admin Modal Manager loaded successfully');

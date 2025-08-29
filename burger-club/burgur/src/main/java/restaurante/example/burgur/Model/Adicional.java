@@ -5,31 +5,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "adicional")
 public class Adicional {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
+    @Column(name = "nombre", nullable = false, length = 100, unique = true)
     private String nombre;
-    private double precio;
-    private boolean activo;
 
-    // 🔑 Para que Hibernate/JPA entienda cómo guardar esta lista de Strings
-    @ElementCollection
+    @Column(name = "precio", nullable = false)
+    private double precio;
+
+    @Column(name = "activo", nullable = false)
+    private boolean activo = true;
+
+    // CORRECCIÓN: Cambiar FetchType a LAZY para evitar problemas con update
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+        name = "adicional_categorias",
+        joinColumns = @JoinColumn(name = "adicional_id", nullable = false)
+    )
+    @Column(name = "categoria", nullable = false, length = 50)
+    @JsonProperty("categoria")
     private List<String> categoria = new ArrayList<>();
 
-    // Conexiones BDD
+    // Relación con productos (lazy loading para evitar problemas de rendimiento)
     @OneToMany(
         mappedBy = "adicional",
         cascade = CascadeType.ALL,
@@ -44,28 +62,143 @@ public class Adicional {
         this.nombre = nombre;
         this.precio = precio;
         this.activo = activo;
-        this.categoria = categoria;
+        this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();
     }
 
     // Constructor vacío (requerido por JPA)
-    public Adicional() {}
+    public Adicional() {
+        this.categoria = new ArrayList<>();
+        this.activo = true;
+    }
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Constructor con validaciones
+    public Adicional(String nombre, double precio, List<String> categoria) {
+        this();
+        this.nombre = nombre;
+        this.precio = precio;
+        this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();
+    }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    // Getters y Setters con validaciones
+    public Long getId() { 
+        return id; 
+    }
+    
+    public void setId(Long id) { 
+        this.id = id; 
+    }
 
-    public double getPrecio() { return precio; }
-    public void setPrecio(double precio) { this.precio = precio; }
+    public String getNombre() { 
+        return nombre; 
+    }
+    
+    public void setNombre(String nombre) { 
+        this.nombre = nombre != null ? nombre.trim() : null; 
+    }
 
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+    public double getPrecio() { 
+        return precio; 
+    }
+    
+    public void setPrecio(double precio) { 
+        this.precio = Math.max(0, precio); // Asegurar precio no negativo
+    }
 
-    public List<String> getCategoria() { return categoria; }
-    public void setCategoria(List<String> categoria) { this.categoria = categoria; }
+    public boolean isActivo() { 
+        return activo; 
+    }
+    
+    public void setActivo(boolean activo) { 
+        this.activo = activo; 
+    }
 
-    public List<AdicionalesPermiXProducto> getProductos() { return productos; }
-    public void setProductos(List<AdicionalesPermiXProducto> productos) { this.productos = productos; }
+    public List<String> getCategoria() { 
+        if (categoria == null) {
+            categoria = new ArrayList<>();
+        }
+        return categoria;
+    }
+    
+    public void setCategoria(List<String> categoria) { 
+        if (categoria == null) {
+            this.categoria = new ArrayList<>();
+        } else {
+            this.categoria = new ArrayList<>();
+            for (String cat : categoria) {
+                if (cat != null && !cat.trim().isEmpty()) {
+                    this.categoria.add(cat.trim().toLowerCase());
+                }
+            }
+        }
+    }
+
+    @JsonIgnore
+    public List<AdicionalesPermiXProducto> getProductos() { 
+        if (productos == null) {
+            productos = new ArrayList<>();
+        }
+        return productos; 
+    }
+    
+    public void setProductos(List<AdicionalesPermiXProducto> productos) { 
+        this.productos = productos != null ? productos : new ArrayList<>(); 
+    }
+
+    // Métodos de utilidad
+    @JsonIgnore
+    public boolean hasCategoria(String categoria) {
+        if (categoria == null || categoria.trim().isEmpty()) {
+            return false;
+        }
+        return this.getCategoria().contains(categoria.trim().toLowerCase());
+    }
+
+    public void addCategoria(String categoria) {
+        if (categoria != null && !categoria.trim().isEmpty()) {
+            String normalizedCat = categoria.trim().toLowerCase();
+            if (!this.getCategoria().contains(normalizedCat)) {
+                this.getCategoria().add(normalizedCat);
+            }
+        }
+    }
+
+    public void removeCategoria(String categoria) {
+        if (categoria != null && !categoria.trim().isEmpty()) {
+            this.getCategoria().remove(categoria.trim().toLowerCase());
+        }
+    }
+
+    @JsonIgnore
+    public boolean isValidForPersistence() {
+        return nombre != null && !nombre.trim().isEmpty() && 
+               precio > 0 && 
+               categoria != null && !categoria.isEmpty();
+    }
+
+    // Método toString para debugging
+    @Override
+    public String toString() {
+        return "Adicional{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", precio=" + precio +
+                ", activo=" + activo +
+                ", categoria=" + categoria +
+                '}';
+    }
+
+    // Métodos equals y hashCode basados en nombre (para evitar duplicados)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        Adicional adicional = (Adicional) o;
+        return nombre != null ? nombre.equalsIgnoreCase(adicional.nombre) : adicional.nombre == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return nombre != null ? nombre.toLowerCase().hashCode() : 0;
+    }
 }
