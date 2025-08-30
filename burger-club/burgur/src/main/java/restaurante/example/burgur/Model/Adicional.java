@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -25,26 +24,18 @@ import jakarta.persistence.Table;
 public class Adicional {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
-
-    @Column(name = "nombre", nullable = false, length = 100, unique = true)
     private String nombre;
-
-    @Column(name = "precio", nullable = false)
     private double precio;
-
-    @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
-    // CORRECCIÓN: Cambiar FetchType a LAZY para evitar problemas con update
+    // Crea las categorías como una tabla auxiliar con (idAdicional y nombreCategoria)
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
         name = "adicional_categorias",
         joinColumns = @JoinColumn(name = "adicional_id", nullable = false)
     )
     @Column(name = "categoria", nullable = false, length = 50)
-    @JsonProperty("categoria")
     private List<String> categoria = new ArrayList<>();
 
     // Relación con productos (lazy loading para evitar problemas de rendimiento)
@@ -65,7 +56,7 @@ public class Adicional {
         this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();
     }
 
-    // Constructor vacío (requerido por JPA)
+    // Constructor vacío 
     public Adicional() {
         this.categoria = new ArrayList<>();
         this.activo = true;

@@ -66,7 +66,6 @@ public class AdicionalServiceImpl implements AdicionalService {
     }
 
     @Override
-    @Transactional
     public void delete(Long id) {
         try {
             if (id == null) {
@@ -100,7 +99,6 @@ public class AdicionalServiceImpl implements AdicionalService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Adicional findById(Long id) {
         try {
             if (id == null) {
@@ -120,7 +118,6 @@ public class AdicionalServiceImpl implements AdicionalService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Adicional> findAll() {
         try {
             return adicionalRepository.findAll();
@@ -132,7 +129,6 @@ public class AdicionalServiceImpl implements AdicionalService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsById(Long id) {
         try {
             return id != null && adicionalRepository.existsById(id);
@@ -233,7 +229,7 @@ public class AdicionalServiceImpl implements AdicionalService {
     // MÉTODOS ADICIONALES DE UTILIDAD
     // ==========================================
     
-    @Transactional(readOnly = true)
+   
     public List<Adicional> findByCategoria(String categoria) {
         try {
             if (categoria == null || categoria.trim().isEmpty()) {
@@ -252,7 +248,7 @@ public class AdicionalServiceImpl implements AdicionalService {
         }
     }
 
-    @Transactional(readOnly = true)
+
     public List<Adicional> findActivosOnly() {
         try {
             return adicionalRepository.findByActivoTrue();
@@ -262,7 +258,7 @@ public class AdicionalServiceImpl implements AdicionalService {
         }
     }
 
-    @Transactional(readOnly = true)
+
     public long countActivos() {
         try {
             return adicionalRepository.countByActivoTrue();
@@ -272,7 +268,6 @@ public class AdicionalServiceImpl implements AdicionalService {
         }
     }
 
-    @Transactional
     public Adicional toggleActivo(Long id) {
         try {
             Adicional adicional = findById(id); // Esto ya maneja validaciones

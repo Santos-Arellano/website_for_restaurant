@@ -21,13 +21,7 @@ public class AdicionalesPermiXProducto {
     @ManyToOne
     @JoinColumn(name = "adicional_id")
     private Adicional adicional;
-    
-    // Constructor completo
-    public AdicionalesPermiXProducto(Producto producto, Adicional adicional) {
-        this.producto = producto;
-        this.adicional = adicional;
-    }
-    
+        
     // Constructor vacío (requerido por JPA)
     public AdicionalesPermiXProducto() {}
     

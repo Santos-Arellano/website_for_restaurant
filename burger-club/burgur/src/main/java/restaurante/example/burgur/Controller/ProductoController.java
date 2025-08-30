@@ -4,6 +4,7 @@ package restaurante.example.burgur.Controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,16 +22,53 @@ public class ProductoController {
     
     @Autowired
     private ProductoService productoService;
+
+    // ==========================================
+    // VISTAS DE ADMINISTRACIÓN
+    // ==========================================
+    
+    @GetMapping("/admin")
+    public String administrarProductos(Model model) {
+        productoService.rebuildAdicionalesDeTodosLosProductos();
+        try {
+            List<Producto> productos = productoService.findAll();
+            
+            long totalProductos = productos.size();
+            long productosNuevos = productos.stream()
+                .filter(p -> p != null && p.isNuevo())
+                .count();
+            long productosActivos = productos.stream()
+                .filter(p -> p != null && p.isActivo())
+                .count();
+            long stockBajo = productos.stream()
+                .filter(p -> p != null && p.isStockBajo())
+                .count();
+            
+            model.addAttribute("productos", productos);
+            model.addAttribute("totalProductos", totalProductos);
+            model.addAttribute("productosNuevos", productosNuevos);
+            model.addAttribute("productosActivos", productosActivos);
+            model.addAttribute("stockBajo", stockBajo);
+            
+            return "admin/admin-products";
+        } catch (Exception e) {
+            model.addAttribute("productos", List.of());
+            model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
+            return "admin/admin-products";
+        }
+    }
+    
     
     // ==========================================
     // API REST PARA PRODUCTOS
     // ==========================================
     
     @GetMapping("/api/productos/{id}")
+    // Retorna el producto junto con su lista de adicionales permitidos
     @ResponseBody
     public ResponseEntity<Map<String, Object>> obtenerProductoPorId(@PathVariable Long id) {
         try {
-            var productoOpt = productoService.findById(id);
+            Optional<Producto> productoOpt = productoService.findById(id);
             if (productoOpt.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -164,40 +202,7 @@ public class ProductoController {
         }
     }
     
-    // ==========================================
-    // VISTAS DE ADMINISTRACIÓN
-    // ==========================================
-    
-    @GetMapping("/admin")
-    public String administrarProductos(Model model) {
-        try {
-            List<Producto> productos = productoService.findAll();
-            
-            long totalProductos = productos.size();
-            long productosNuevos = productos.stream()
-                .filter(p -> p != null && p.isNuevo())
-                .count();
-            long productosActivos = productos.stream()
-                .filter(p -> p != null && p.isActivo())
-                .count();
-            long stockBajo = productos.stream()
-                .filter(p -> p != null && p.isStockBajo())
-                .count();
-            
-            model.addAttribute("productos", productos);
-            model.addAttribute("totalProductos", totalProductos);
-            model.addAttribute("productosNuevos", productosNuevos);
-            model.addAttribute("productosActivos", productosActivos);
-            model.addAttribute("stockBajo", stockBajo);
-            
-            return "admin/admin-products";
-        } catch (Exception e) {
-            model.addAttribute("productos", List.of());
-            model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
-            return "admin/admin-products";
-        }
-    }
-    
+
     // ==========================================
     // CLASES DE APOYO
     // ==========================================

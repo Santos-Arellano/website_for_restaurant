@@ -109,6 +109,7 @@ public class AdicionalController {
     
     @PutMapping("/api/{id}")
     @ResponseBody
+    // Retorna el adicional actualizado con sus categorías
     public ResponseEntity<Map<String, Object>> actualizarAdicional(
             @PathVariable Long id, @RequestBody AdicionalRequest request) {
         try {

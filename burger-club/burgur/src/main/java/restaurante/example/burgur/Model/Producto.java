@@ -20,7 +20,6 @@ public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
     private String nombre;
     private String descripcion;
     private double precio;
@@ -32,6 +31,7 @@ public class Producto {
     private boolean activo;
     
     @ElementCollection
+    // Crea los Ingredientes como una tabla auxiliar con (idProducto y nombreIngrediente)
     private List<String> ingredientes = new ArrayList<>();
     
     // Conexiones BDD

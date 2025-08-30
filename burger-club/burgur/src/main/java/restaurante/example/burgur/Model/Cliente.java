@@ -32,7 +32,7 @@ public class Cliente {
         this.activo = activo;
     }
     
-    // Constructor vacío (requerido por JPA)
+    // Constructor vacío 
     public Cliente() {}
     
     // Getters y Setters

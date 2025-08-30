@@ -29,6 +29,7 @@ public class MenuController {
                       @RequestParam(value = "nombre", required = false) String nombre,
                       @RequestParam(value = "categoria", required = false) String categoria) {
         try {
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             List<Producto> productos;
             
             if (nombre != null && !nombre.trim().isEmpty()) {
@@ -56,6 +57,7 @@ public class MenuController {
     @GetMapping("/menu/search")
     public String searchMenu(Model model,
                             @RequestParam(value = "nombre", required = false) String nombre) {
+                                
         return menu(model, nombre, null);
     }
     

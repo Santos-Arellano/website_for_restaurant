@@ -293,7 +293,6 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional
     public List<Adicional> obtenerAdicionalesPermitidos(Long productoId){ 
-        // (opcional) validar que el producto exista
         if (!productoRepository.existsById(productoId)) {
             throw new IllegalArgumentException("Producto no existe: " + productoId);
         }

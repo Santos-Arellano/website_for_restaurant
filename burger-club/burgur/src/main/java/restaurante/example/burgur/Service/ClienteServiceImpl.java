@@ -167,7 +167,7 @@ public class ClienteServiceImpl implements ClienteService {
         c.setCorreo(c.getCorreo().trim().toLowerCase()); // correos en minúsculas para evitar duplicados por case
         if (c.getTelefono() != null) c.setTelefono(c.getTelefono().trim());
         if (c.getDireccion() != null) c.setDireccion(c.getDireccion().trim());
-        // Nota: aquí NO normalizamos la contraseña; solo se valida. Hasheala antes de persistir.
+        // Nota: aquí NO se normaliza la contraseña; solo se valida
     }
 
 }
