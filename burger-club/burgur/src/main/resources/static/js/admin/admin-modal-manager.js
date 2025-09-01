@@ -1,18 +1,27 @@
 // burger-club/burgur/src/main/resources/static/js/admin/admin-modal-manager.js
 // ==========================================
-// BURGER CLUB - ADMIN MODAL MANAGER (COMPLETO)
+// BURGER CLUB - ADMIN MODAL MANAGER (COMPLETO Y CORREGIDO)
 // ==========================================
 
 class AdminModalManager {
     constructor() {
         this.currentModal = null;
         this.currentSection = this.getCurrentSection();
+        this.loadingOverlay = null;
         this.init();
+        
+        // Limpieza inicial de cualquier overlay existente
+        this.removeAllLoadingOverlays();
     }
     
     init() {
         console.log('🎨 Admin Modal Manager initialized for:', this.currentSection);
         this.addModalStyles();
+        
+        // Limpieza adicional cuando se carga la página
+        window.addEventListener('load', () => {
+            this.removeAllLoadingOverlays();
+        });
     }
     
     getCurrentSection() {
@@ -33,20 +42,24 @@ class AdminModalManager {
         
         // Si es edición y no tenemos todos los datos, cargarlos del servidor
         if (isEdit && productData && typeof productData === 'number') {
+            this.showLoading(true, 'Cargando datos del producto...');
             try {
                 const response = await fetch(`/menu/api/productos/${productData}`);
                 if (response.ok) {
                     const data = await response.json();
                     productData = data.producto || data;
                 } else {
+                    this.hideLoading();
                     this.showNotification('Error al cargar los datos del producto', 'error');
                     return;
                 }
             } catch (error) {
                 console.error('Error cargando producto:', error);
+                this.hideLoading();
                 this.showNotification('Error de conexión al cargar el producto', 'error');
                 return;
             }
+            this.hideLoading();
         }
         
         // Asegurar que productData sea un objeto válido
@@ -189,20 +202,24 @@ class AdminModalManager {
         
         // Si es edición y solo tenemos ID, cargar datos del servidor
         if (isEdit && clienteData && typeof clienteData === 'number') {
+            this.showLoading(true, 'Cargando datos del cliente...');
             try {
                 const response = await fetch(`/admin/clientes/api/${clienteData}`);
                 if (response.ok) {
                     const data = await response.json();
                     clienteData = data.cliente || data;
                 } else {
+                    this.hideLoading();
                     this.showNotification('Error al cargar los datos del cliente', 'error');
                     return;
                 }
             } catch (error) {
                 console.error('Error cargando cliente:', error);
+                this.hideLoading();
                 this.showNotification('Error de conexión al cargar el cliente', 'error');
                 return;
             }
+            this.hideLoading();
         }
         
         if (!clienteData || typeof clienteData !== 'object') {
@@ -291,20 +308,24 @@ class AdminModalManager {
         
         // Si es edición y solo tenemos ID, cargar datos del servidor
         if (isEdit && adicionalData && typeof adicionalData === 'number') {
+            this.showLoading(true, 'Cargando datos del adicional...');
             try {
                 const response = await fetch(`/admin/adicionales/api/${adicionalData}`);
                 if (response.ok) {
                     const data = await response.json();
                     adicionalData = data.adicional || data;
                 } else {
+                    this.hideLoading();
                     this.showNotification('Error al cargar los datos del adicional', 'error');
                     return;
                 }
             } catch (error) {
                 console.error('Error cargando adicional:', error);
+                this.hideLoading();
                 this.showNotification('Error de conexión al cargar el adicional', 'error');
                 return;
             }
+            this.hideLoading();
         }
         
         if (!adicionalData || typeof adicionalData !== 'object') {
@@ -546,11 +567,11 @@ class AdminModalManager {
     
     async handleFormSubmit(form, modal, isEdit, itemId) {
         // Mostrar loading
-        this.showLoading(true);
+        this.showLoading(true, 'Procesando datos...');
         
         // Validar formulario completo
         if (!this.validateForm(form)) {
-            this.showLoading(false);
+            this.hideLoading();
             return;
         }
         
@@ -606,7 +627,7 @@ class AdminModalManager {
             console.error('Error:', error);
             this.showNotification('Error de conexión', 'error');
         } finally {
-            this.showLoading(false);
+            this.hideLoading();
         }
     }
     
@@ -681,7 +702,7 @@ class AdminModalManager {
     }
     
     // ==========================================
-    // UTILITY METHODS (COMPLETOS)
+    // UTILITY METHODS (COMPLETOS Y CORREGIDOS)
     // ==========================================
     
     escapeHtml(text) {
@@ -717,6 +738,9 @@ class AdminModalManager {
     }
     
     closeModal(modal) {
+        // Limpiar loading overlay antes de cerrar modal
+        this.hideLoading();
+        
         modal.classList.remove('show');
         document.body.style.overflow = 'auto';
         
@@ -733,15 +757,86 @@ class AdminModalManager {
             document.removeEventListener('keydown', this.escHandler);
             this.escHandler = null;
         }
+        
+        // Limpieza adicional de cualquier overlay residual
+        setTimeout(() => {
+            this.removeAllLoadingOverlays();
+        }, 500);
     }
     
-    showLoading(show) {
-        const body = document.body;
+    // ==========================================
+    // LOADING METHODS (COMPLETAMENTE CORREGIDOS)
+    // ==========================================
+    
+    showLoading(show, message = 'Procesando datos...') {
         if (show) {
-            body.classList.add('modal-loading');
+            this.createLoadingOverlay(message);
         } else {
-            body.classList.remove('modal-loading');
+            this.hideLoading();
         }
+    }
+    
+    createLoadingOverlay(message) {
+        // Limpiar cualquier overlay existente primero
+        this.removeAllLoadingOverlays();
+        
+        this.loadingOverlay = document.createElement('div');
+        this.loadingOverlay.id = 'admin-loading-overlay';
+        this.loadingOverlay.className = 'loading-overlay';
+        this.loadingOverlay.innerHTML = `
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">${message}</div>
+            </div>
+        `;
+        
+        document.body.appendChild(this.loadingOverlay);
+        
+        // Forzar reflow y mostrar con un microtask
+        this.loadingOverlay.offsetHeight; // Trigger reflow
+        this.loadingOverlay.classList.add('show');
+    }
+    
+    hideLoading() {
+        // Método principal para ocultar loading
+        this.removeAllLoadingOverlays();
+        this.loadingOverlay = null;
+    }
+    
+    removeAllLoadingOverlays() {
+        // Remover por referencia de instancia
+        if (this.loadingOverlay) {
+            this.loadingOverlay.classList.remove('show');
+            if (document.body.contains(this.loadingOverlay)) {
+                document.body.removeChild(this.loadingOverlay);
+            }
+        }
+        
+        // Limpieza agresiva: remover TODOS los overlays por ID o clase
+        const overlaysById = document.querySelectorAll('#admin-loading-overlay');
+        const overlaysByClass = document.querySelectorAll('.loading-overlay');
+        
+        [...overlaysById, ...overlaysByClass].forEach(overlay => {
+            if (overlay && document.body.contains(overlay)) {
+                overlay.classList.remove('show');
+                try {
+                    document.body.removeChild(overlay);
+                } catch (e) {
+                    // Elemento ya removido
+                    console.log('Overlay ya removido:', e.message);
+                }
+            }
+        });
+        
+        // Limpieza adicional para elementos huérfanos
+        setTimeout(() => {
+            const remainingOverlays = document.querySelectorAll('#admin-loading-overlay, .loading-overlay');
+            remainingOverlays.forEach(overlay => {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+            });
+        }, 100);
     }
     
     showNotification(message, type = 'info') {
@@ -798,566 +893,19 @@ class AdminModalManager {
     }
     
     // ==========================================
-    // MODAL STYLES (COMPLETOS)
+    // MODAL STYLES (COMPLETOS Y MEJORADOS)
     // ==========================================
     
     addModalStyles() {
+        // Evitar duplicar estilos
         if (document.getElementById('admin-modal-styles')) return;
         
-        const style = document.createElement('style');
-        style.id = 'admin-modal-styles';
-        style.textContent = `
-            .admin-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.85);
-                z-index: 1000;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                opacity: 0;
-                visibility: hidden;
-                transition: all 0.3s ease;
-                backdrop-filter: blur(8px);
-            }
-            
-            .admin-modal.show {
-                opacity: 1;
-                visibility: visible;
-            }
-            
-            .admin-modal .modal-content {
-                background: #12372a;
-                border: 2px solid #fbb5b5;
-                border-radius: 15px;
-                width: 90%;
-                max-width: 800px;
-                max-height: 90vh;
-                overflow-y: auto;
-                transform: scale(0.9);
-                transition: transform 0.3s ease;
-                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
-            }
-            
-            .admin-modal.show .modal-content {
-                transform: scale(1);
-            }
-            
-            .admin-modal .modal-header {
-                padding: 30px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: linear-gradient(135deg, rgba(251, 181, 181, 0.2) 0%, rgba(18, 55, 42, 0.9) 100%);
-                border-radius: 13px 13px 0 0;
-            }
-
-            .admin-modal .modal-header h3 {
-                color: white;
-                margin: 0;
-                font-family: 'Lexend Zetta', sans-serif;
-                font-size: 1.4rem;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-
-            .admin-modal .modal-close {
-                background: none;
-                border: none;
-                font-size: 2rem;
-                color: white;
-                cursor: pointer;
-                padding: 5px;
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                transition: all 0.3s ease;
-            }
-
-            .admin-modal .modal-close:hover {
-                background: rgba(244, 67, 54, 0.2);
-                color: #f44336;
-                transform: scale(1.1);
-            }
-            
-            .admin-modal .modal-body {
-                padding: 35px;
-            }
-
-            .admin-form {
-                display: flex;
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .form-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 25px;
-            }
-
-            .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .form-group label {
-                color: white;
-                font-weight: 600;
-                font-size: 0.95rem;
-                font-family: 'Sansita Swashed', cursive;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                padding: 15px 18px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                color: white;
-                font-family: 'Sansita Swashed', cursive;
-                transition: all 0.3s ease;
-                font-size: 14px;
-            }
-
-            .form-group input:focus,
-            .form-group select:focus,
-            .form-group textarea:focus {
-                outline: none;
-                border-color: #fbb5b5;
-                background: rgba(255, 255, 255, 0.15);
-                box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.3);
-                transform: translateY(-1px);
-            }
-
-            .form-group input.success {
-                border-color: #4caf50;
-                background: rgba(76, 175, 80, 0.1);
-            }
-
-            .form-group input.error {
-                border-color: #f44336;
-                background: rgba(244, 67, 54, 0.1);
-                animation: shake 0.5s ease-in-out;
-            }
-
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-
-            .error-message {
-                color: #f44336;
-                font-size: 0.8rem;
-                margin-top: 5px;
-                font-weight: 500;
-            }
-
-            .field-hint {
-                color: rgba(255, 255, 255, 0.6);
-                font-size: 0.8rem;
-                margin-top: 5px;
-                font-style: italic;
-            }
-
-            .input-with-prefix {
-                position: relative;
-                display: flex;
-                align-items: center;
-            }
-
-            .input-prefix {
-                position: absolute;
-                left: 15px;
-                color: #fbb5b5;
-                font-weight: 700;
-                font-size: 1.1rem;
-                z-index: 1;
-            }
-
-            .input-with-prefix input {
-                padding-left: 35px;
-            }
-
-            .form-group input::placeholder,
-            .form-group textarea::placeholder {
-                color: rgba(255, 255, 255, 0.5);
-            }
-
-            .form-group select option {
-                background: #12372a;
-                color: white;
-            }
-
-            .form-section {
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
-                padding: 25px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .section-title {
-                color: #fbb5b5;
-                font-size: 1.1rem;
-                margin-bottom: 15px;
-                font-family: 'Lexend Zetta', sans-serif;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .section-description {
-                color: rgba(255, 255, 255, 0.7);
-                font-size: 0.9rem;
-                margin-bottom: 20px;
-                line-height: 1.5;
-            }
-
-            .checkbox-group,
-            .checkbox-grid {
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .checkbox-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 15px;
-            }
-
-            .checkbox-label {
-                display: flex;
-                align-items: flex-start;
-                gap: 12px;
-                cursor: pointer;
-                padding: 15px;
-                border-radius: 8px;
-                transition: all 0.3s ease;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                background: rgba(255, 255, 255, 0.05);
-            }
-
-            .checkbox-label:hover {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: #fbb5b5;
-            }
-
-            .checkbox-label input[type="checkbox"] {
-                width: 20px;
-                height: 20px;
-                margin: 0;
-                cursor: pointer;
-                accent-color: #fbb5b5;
-                flex-shrink: 0;
-            }
-
-            .checkbox-text {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
-
-            .checkbox-text strong {
-                color: white;
-                font-size: 0.95rem;
-            }
-
-            .checkbox-text small {
-                color: rgba(255, 255, 255, 0.6);
-                font-size: 0.8rem;
-            }
-
-            .form-actions {
-                display: flex;
-                gap: 20px;
-                justify-content: flex-end;
-                padding-top: 25px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                margin-top: 15px;
-            }
-
-            .btn-cancel,
-            .btn-primary {
-                padding: 15px 25px;
-                border: none;
-                border-radius: 8px;
-                font-family: 'Sansita Swashed', cursive;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-size: 14px;
-                min-width: 140px;
-                justify-content: center;
-            }
-
-            .btn-cancel {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                border: 2px solid rgba(255, 255, 255, 0.2);
-            }
-
-            .btn-cancel:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: translateY(-2px);
-                border-color: rgba(255, 255, 255, 0.4);
-            }
-
-            .btn-primary {
-                background: linear-gradient(135deg, #4caf50, #45a049);
-                color: white;
-                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-                border: 2px solid transparent;
-            }
-
-            .btn-primary:hover {
-                background: linear-gradient(135deg, #45a049, #388e3c);
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
-            }
-
-            .btn-primary:active,
-            .btn-cancel:active {
-                transform: translateY(0);
-            }
-
-            /* Loading State */
-            .modal-loading {
-                pointer-events: none;
-                position: relative;
-            }
-
-            .modal-loading::after {
-                content: '';
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                width: 50px;
-                height: 50px;
-                border: 4px solid rgba(255, 255, 255, 0.3);
-                border-top: 4px solid #fbb5b5;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                transform: translate(-50%, -50%);
-                z-index: 3000;
-            }
-
-            @keyframes spin {
-                0% { transform: translate(-50%, -50%) rotate(0deg); }
-                100% { transform: translate(-50%, -50%) rotate(360deg); }
-            }
-
-            /* Notifications */
-            .modal-notification {
-                position: fixed;
-                top: 25px;
-                right: 25px;
-                background: #12372a;
-                border: 2px solid;
-                border-radius: 12px;
-                padding: 20px;
-                z-index: 2000;
-                transform: translateX(120%);
-                transition: transform 0.4s ease;
-                min-width: 350px;
-                max-width: 450px;
-                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-                backdrop-filter: blur(10px);
-            }
-
-            .modal-notification.show {
-                transform: translateX(0);
-            }
-
-            .modal-notification-success { 
-                border-color: #4caf50;
-                background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), #12372a);
-            }
-            
-            .modal-notification-error { 
-                border-color: #f44336; 
-                background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), #12372a);
-            }
-            
-            .modal-notification-warning { 
-                border-color: #ff9800; 
-                background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), #12372a);
-            }
-            
-            .modal-notification-info { 
-                border-color: #2196f3; 
-                background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), #12372a);
-            }
-
-            .modal-notification .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-            }
-
-            .modal-notification .notification-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.2rem;
-                flex-shrink: 0;
-            }
-
-            .modal-notification-success .notification-icon {
-                background: rgba(76, 175, 80, 0.2);
-                color: #4caf50;
-            }
-
-            .modal-notification-error .notification-icon {
-                background: rgba(244, 67, 54, 0.2);
-                color: #f44336;
-            }
-
-            .modal-notification-warning .notification-icon {
-                background: rgba(255, 152, 0, 0.2);
-                color: #ff9800;
-            }
-
-            .modal-notification-info .notification-icon {
-                background: rgba(33, 150, 243, 0.2);
-                color: #2196f3;
-            }
-
-            .modal-notification .notification-text {
-                flex: 1;
-            }
-
-            .modal-notification .notification-message {
-                color: white;
-                font-family: 'Sansita Swashed', cursive;
-                font-size: 14px;
-                font-weight: 500;
-                line-height: 1.4;
-            }
-
-            .modal-notification .notification-close {
-                background: none;
-                border: none;
-                color: rgba(255, 255, 255, 0.7);
-                cursor: pointer;
-                font-size: 1.5rem;
-                padding: 5px;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                transition: all 0.3s ease;
-                flex-shrink: 0;
-            }
-
-            .modal-notification .notification-close:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-            }
-
-            /* Scrollbar personalizado */
-            .admin-modal .modal-content::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            .admin-modal .modal-content::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 4px;
-            }
-
-            .admin-modal .modal-content::-webkit-scrollbar-thumb {
-                background: #fbb5b5;
-                border-radius: 4px;
-            }
-
-            .admin-modal .modal-content::-webkit-scrollbar-thumb:hover {
-                background: #e8a3a3;
-            }
-
-            /* Responsive Design */
-            @media (max-width: 768px) {
-                .admin-modal .modal-content {
-                    width: 95%;
-                    margin: 20px 10px;
-                    max-height: 95vh;
-                }
-
-                .admin-modal .modal-header,
-                .admin-modal .modal-body {
-                    padding: 25px 20px;
-                }
-
-                .form-row {
-                    grid-template-columns: 1fr;
-                    gap: 20px;
-                }
-
-                .checkbox-grid {
-                    grid-template-columns: 1fr;
-                }
-
-                .form-actions {
-                    flex-direction: column;
-                    gap: 15px;
-                }
-
-                .btn-cancel,
-                .btn-primary {
-                    width: 100%;
-                    justify-content: center;
-                }
-
-                .modal-notification {
-                    right: 15px;
-                    left: 15px;
-                    min-width: auto;
-                    max-width: none;
-                }
-            }
-
-            @media (max-width: 480px) {
-                .admin-modal .modal-header h3 {
-                    font-size: 1.2rem;
-                }
-
-                .form-group input,
-                .form-group select,
-                .form-group textarea {
-                    padding: 12px 15px;
-                }
-
-                .section-title {
-                    font-size: 1rem;
-                }
-
-                .checkbox-label {
-                    padding: 12px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        // Cargar archivo CSS externo en lugar de CSS embebido
+        const link = document.createElement('link');
+        link.id = 'admin-modal-styles';
+        link.rel = 'stylesheet';
+        link.href = '/css/components/admin-modal-manager.css';
+        document.head.appendChild(link);
     }
 }
 
@@ -1403,4 +951,22 @@ window.editAdicional = function(adicionalId) {
     }
 };
 
+// Función de utilidad para limpiar manualmente overlays desde consola
+window.clearAllLoadingOverlays = function() {
+    if (window.globalModalManager) {
+        window.globalModalManager.removeAllLoadingOverlays();
+        console.log('✅ Loading overlays limpiados manualmente');
+    } else {
+        // Limpieza de emergencia sin el modal manager
+        const overlays = document.querySelectorAll('#admin-loading-overlay, .loading-overlay');
+        overlays.forEach(overlay => {
+            if (document.body.contains(overlay)) {
+                document.body.removeChild(overlay);
+            }
+        });
+        console.log('✅ Loading overlays limpiados directamente desde DOM');
+    }
+};
+
 console.log('Admin Modal Manager loaded successfully');
+console.log('💡 Si ves loading overlays stuck, ejecuta: clearAllLoadingOverlays()');

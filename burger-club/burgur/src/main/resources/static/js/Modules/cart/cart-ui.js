@@ -182,60 +182,12 @@ export class CartUI {
     }
     
     addCartNotificationStyles() {
-        if (document.getElementById('cart-notification-styles')) return;
+        if (document.getElementById('cart-ui-styles')) return;
         
-        const style = document.createElement('style');
-        style.id = 'cart-notification-styles';
-        style.textContent = `
-            .cart-add-notification {
-                position: fixed;
-                top: 100px;
-                right: 20px;
-                background: var(--color-background);
-                border: 2px solid var(--color-cta-stroke);
-                border-radius: var(--border-radius-small);
-                padding: 15px;
-                z-index: 2500;
-                opacity: 0;
-                transform: translateX(100%);
-                transition: all 0.3s ease;
-                min-width: 250px;
-                box-shadow: var(--box-shadow);
-            }
-            
-            .cart-add-notification.show {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .notification-content img {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-            }
-            
-            .notification-content span {
-                color: var(--color-text-primary);
-                font-weight: 500;
-                font-size: 0.9rem;
-            }
-            
-            @media (max-width: 768px) {
-                .cart-add-notification {
-                    top: 80px;
-                    right: 10px;
-                    left: 10px;
-                    min-width: auto;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        const link = document.createElement('link');
+        link.id = 'cart-ui-styles';
+        link.rel = 'stylesheet';
+        link.href = '/css/components/cart-ui.css';
+        document.head.appendChild(link);
     }
 }

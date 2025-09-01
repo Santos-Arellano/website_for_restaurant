@@ -27,26 +27,27 @@
      </head>
      <body>
          <!-- Header -->
-         <header class="header">
-             <div class="container">
-                 <div class="header-content">
-                     <div class="logo">
-                         <a th:href="@{/}">
-                             <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-img">
-                         </a>
-                     </div>
-                     <nav class="nav">
-                         <ul class="nav-list">
-                             <li><a th:href="@{/}" class="nav-link">Inicio</a></li>
-                             <li><a th:href="@{/menu}" class="nav-link">Menú</a></li>
-                             <li><a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a></li>
-                             <li><a th:href="@{/admin/clientes}" class="nav-link">Clientes</a></li>
-                             <li><a th:href="@{/admin/adicionales}" class="nav-link">Adicionales</a></li>
-                         </ul>
-                     </nav>
-                 </div>
-             </div>
-         </header>
+        <header class="site-header">
+            <div class="container header-container">
+                <a th:href="@{/}" class="logo">
+                    <div class="logo-icon-wrapper">
+                        <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                    </div>
+                    <span class="logo-text">BURGER CLUB</span>
+                </a>
+
+                <nav class="main-nav">
+                    <ul>
+                        <li><a th:href="@{/}">Inicio</a></li>
+                        <li><a th:href="@{/menu}">Menú</a></li>
+                        <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                        <li><a th:href="@{/menu/admin}" class="admin-nav">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
      
          <!-- Admin Products Section -->
          <section class="admin-products-section">
@@ -118,8 +119,8 @@
                      <!-- Product Cards -->
                      <div class="product-card" th:each="producto : ${productos}" th:data-product-id="${producto.id}">
                          <div class="product-image">
-                             <img th:if="${producto.imagen}" th:src="@{'/images/productos/' + ${producto.imagen}}" th:alt="${producto.nombre}" />
-                             <i th:unless="${producto.imagen}" class="fas fa-hamburger"></i>
+                             <img th:if="${producto.imgURL}" th:src="${producto.imgURL}" th:alt="${producto.nombre}" />
+                             <i th:unless="${producto.imgURL}" class="fas fa-hamburger"></i>
                          </div>
                          <div class="card-content">
                              <h3 class="product-name" th:text="${producto.nombre}">Nombre del Producto</h3>
@@ -154,7 +155,7 @@
                                      <i class="fas fa-trash"></i>
                                      Eliminar
                                  </button>
-                                 <button class="btn-action btn-details" th:onclick="'showProductAdicionales(' + ${producto.id} + ')'">
+                                 <button class="btn-action btn-details" th:data-product-id="${producto.id}">
                                      <i class="fas fa-info-circle"></i>
                                      Detalles
                                  </button>
@@ -176,6 +177,32 @@
              </div>
          </section>
      
+         <!-- Modal de Detalles de Producto -->
+         <div id="product-details-modal" class="product-details-modal">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h3>Detalles del Producto</h3>
+                     <button class="modal-close">&times;</button>
+                 </div>
+                 <div class="modal-body">
+                     <div class="product-detail-info">
+                         <div class="product-detail-image">
+                             <img id="detail-product-image" src="" alt="Producto">
+                         </div>
+                         <div class="product-detail-content">
+                             <h4 id="detail-product-name">Nombre del Producto</h4>
+                             <p class="detail-product-category" id="detail-product-category">Categoría</p>
+                             <p class="detail-product-price" id="detail-product-price">$0.00</p>
+                             <p class="detail-product-description" id="detail-product-description">Descripción del producto...</p>
+                             <div class="detail-product-status">
+                                 <span id="detail-product-availability" class="status-badge">Disponible</span>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+
          <!-- Footer -->
          <footer class="footer">
              <div class="container">
@@ -201,7 +228,7 @@
          </footer>
      
          <!-- JavaScript -->
-         <script th:src="@{/js/admin/admin-universal.js}"></script>
+         <script th:src="@{/js/admin-universal.js}"></script>
          <script th:src="@{/js/admin/admin-modal-manager.js}"></script>
          <script th:src="@{/js/Modules/admin/admin-products-page.js}" defer></script>
      </body>

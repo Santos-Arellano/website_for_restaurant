@@ -1,37 +1,47 @@
 <div align="center">
-  <img src="burger-club/burgur/src/main/resources/static/images/Logo.png" alt="Burger Club Logo" width="150" height="150">
   
   # 🍔 Burger Club - Sistema de Gestión de Restaurante
   
   <p><em>"La mejor experiencia gastronómica, ahora digital"</em></p>
   
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.0+-brightgreen" alt="Spring Boot">
-  <img src="https://img.shields.io/badge/Java-17+-orange" alt="Java">
-  <img src="https://img.shields.io/badge/H2-Database-blue" alt="H2 Database">
-  <img src="https://img.shields.io/badge/Maven-Build-red" alt="Maven">
-  <img src="https://img.shields.io/badge/Thymeleaf-Template-green" alt="Thymeleaf">
-  <img src="https://img.shields.io/badge/Bootstrap-5.0+-purple" alt="Bootstrap">
+  ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-brightgreen)
+  ![Java](https://img.shields.io/badge/Java-17+-orange)
+  ![H2 Database](https://img.shields.io/badge/H2-Database-blue)
+  ![Maven](https://img.shields.io/badge/Maven-Build-red)
+  ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-Template-green)
+  ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.0+-purple)
+  
 </div>
 
 ## 📋 Descripción del Proyecto
 
-**Burger Club** es un sistema completo de gestión para restaurantes desarrollado con Spring Boot. Permite la administración integral de productos, clientes, adicionales y pedidos, ofreciendo tanto una interfaz de usuario para clientes como un panel administrativo completo.
+**Burger Club** es un sistema completo de gestión para restaurantes desarrollado con **Spring Boot**. Ofrece una solución integral que permite la administración eficiente de productos, clientes, adicionales y pedidos, proporcionando tanto una interfaz intuitiva para clientes como un panel administrativo robusto y completo.
 
 ### 🎯 Características Principales
 
-- ✅ **Gestión de Productos**: CRUD completo con categorización automática
-- ✅ **Sistema de Adicionales**: Vinculación inteligente por categorías
-- ✅ **Gestión de Clientes**: Registro, autenticación y perfiles
-- ✅ **Panel Administrativo**: Dashboard con estadísticas en tiempo real
-- ✅ **Menú Dinámico**: Filtrado por categorías y búsqueda avanzada
-- ✅ **Base de Datos**: Inicialización automática con datos de prueba
-- ✅ **API REST**: Endpoints completos para todas las operaciones
-- ✅ **Responsive Design**: Interfaz adaptable a todos los dispositivos
+- 🍔 **Gestión Completa de Productos**: CRUD completo con categorización automática y gestión de stock
+- 🔗 **Sistema Inteligente de Adicionales**: Vinculación automática por categorías compatibles
+- 👥 **Gestión Avanzada de Clientes**: Registro, autenticación segura y gestión de perfiles
+- 📊 **Panel Administrativo Moderno**: Dashboard interactivo con estadísticas en tiempo real
+- 🔍 **Menú Dinámico**: Filtrado inteligente por categorías y búsqueda avanzada en tiempo real
+- 🗄️ **Base de Datos Robusta**: Inicialización automática con datos de prueba y persistencia H2
+- 🌐 **API REST Completa**: Endpoints RESTful para todas las operaciones CRUD
+- 📱 **Diseño Responsive**: Interfaz completamente adaptable a móviles, tablets y desktop
+- ⚡ **Alto Rendimiento**: Optimizado para respuestas rápidas y experiencia fluida
+- 🔒 **Seguridad Integrada**: Validaciones robustas y manejo seguro de datos
 
 ## 🏗️ Arquitectura del Sistema
 
 <div align="center">
-  <img src="docs/architecture-diagram.svg" alt="Diagrama de Arquitectura" width="800">
+  <img src="docs/UML%20Restaurante%20(WEB).png" alt="Diagrama UML del Sistema" width="800">
+  <br><em>Diagrama UML del Sistema Web</em>
+</div>
+
+### 📊 Modelo Entidad-Relación
+
+<div align="center">
+  <img src="docs/MER.jpeg" alt="Modelo Entidad-Relación" width="700">
+  <br><em>Modelo de Base de Datos</em>
 </div>
 
 ```
@@ -52,21 +62,67 @@
     └── Relaciones
 ```
 
-## 🚀 Tecnologías Utilizadas
+## ⚡ Inicio Rápido
 
-### Backend
-- **Spring Boot 3.0+**: Framework principal
-- **Spring Data JPA**: Persistencia de datos
-- **Spring Web**: API REST y controladores MVC
-- **H2 Database**: Base de datos en memoria
-- **Maven**: Gestión de dependencias
-- **Java 17+**: Lenguaje de programación
+¿Quieres probar Burger Club inmediatamente? Sigue estos pasos:
 
-### Frontend
-- **Thymeleaf**: Motor de plantillas
-- **Bootstrap 5**: Framework CSS
-- **JavaScript ES6+**: Interactividad
-- **HTML5 & CSS3**: Estructura y estilos
+```bash
+# 1. Clonar y navegar al proyecto
+git clone https://github.com/Santos-Arellano/website_for_restaurant.git
+cd website_for_restaurant/burger-club/burgur
+
+# 2. Ejecutar (requiere Java 17+)
+./mvnw spring-boot:run
+
+# 3. Abrir en el navegador
+# http://localhost:8080
+```
+
+¡Listo! 🎉 La aplicación estará funcionando con datos de prueba.
+
+---
+
+## 🚀 Stack Tecnológico
+
+<div align="center">
+
+### 🔧 Backend
+| Tecnología | Versión | Propósito |
+|------------|---------|----------|
+| ![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=flat&logo=java&logoColor=white) | 17+ | Lenguaje de programación |
+| ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-6DB33F?style=flat&logo=spring&logoColor=white) | 3.0+ | Framework principal |
+| ![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-3.0+-6DB33F?style=flat&logo=spring&logoColor=white) | 3.0+ | Persistencia de datos |
+| ![H2 Database](https://img.shields.io/badge/H2-Database-0078D4?style=flat&logo=database&logoColor=white) | 2.1+ | Base de datos en memoria |
+| ![Maven](https://img.shields.io/badge/Maven-3.6+-C71A36?style=flat&logo=apache-maven&logoColor=white) | 3.6+ | Gestión de dependencias |
+
+### 🎨 Frontend
+| Tecnología | Versión | Propósito |
+|------------|---------|----------|
+| ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-3.0+-005F0F?style=flat&logo=thymeleaf&logoColor=white) | 3.0+ | Motor de plantillas |
+| ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.0+-7952B3?style=flat&logo=bootstrap&logoColor=white) | 5.0+ | Framework CSS |
+| ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat&logo=javascript&logoColor=black) | ES6+ | Interactividad del cliente |
+| ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white) | 5 | Estructura de páginas |
+| ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white) | 3 | Estilos y diseño |
+
+</div>
+
+## 🎨 Paleta de Colores
+
+Burger Club utiliza una paleta de colores cuidadosamente seleccionada que refleja la identidad gastronómica del proyecto:
+
+<div align="center">
+
+| Color | Hex | Uso | Vista Previa |
+|-------|-----|-----|-------------|
+| **Verde Oscuro** | `#12372A` | Encabezados, navegación principal | ![#12372A](https://via.placeholder.com/50x30/12372A/12372A.png) |
+| **Rosa Suave** | `#fbb5b5` | Acentos, botones secundarios | ![#fbb5b5](https://via.placeholder.com/50x30/fbb5b5/fbb5b5.png) |
+| **Verde Claro** | `#ABDC9F` | Elementos de éxito, confirmaciones | ![#ABDC9F](https://via.placeholder.com/50x30/ABDC9F/ABDC9F.png) |
+| **Crema** | `#fbfada` | Fondos, áreas de contenido | ![#fbfada](https://via.placeholder.com/50x30/fbfada/fbfada.png) |
+
+### 📄 Documentación Completa
+Para más detalles sobre el uso de colores, consulta: [`burger-club/Paleta de colores burgur.pdf`](burger-club/Paleta%20de%20colores%20burgur.pdf)
+
+</div>
 
 ## 📁 Estructura del Proyecto
 
@@ -103,34 +159,44 @@ src/main/java/restaurante/example/burgur/
 
 ## 🛠️ Instalación y Configuración
 
-### Prerrequisitos
+### 📋 Prerrequisitos
 
-- ☕ **Java 17 o superior**
-- 📦 **Maven 3.6+**
-- 🌐 **Navegador web moderno**
+- ☕ **Java 17 o superior** - [Descargar OpenJDK](https://openjdk.org/)
+- 📦 **Maven 3.6+** - [Instalar Maven](https://maven.apache.org/install.html)
+- 🌐 **Navegador web moderno** (Chrome, Firefox, Safari, Edge)
+- 💻 **Sistema Operativo**: Windows, macOS, o Linux
 
-### Pasos de Instalación
+### 🚀 Pasos de Instalación
 
-1. **Clonar el repositorio**
+1. **📥 Clonar el repositorio**
    ```bash
    git clone https://github.com/Santos-Arellano/website_for_restaurant.git
    cd website_for_restaurant/burger-club/burgur
    ```
 
-2. **Compilar el proyecto**
+2. **🔧 Verificar Java y Maven**
    ```bash
-   ./mvnw clean compile
+   java --version
+   mvn --version
    ```
 
-3. **Ejecutar la aplicación**
+3. **📦 Instalar dependencias y compilar**
+   ```bash
+   ./mvnw clean install
+   ```
+
+4. **▶️ Ejecutar la aplicación**
    ```bash
    ./mvnw spring-boot:run
    ```
 
-4. **Acceder a la aplicación**
-   - 🌐 **Aplicación principal**: http://localhost:8080
-   - 🔧 **Panel administrativo**: http://localhost:8080/menu/admin
-   - 🗄️ **Consola H2**: http://localhost:8080/h2-console
+5. **🌐 Acceder a la aplicación**
+   - **🏠 Página Principal**: [http://localhost:8080](http://localhost:8080)
+   - **👨‍💼 Panel Administrativo**: [http://localhost:8080/admin](http://localhost:8080/admin)
+   - **🗄️ Consola H2**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+   - **📋 Gestión de Productos**: [http://localhost:8080/admin/productos](http://localhost:8080/admin/productos)
+
+> **💡 Tip**: La aplicación se iniciará automáticamente con datos de prueba para que puedas explorar todas las funcionalidades inmediatamente.
 
 ### Configuración de Base de Datos
 
@@ -270,7 +336,7 @@ GET    /auth/api/current             # Usuario actual
 - 📱 Interfaz intuitiva y moderna
 
 <div align="center">
-  <img src="docs/dashboard-preview.svg" alt="Vista del Dashboard Administrativo" width="900">
+  <img src="docs/dashboard-preview.png" alt="Vista del Dashboard Administrativo" width="900">
   <p><em>Vista del panel administrativo con estadísticas en tiempo real</em></p>
 </div>
 
@@ -281,7 +347,7 @@ GET    /auth/api/current             # Usuario actual
 - 💰 Precios y descripciones claras
 
 <div align="center">
-  <img src="docs/menu-preview.svg" alt="Vista del Menú Público" width="900">
+  <img src="docs/menu-preview.png" alt="Vista del Menú Público" width="900">
   <p><em>Interfaz del menú público con filtros y catálogo de productos</em></p>
 </div>
 
@@ -349,22 +415,22 @@ export DB_PASSWORD=
   <table>
     <tr>
       <td align="center">
-        <img src="docs/dashboard-preview.svg" alt="Dashboard" width="400">
+        <img src="docs/dashboard-preview.png" alt="Dashboard" width="400">
         <br><strong>Panel Administrativo</strong>
       </td>
       <td align="center">
-        <img src="docs/menu-preview.svg" alt="Menú" width="400">
+        <img src="docs/menu-preview.png" alt="Menú" width="400">
         <br><strong>Menú Público</strong>
       </td>
     </tr>
     <tr>
       <td align="center">
-        <img src="docs/architecture-diagram.svg" alt="Arquitectura" width="400">
-        <br><strong>Arquitectura del Sistema</strong>
+        <img src="docs/UML%20Restaurante%20(WEB).png" alt="UML" width="400">
+        <br><strong>Diagrama UML</strong>
       </td>
       <td align="center">
-        <img src="burger-club/burgur/src/main/resources/static/images/Logo.png" alt="Logo" width="200">
-        <br><strong>Logo del Proyecto</strong>
+        <img src="docs/MER.jpeg" alt="MER" width="400">
+        <br><strong>Modelo Entidad-Relación</strong>
       </td>
     </tr>
   </table>
@@ -414,15 +480,68 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 - Email: arellanosantoso6@gmail.com
 - LinkedIn: [Santos Arellano](https://linkedin.com/in/santos-arellano)
 
+## 📈 Roadmap y Futuras Mejoras
+
+- [ ] 🛒 **Sistema de Carrito de Compras**: Implementación completa del carrito
+- [ ] 💳 **Integración de Pagos**: Pasarelas de pago (PayPal, Stripe)
+- [ ] 📧 **Sistema de Notificaciones**: Email y SMS para pedidos
+- [ ] 📱 **App Móvil**: Aplicación nativa para iOS y Android
+- [ ] 🔔 **Notificaciones Push**: Alertas en tiempo real
+- [ ] 📊 **Analytics Avanzados**: Reportes detallados de ventas
+- [ ] 🌍 **Internacionalización**: Soporte multi-idioma
+- [ ] 🔐 **OAuth2**: Login con Google, Facebook, GitHub
+
+## 🤝 Contribuir al Proyecto
+
+¡Las contribuciones son bienvenidas! Aquí te explicamos cómo puedes ayudar:
+
+### 🐛 Reportar Bugs
+1. Busca si el issue ya existe
+2. Crea un nuevo issue con detalles específicos
+3. Incluye pasos para reproducir el problema
+
+### ✨ Proponer Nuevas Características
+1. Abre un issue describiendo la funcionalidad
+2. Explica el caso de uso y beneficios
+3. Espera feedback antes de implementar
+
+### 🔧 Proceso de Desarrollo
+```bash
+# 1. Fork el repositorio
+# 2. Crear rama para tu feature
+git checkout -b feature/nueva-caracteristica
+
+# 3. Realizar cambios y commits
+git commit -m "feat: agregar nueva característica"
+
+# 4. Push y crear Pull Request
+git push origin feature/nueva-caracteristica
+```
+
 ## 🙏 Agradecimientos
 
-- Spring Boot Team por el excelente framework
-- Bootstrap Team por el framework CSS
-- Comunidad de desarrolladores Java
+- 🌱 **Spring Boot Team** - Por el excelente framework
+- 🎨 **Bootstrap Team** - Por el framework CSS responsive
+- ☕ **Comunidad Java** - Por el apoyo y recursos
+- 🚀 **GitHub** - Por la plataforma de desarrollo colaborativo
 
 ---
 
 <div align="center">
-  <p><strong>🍔 Burger Club - Desarrollado con ❤️ y ☕</strong></p>
-  <p><em>"La mejor experiencia gastronómica, ahora digital"</em></p>
+  
+  ### 🍔 Burger Club
+  
+  **Desarrollado con ❤️ y ☕ por [Santos Arellano](https://github.com/Santos-Arellano)**
+  
+  *"La mejor experiencia gastronómica, ahora digital"*
+  
+  [![GitHub](https://img.shields.io/badge/GitHub-Santos--Arellano-181717?style=flat&logo=github)](https://github.com/Santos-Arellano)
+  [![LinkedIn](https://img.shields.io/badge/LinkedIn-Santos%20Arellano-0A66C2?style=flat&logo=linkedin)](https://linkedin.com/in/santos-arellano)
+  [![Email](https://img.shields.io/badge/Email-arellanosantoso6%40gmail.com-EA4335?style=flat&logo=gmail&logoColor=white)](mailto:arellanosantoso6@gmail.com)
+  
+  ---
+  
+  **⭐ Si te gusta este proyecto, ¡dale una estrella! ⭐**
+  
+</div>
 </div>

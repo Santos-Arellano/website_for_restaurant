@@ -285,12 +285,13 @@
    ========================================== */
 
 .product-img {
-  max-width: 70px;
-  max-height: 50px;
+  width: 80px;
+  height: 60px;
   object-fit: cover;
   border-radius: var(--border-radius-small);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform var(--transition-speed) ease;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .product-img:hover {
