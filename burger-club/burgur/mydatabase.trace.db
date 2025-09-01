@@ -1,0 +1,3 @@
+2025-09-01 17:33:38.679568-05:00 jdbc[20]: exception
+org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
+delete from adicionales_permixproducto apx1_0 [50200-232]
