@@ -1,5 +1,4 @@
-// burger-club/burgur/src/main/resources/static/js/modules/menu/product-detail.js
-
+//burger-club/burgur/src/main/resources/static/js/Modules/menu/product-detail.js
 class ProductDetailModal {
     constructor() {
         this.currentModal = null;

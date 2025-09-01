@@ -1,3 +1,4 @@
+//burger-club/burgur/src/main/resources/static/js/Modules/ui/promo-slider.js
 // ==========================================
 // BURGER CLUB - PROMO SLIDER MODULE
 // ==========================================

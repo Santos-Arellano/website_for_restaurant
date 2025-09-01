@@ -1,3 +1,4 @@
+//burger-club/burgur/src/main/resources/static/js/Modules/navigation/mobile-menu.js
 // ==========================================
 // BURGER CLUB - MOBILE MENU MODULE
 // ==========================================

@@ -1,3 +1,4 @@
+//burger-club/burgur/src/main/resources/static/js/Modules/ui/modals.js
 // ==========================================
 // BURGER CLUB - MODALS MODULE
 // ==========================================
