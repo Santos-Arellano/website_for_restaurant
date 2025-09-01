@@ -1,6 +1,8 @@
 <div align="center">
   
-  <img src="docs/logo.png" alt="Burger Club Logo" width="150" height="150">
+  <div style="background-color: #2d3748; padding: 20px; border-radius: 15px; display: inline-block; margin: 20px 0;">
+    <img src="docs/logo.png" alt="Burger Club Logo" width="200" height="200" style="border-radius: 10px;">
+  </div>
   
   # 🍔 Burger Club - Sistema de Gestión de Restaurante
   
