@@ -22,636 +22,65 @@
          <!-- Main CSS -->
          <link rel="stylesheet" th:href="@{/css/main.css}">
          
-         <style>
-             :root {
-                 --bg-color: #12372a;
-                 --text-light: #fbfada;
-                 --text-white: #ffffff;
-                 --color-primary: #fbb5b5;
-                 --color-success: #4caf50;
-                 --color-warning: #ff9800;
-                 --color-danger: #f44336;
-                 --color-info: #2196f3;
-                 --border-radius: 12px;
-                 --border-radius-small: 6px;
-                 --font-primary: 'Sansita Swashed', cursive;
-                 --font-secondary: 'Lexend Zetta', sans-serif;
-                 --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
-                 --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.2);
-                 --shadow-heavy: 0 8px 25px rgba(0, 0, 0, 0.3);
-             }
-     
-             body {
-                 background: var(--bg-color);
-                 color: var(--text-white);
-                 font-family: var(--font-primary);
-                 line-height: 1.6;
-             }
-     
-             .admin-products-section {
-                 padding: 100px 0 80px 0;
-                 min-height: 100vh;
-                 background: linear-gradient(135deg, var(--bg-color) 0%, #0d2820 100%);
-             }
-     
-             /* Header Section */
-             .admin-header {
-                 text-align: center;
-                 margin-bottom: 50px;
-                 padding: 30px;
-                 background: rgba(255, 255, 255, 0.05);
-                 border-radius: var(--border-radius);
-                 backdrop-filter: blur(10px);
-                 border: 1px solid rgba(255, 255, 255, 0.1);
-             }
-     
-             .admin-title {
-                 font-family: var(--font-secondary);
-                 font-size: clamp(2.5rem, 5vw, 3.5rem);
-                 color: var(--text-white);
-                 margin-bottom: 15px;
-                 background: linear-gradient(135deg, var(--text-white) 0%, var(--color-primary) 100%);
-                 -webkit-background-clip: text;
-                 -webkit-text-fill-color: transparent;
-                 background-clip: text;
-                 text-shadow: 0 0 30px rgba(251, 181, 181, 0.3);
-             }
-     
-             .admin-subtitle {
-                 color: var(--text-light);
-                 font-size: 1.2rem;
-                 margin-bottom: 30px;
-                 opacity: 0.9;
-             }
-     
-             /* Stats Cards */
-             .admin-stats {
-                 display: grid;
-                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                 gap: 25px;
-                 margin: 40px 0;
-             }
-     
-             .stat-card {
-                 background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-                 border: 2px solid rgba(255, 255, 255, 0.1);
-                 border-radius: var(--border-radius);
-                 padding: 25px 20px;
-                 text-align: center;
-                 transition: all 0.4s ease;
-                 backdrop-filter: blur(15px);
-                 position: relative;
-                 overflow: hidden;
-             }
-     
-             .stat-card::before {
-                 content: '';
-                 position: absolute;
-                 top: 0;
-                 left: -100%;
-                 width: 100%;
-                 height: 100%;
-                 background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-                 transition: left 0.6s ease;
-             }
-     
-             .stat-card:hover {
-                 transform: translateY(-8px);
-                 border-color: var(--color-primary);
-                 box-shadow: var(--shadow-heavy);
-                 background: linear-gradient(135deg, rgba(251, 181, 181, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-             }
-     
-             .stat-card:hover::before {
-                 left: 100%;
-             }
-     
-             .stat-card i {
-                 font-size: 3rem;
-                 margin-bottom: 15px;
-                 color: var(--color-primary);
-                 position: relative;
-                 z-index: 1;
-             }
-     
-             .stat-card.productos i { color: var(--color-info); }
-             .stat-card.nuevos i { color: var(--color-success); }
-             .stat-card.activos i { color: var(--color-primary); }
-             .stat-card.stock-bajo i { color: var(--color-danger); }
-     
-             .stat-info {
-                 position: relative;
-                 z-index: 1;
-             }
-     
-             .stat-number {
-                 font-size: 2.5rem;
-                 font-weight: 700;
-                 color: var(--text-white);
-                 font-family: var(--font-secondary);
-                 margin-bottom: 8px;
-                 text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-             }
-     
-             .stat-label {
-                 color: var(--text-light);
-                 font-size: 1rem;
-                 font-weight: 600;
-                 opacity: 0.9;
-                 text-transform: uppercase;
-                 letter-spacing: 0.5px;
-             }
-     
-             /* Search and Filter Bar */
-             .search-bar {
-                 background: rgba(255, 255, 255, 0.08);
-                 border-radius: var(--border-radius);
-                 padding: 25px;
-                 margin-bottom: 30px;
-                 backdrop-filter: blur(15px);
-                 border: 1px solid rgba(255, 255, 255, 0.15);
-                 box-shadow: var(--shadow-light);
-             }
-     
-             .search-controls {
-                 display: flex;
-                 flex-wrap: wrap;
-                 gap: 20px;
-                 align-items: center;
-                 justify-content: space-between;
-             }
-     
-             .search-input-group {
-                 display: flex;
-                 align-items: center;
-                 background: rgba(255, 255, 255, 0.1);
-                 border-radius: 50px;
-                 padding: 12px 20px;
-                 flex: 1;
-                 min-width: 300px;
-                 border: 2px solid transparent;
-                 transition: all 0.3s ease;
-             }
-     
-             .search-input-group:focus-within {
-                 border-color: var(--color-primary);
-                 box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.3);
-             }
-     
-             .search-icon {
-                 color: rgba(255, 255, 255, 0.6);
-                 font-size: 1.1rem;
-                 margin-right: 12px;
-             }
-     
-             .search-input {
-                 flex: 1;
-                 background: transparent;
-                 border: none;
-                 color: var(--text-white);
-                 font-family: var(--font-primary);
-                 font-size: 16px;
-                 outline: none;
-             }
-     
-             .search-input::placeholder {
-                 color: rgba(255, 255, 255, 0.5);
-             }
-     
-             .filter-controls {
-                 display: flex;
-                 align-items: center;
-                 gap: 15px;
-                 flex-wrap: wrap;
-             }
-     
-             .filter-select {
-                 background: rgba(255, 255, 255, 0.1);
-                 border: 2px solid rgba(255, 255, 255, 0.2);
-                 border-radius: var(--border-radius-small);
-                 padding: 10px 15px;
-                 color: var(--text-white);
-                 font-family: var(--font-primary);
-                 font-size: 14px;
-                 min-width: 150px;
-                 transition: all 0.3s ease;
-             }
-     
-             .filter-select:focus {
-                 outline: none;
-                 border-color: var(--color-primary);
-                 box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.3);
-             }
-     
-             .filter-select option {
-                 background: var(--bg-color);
-                 color: var(--text-white);
-             }
-     
-             .btn-add-product {
-                 background: linear-gradient(135deg, var(--color-success), #45a049);
-                 color: white;
-                 border: none;
-                 padding: 12px 20px;
-                 border-radius: 50px;
-                 font-family: var(--font-primary);
-                 font-weight: 600;
-                 font-size: 14px;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 display: flex;
-                 align-items: center;
-                 gap: 8px;
-                 box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-                 white-space: nowrap;
-             }
-     
-             .btn-add-product:hover {
-                 background: linear-gradient(135deg, #45a049, #388e3c);
-                 transform: translateY(-3px);
-                 box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-             }
-     
-             /* Products Grid */
-             .products-grid {
-                 display: grid;
-                 grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-                 gap: 25px;
-                 margin-top: 30px;
-             }
-     
-             .product-card {
-                 background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-                 border: 2px solid rgba(255, 255, 255, 0.1);
-                 border-radius: var(--border-radius);
-                 padding: 20px;
-                 transition: all 0.4s ease;
-                 backdrop-filter: blur(15px);
-                 position: relative;
-                 overflow: hidden;
-             }
-     
-             .product-card:hover {
-                 transform: translateY(-8px);
-                 border-color: var(--color-primary);
-                 box-shadow: var(--shadow-heavy);
-             }
-     
-             .product-card-header {
-                 display: flex;
-                 align-items: flex-start;
-                 gap: 15px;
-                 margin-bottom: 20px;
-             }
-     
-             .product-image {
-                 width: 80px;
-                 height: 80px;
-                 border-radius: var(--border-radius-small);
-                 object-fit: cover;
-                 box-shadow: var(--shadow-medium);
-                 flex-shrink: 0;
-             }
-     
-             .product-info {
-                 flex: 1;
-             }
-     
-             .product-name {
-                 font-size: 1.3rem;
-                 font-weight: 700;
-                 color: var(--text-white);
-                 margin-bottom: 5px;
-                 font-family: var(--font-secondary);
-             }
-     
-             .product-category {
-                 background: rgba(251, 181, 181, 0.2);
-                 color: var(--color-primary);
-                 padding: 4px 12px;
-                 border-radius: 20px;
-                 font-size: 0.8rem;
-                 font-weight: 600;
-                 text-transform: uppercase;
-                 letter-spacing: 0.5px;
-                 display: inline-block;
-                 margin-bottom: 10px;
-             }
-     
-             .product-price {
-                 font-size: 1.4rem;
-                 font-weight: 700;
-                 color: var(--color-success);
-                 font-family: var(--font-secondary);
-             }
-     
-             .product-details {
-                 display: grid;
-                 grid-template-columns: 1fr 1fr;
-                 gap: 15px;
-                 margin-bottom: 20px;
-             }
-     
-             .detail-item {
-                 background: rgba(255, 255, 255, 0.05);
-                 padding: 10px;
-                 border-radius: var(--border-radius-small);
-                 text-align: center;
-             }
-     
-             .detail-label {
-                 font-size: 0.8rem;
-                 color: var(--text-light);
-                 opacity: 0.8;
-                 margin-bottom: 5px;
-             }
-     
-             .detail-value {
-                 font-weight: 600;
-                 color: var(--text-white);
-             }
-     
-             .stock-value {
-                 color: var(--color-success);
-             }
-     
-             .stock-value.low {
-                 color: var(--color-danger);
-             }
-     
-             .stock-value.medium {
-                 color: var(--color-warning);
-             }
-     
-             .product-badges {
-                 display: flex;
-                 gap: 8px;
-                 margin-bottom: 15px;
-                 flex-wrap: wrap;
-             }
-     
-             .product-badge {
-                 padding: 4px 10px;
-                 border-radius: 15px;
-                 font-size: 0.7rem;
-                 font-weight: 600;
-                 text-transform: uppercase;
-                 letter-spacing: 0.5px;
-             }
-     
-             .badge-nuevo {
-                 background: linear-gradient(135deg, #ff4444, #cc0000);
-                 color: white;
-             }
-     
-             .badge-popular {
-                 background: linear-gradient(135deg, #ffd700, #ffb000);
-                 color: #333;
-             }
-     
-             .badge-activo {
-                 background: linear-gradient(135deg, var(--color-success), #45a049);
-                 color: white;
-             }
-     
-             .product-actions {
-                 display: flex;
-                 gap: 10px;
-                 justify-content: center;
-                 margin-top: 15px;
-             }
-     
-             .btn-action {
-                 width: 40px;
-                 height: 40px;
-                 border: none;
-                 border-radius: 50%;
-                 cursor: pointer;
-                 display: flex;
-                 align-items: center;
-                 justify-content: center;
-                 transition: all 0.3s ease;
-                 font-size: 1rem;
-                 color: white;
-             }
-     
-             .btn-edit {
-                 background: linear-gradient(135deg, var(--color-info), #1976d2);
-                 box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
-             }
-     
-             .btn-edit:hover {
-                 background: linear-gradient(135deg, #1976d2, #1565c0);
-                 transform: translateY(-2px) scale(1.1);
-                 box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
-             }
-     
-             .btn-delete {
-                 background: linear-gradient(135deg, var(--color-danger), #d32f2f);
-                 box-shadow: 0 3px 10px rgba(244, 67, 54, 0.3);
-             }
-     
-             .btn-delete:hover {
-                 background: linear-gradient(135deg, #d32f2f, #c62828);
-                 transform: translateY(-2px) scale(1.1);
-                 box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
-             }
-     
-             .btn-details {
-                 background: linear-gradient(135deg, var(--color-primary), #e8a3a3);
-                 box-shadow: 0 3px 10px rgba(251, 181, 181, 0.3);
-             }
-     
-             .btn-details:hover {
-                 background: linear-gradient(135deg, #e8a3a3, #d19191);
-                 transform: translateY(-2px) scale(1.1);
-                 box-shadow: 0 5px 15px rgba(251, 181, 181, 0.4);
-             }
-     
-             /* Empty State */
-             .empty-state {
-                 text-align: center;
-                 padding: 60px 20px;
-                 background: rgba(255, 255, 255, 0.05);
-                 border-radius: var(--border-radius);
-                 margin-top: 30px;
-                 backdrop-filter: blur(10px);
-             }
-     
-             .empty-state i {
-                 font-size: 4rem;
-                 color: var(--color-primary);
-                 margin-bottom: 20px;
-                 opacity: 0.6;
-             }
-     
-             .empty-state h3 {
-                 font-size: 1.5rem;
-                 color: var(--text-white);
-                 margin-bottom: 10px;
-                 font-family: var(--font-secondary);
-             }
-     
-             .empty-state p {
-                 color: var(--text-light);
-                 opacity: 0.8;
-                 margin-bottom: 30px;
-             }
-     
-             /* Responsive Design */
-             @media (max-width: 768px) {
-                 .admin-products-section {
-                     padding: 80px 0 60px 0;
-                 }
-     
-                 .admin-stats {
-                     grid-template-columns: 1fr 1fr;
-                     gap: 15px;
-                 }
-     
-                 .search-controls {
-                     flex-direction: column;
-                     align-items: stretch;
-                     gap: 15px;
-                 }
-     
-                 .search-input-group {
-                     min-width: auto;
-                 }
-     
-                 .filter-controls {
-                     justify-content: space-between;
-                     flex-wrap: wrap;
-                 }
-     
-                 .products-grid {
-                     grid-template-columns: 1fr;
-                     gap: 20px;
-                 }
-     
-                 .product-card-header {
-                     flex-direction: column;
-                     text-align: center;
-                 }
-     
-                 .product-image {
-                     align-self: center;
-                     width: 100px;
-                     height: 100px;
-                 }
-     
-                 .stat-card {
-                     padding: 20px 15px;
-                 }
-     
-                 .stat-number {
-                     font-size: 2rem;
-                 }
-             }
-     
-             @media (max-width: 480px) {
-                 .admin-stats {
-                     grid-template-columns: 1fr;
-                 }
-     
-                 .product-details {
-                     grid-template-columns: 1fr;
-                 }
-     
-                 .btn-add-product span {
-                     display: none;
-                 }
-             }
-     
-             /* Loading Animation */
-             .loading {
-                 opacity: 0.6;
-                 pointer-events: none;
-             }
-     
-             .loading::after {
-                 content: '';
-                 position: fixed;
-                 top: 50%;
-                 left: 50%;
-                 width: 40px;
-                 height: 40px;
-                 border: 3px solid rgba(255, 255, 255, 0.3);
-                 border-top: 3px solid var(--color-primary);
-                 border-radius: 50%;
-                 animation: spin 1s linear infinite;
-                 transform: translate(-50%, -50%);
-                 z-index: 9999;
-             }
-     
-             @keyframes spin {
-                 0% { transform: translate(-50%, -50%) rotate(0deg); }
-                 100% { transform: translate(-50%, -50%) rotate(360deg); }
-             }
-         </style>
+         <!-- Admin Products CSS -->
+         <link th:href="@{/css/components/admin-products-page.css}" rel="stylesheet">
      </head>
      <body>
          <!-- Header -->
-         <header class="site-header">
-             <div class="container header-container">
-                 <a th:href="@{/}" class="logo">
-                     <div class="logo-icon-wrapper">
-                         <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon" 
-                              onerror="this.src='https://via.placeholder.com/60x60/fbb5b5/12372a?text=BC'">
+         <header class="header">
+             <div class="container">
+                 <div class="header-content">
+                     <div class="logo">
+                         <a th:href="@{/}">
+                             <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-img">
+                         </a>
                      </div>
-                     <span class="logo-text">BURGER CLUB</span>
-                 </a>
-     
-                 <nav class="main-nav">
-                     <ul>
-                         <li><a th:href="@{/}">Inicio</a></li>
-                         <li><a th:href="@{/menu}">Menú</a></li>
-                         <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
-                         <li><a th:href="@{/menu/admin}" class="admin-nav">Productos</a></li>
-                         <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
-                         <li><a th:href="@{/admin/clientes}">Clientes</a></li>
-                     </ul>
-                 </nav>
+                     <nav class="nav">
+                         <ul class="nav-list">
+                             <li><a th:href="@{/}" class="nav-link">Inicio</a></li>
+                             <li><a th:href="@{/menu}" class="nav-link">Menú</a></li>
+                             <li><a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a></li>
+                             <li><a th:href="@{/admin/clientes}" class="nav-link">Clientes</a></li>
+                             <li><a th:href="@{/admin/adicionales}" class="nav-link">Adicionales</a></li>
+                         </ul>
+                     </nav>
+                 </div>
              </div>
          </header>
      
          <!-- Admin Products Section -->
-         <main class="admin-products-section">
+         <section class="admin-products-section">
              <div class="container">
-                 <!-- Admin Header -->
+                 <!-- Header -->
                  <div class="admin-header">
-                     <h1 class="admin-title">Gestión de Productos</h1>
-                     <p class="admin-subtitle">Administra el catálogo completo de Burger Club</p>
-                     
-                     <!-- Stats Cards -->
-                     <div class="admin-stats">
-                         <div class="stat-card productos">
-                             <i class="fas fa-boxes"></i>
-                             <div class="stat-info">
-                                 <div class="stat-number" th:text="${totalProductos ?: 0}">0</div>
-                                 <div class="stat-label">Total Productos</div>
-                             </div>
+                     <h1 class="admin-title">Administración de Productos</h1>
+                     <p class="admin-subtitle">Gestiona el catálogo de productos del restaurante</p>
+                 </div>
+     
+                 <!-- Stats Cards -->
+                 <div class="admin-stats">
+                     <div class="stat-card">
+                         <div class="stat-info">
+                             <div class="stat-number" th:text="${totalProductos ?: 0}">0</div>
+                             <div class="stat-label">Total Productos</div>
                          </div>
-                         <div class="stat-card nuevos">
-                             <i class="fas fa-star"></i>
-                             <div class="stat-info">
-                                 <div class="stat-number" th:text="${productosNuevos ?: 0}">0</div>
-                                 <div class="stat-label">Productos Nuevos</div>
-                             </div>
+                     </div>
+                     <div class="stat-card">
+                         <div class="stat-info">
+                             <div class="stat-number" th:text="${productosActivos ?: 0}">0</div>
+                             <div class="stat-label">Productos Activos</div>
                          </div>
-                         <div class="stat-card activos">
-                             <i class="fas fa-fire"></i>
-                             <div class="stat-info">
-                                 <div class="stat-number" th:text="${productosActivos ?: 0}">0</div>
-                                 <div class="stat-label">Productos Activos</div>
-                             </div>
+                     </div>
+                     <div class="stat-card">
+                         <div class="stat-info">
+                             <div class="stat-number" th:text="${categorias ?: 0}">0</div>
+                             <div class="stat-label">Categorías</div>
                          </div>
-                         <div class="stat-card stock-bajo" th:if="${stockBajo > 0}">
-                             <i class="fas fa-exclamation-triangle"></i>
-                             <div class="stat-info">
-                                 <div class="stat-number" th:text="${stockBajo}">0</div>
-                                 <div class="stat-label">Stock Bajo</div>
-                             </div>
+                     </div>
+                     <div class="stat-card">
+                         <div class="stat-info">
+                             <div class="stat-number" th:text="${stockBajo ?: 0}">0</div>
+                             <div class="stat-label">Stock Bajo</div>
                          </div>
                      </div>
                  </div>
@@ -661,109 +90,108 @@
                      <div class="search-controls">
                          <div class="search-input-group">
                              <i class="fas fa-search search-icon"></i>
-                             <input type="text" class="search-input" placeholder="Buscar productos por nombre, categoría o precio..." id="adminSearchInput">
+                             <input type="text" class="search-input" id="adminSearchInput" placeholder="Buscar productos...">
                          </div>
                          <div class="filter-controls">
                              <select class="filter-select" id="categoryFilter">
-                                 <option value="TODOS">TODAS LAS CATEGORÍAS</option>
-                                 <option value="hamburguesa">HAMBURGUESAS</option>
-                                 <option value="acompañamiento">ACOMPAÑAMIENTOS</option>
-                                 <option value="perro caliente">PERROS CALIENTES</option>
-                                 <option value="bebida">BEBIDAS</option>
-                                 <option value="postre">POSTRES</option>
+                                 <option value="">Todas las categorías</option>
+                                 <option value="hamburguesas">Hamburguesas</option>
+                                 <option value="bebidas">Bebidas</option>
+                                 <option value="acompañamientos">Acompañamientos</option>
+                                 <option value="postres">Postres</option>
                              </select>
-                             <button class="btn-add-product" type="button" onclick="openAddProductModal()">
+                             <select class="filter-select" id="statusFilter">
+                                 <option value="">Todos los estados</option>
+                                 <option value="activo">Activos</option>
+                                 <option value="inactivo">Inactivos</option>
+                             </select>
+                             <a href="#" class="btn-add-product" onclick="openAddProductModal()">
                                  <i class="fas fa-plus"></i>
-                                 <span>Agregar Producto</span>
-                             </button>
+                                 Agregar Producto
+                             </a>
                          </div>
                      </div>
                  </div>
      
                  <!-- Products Grid -->
                  <div class="products-grid" id="productsGrid">
-                     <!-- Loop de productos -->
-                     <div class="product-card" th:each="producto : ${productos}"
-                          th:attr="data-product-id=${producto.id}"
-                          ondblclick="showProductAdicionales(this.getAttribute('data-product-id'))">
-                         
-                         <div class="product-card-header">
-                             <img th:src="${producto.imgURL}" 
-                                  th:alt="${producto.nombre}" 
-                                  class="product-image"
-                                  onerror="this.src='https://via.placeholder.com/100x100/fbb5b5/12372a?text=🍔'">
+                     <!-- Product Cards -->
+                     <div class="product-card" th:each="producto : ${productos}" th:data-product-id="${producto.id}">
+                         <div class="product-image">
+                             <img th:if="${producto.imagen}" th:src="@{'/images/productos/' + ${producto.imagen}}" th:alt="${producto.nombre}" />
+                             <i th:unless="${producto.imagen}" class="fas fa-hamburger"></i>
+                         </div>
+                         <div class="card-content">
+                             <h3 class="product-name" th:text="${producto.nombre}">Nombre del Producto</h3>
+                             <p class="product-category" th:text="${producto.categoria}">Categoría</p>
+                             <div class="product-price" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</div>
                              
-                             <div class="product-info">
-                                 <h3 class="product-name" th:text="${producto.nombre}">Producto</h3>
-                                 <div class="product-category" th:text="${#strings.toUpperCase(producto.categoria)}">Categoría</div>
-                                 <div class="product-price" th:text="'$' + ${#numbers.formatInteger(producto.precio, 0, 'COMMA')}">$0</div>
+                             <div class="product-details">
+                                 <div class="detail-item">
+                                     <span>Stock:</span>
+                                     <span class="stock-value" 
+                                           th:classappend="${producto.stock < 10} ? 'low' : (${producto.stock == 0} ? 'out' : '')" 
+                                           th:text="${producto.stock}">0</span>
+                                 </div>
+                                 <div class="detail-item">
+                                     <span>Estado:</span>
+                                     <span th:text="${producto.activo ? 'Activo' : 'Inactivo'}">Estado</span>
+                                 </div>
                              </div>
-                         </div>
-     
-                         <div class="product-details">
-                             <div class="detail-item">
-                                 <div class="detail-label">Stock</div>
-                                 <div class="detail-value stock-value" 
-                                      th:classappend="${producto.stock < 5} ? 'low' : (${producto.stock < 15} ? 'medium' : '')"
-                                      th:text="${producto.stock}">0</div>
+                             
+                             <div class="product-badges">
+                                 <span class="product-badge badge-nuevo" th:if="${producto.nuevo}">Nuevo</span>
+                                 <span class="product-badge badge-popular" th:if="${producto.popular}">Popular</span>
+                                 <span class="product-badge badge-activo" th:if="${producto.activo}">Activo</span>
                              </div>
-                             <div class="detail-item">
-                                 <div class="detail-label">Estado</div>
-                                 <div class="detail-value" th:text="${producto.activo ? 'Activo' : 'Inactivo'}">Activo</div>
+                             
+                             <div class="product-actions">
+                                 <button class="btn-action btn-edit" th:onclick="'editProduct(' + ${producto.id} + ')'">
+                                     <i class="fas fa-edit"></i>
+                                     Editar
+                                 </button>
+                                 <button class="btn-action btn-delete" th:onclick="'deleteProduct(' + ${producto.id} + ')'">
+                                     <i class="fas fa-trash"></i>
+                                     Eliminar
+                                 </button>
+                                 <button class="btn-action btn-details" th:onclick="'showProductAdicionales(' + ${producto.id} + ')'">
+                                     <i class="fas fa-info-circle"></i>
+                                     Detalles
+                                 </button>
                              </div>
-                         </div>
-     
-                         <div class="product-badges">
-                             <span th:if="${producto.nuevo}" class="product-badge badge-nuevo">Nuevo</span>
-                             <span th:if="${producto.popular}" class="product-badge badge-popular">Popular</span>
-                             <span th:if="${producto.activo}" class="product-badge badge-activo">Activo</span>
-                         </div>
-     
-                         <div class="product-actions">
-                             <button class="btn-action btn-details" 
-                                     type="button"
-                                     th:onclick="'showProductAdicionales(' + ${producto.id} + ')'"
-                                     title="Ver adicionales">
-                                 <i class="fas fa-eye"></i>
-                             </button>
-                             <button class="btn-action btn-edit" 
-                                     type="button"
-                                     th:onclick="'editProduct(' + ${producto.id} + ')'"
-                                     title="Editar producto">
-                                 <i class="fas fa-edit"></i>
-                             </button>
-                             <button class="btn-action btn-delete" 
-                                     type="button"
-                                     th:onclick="'deleteProduct(' + ${producto.id} + ')'"
-                                     title="Eliminar producto">
-                                 <i class="fas fa-trash"></i>
-                             </button>
                          </div>
                      </div>
                  </div>
      
                  <!-- Empty State -->
-                 <div class="empty-state" th:if="${#lists.isEmpty(productos)}" style="display: none;">
-                     <i class="fas fa-search"></i>
-                     <h3>No se encontraron productos</h3>
-                     <p>Actualmente no hay productos disponibles o que coincidan con tu búsqueda.</p>
-                     <button class="btn-add-product" onclick="openAddProductModal()">
+                 <div class="empty-state" id="emptyState" style="display: none;">
+                     <i class="fas fa-box-open"></i>
+                     <h3>No hay productos</h3>
+                     <p>No se encontraron productos que coincidan con los filtros seleccionados.</p>
+                     <a href="#" class="btn-add-product" onclick="openAddProductModal()">
                          <i class="fas fa-plus"></i>
-                         <span>Agregar primer producto</span>
-                     </button>
+                         Agregar Primer Producto
+                     </a>
                  </div>
              </div>
-         </main>
+         </section>
      
          <!-- Footer -->
-         <footer class="site-footer">
+         <footer class="footer">
              <div class="container">
-                 <div class="footer-social">
-                     <h3>Panel de Administración</h3>
-                     <div class="social-links">
-                         <a href="#" class="social-link"><i class="fas fa-home"></i><span>Inicio</span></a>
-                         <a th:href="@{/admin/dashboard}" class="social-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-                         <a href="#" class="social-link" onclick="updateAllAdicionales()"><i class="fas fa-sync-alt"></i><span>Actualizar</span></a>
+                 <div class="footer-content">
+                     <div class="footer-section">
+                         <h3>Burger Club Admin</h3>
+                         <p>Panel de administración para gestionar productos, clientes y pedidos.</p>
+                     </div>
+                     <div class="footer-section">
+                         <h4>Enlaces Rápidos</h4>
+                         <ul>
+                             <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                             <li><a th:href="@{/admin/productos}">Productos</a></li>
+                             <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                             <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                         </ul>
                      </div>
                  </div>
                  <div class="footer-bottom">
@@ -772,282 +200,9 @@
              </div>
          </footer>
      
-         <!-- SCRIPTS -->
+         <!-- JavaScript -->
+         <script th:src="@{/js/admin/admin-universal.js}"></script>
          <script th:src="@{/js/admin/admin-modal-manager.js}"></script>
-         <script th:src="@{/js/admin-universal.js}"></script>
-         
-         <script>
-             // Función para mostrar adicionales del producto (reutilizada del código original)
-             async function showProductAdicionales(productId) {
-                 if (!productId) return;
-                 
-                 try {
-                     const response = await fetch(`/menu/api/productos/${productId}`);
-                     if (response.ok) {
-                         const data = await response.json();
-                         const producto = data.producto || data;
-                         const adicionales = data.adicionalesPermitidos || [];
-                         
-                         let adicionalesHtml = '';
-                         if (adicionales.length > 0) {
-                             adicionalesHtml = adicionales.map(a => `
-                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); border-radius: 6px; margin-bottom: 8px; background: rgba(255,255,255,0.05);">
-                                     <span style="font-weight: 600; color: white;">${a.nombre}</span>
-                                     <span style="color: #4caf50; font-weight: 700;">${a.precio.toLocaleString()}</span>
-                                 </div>
-                             `).join('');
-                         } else {
-                             adicionalesHtml = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.6);"><i class="fas fa-info-circle" style="font-size: 2.5rem; margin-bottom: 15px; display: block; color: #fbb5b5;"></i><p>No hay adicionales disponibles para este producto</p></div>';
-                         }
-     
-                         const modal = document.createElement('div');
-                         modal.className = 'product-details-modal active';
-                         modal.innerHTML = `
-                             <div class="modal-content" style="max-width: 800px;">
-                                 <div class="modal-header">
-                                     <h3><i class="fas fa-hamburger"></i> ${producto.nombre}</h3>
-                                     <button class="modal-close" type="button">&times;</button>
-                                 </div>
-                                 <div class="modal-body">
-                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 25px;">
-                                         <div>
-                                             <img src="${producto.imgURL}" alt="${producto.nombre}" 
-                                                  style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"
-                                                  onerror="this.src='https://via.placeholder.com/300x200/fbb5b5/12372a?text=🍔'">
-                                         </div>
-                                         <div>
-                                             <div style="margin-bottom: 15px;">
-                                                 <span style="background: rgba(251,181,181,0.2); color: #fbb5b5; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; text-transform: capitalize;">
-                                                     ${producto.categoria}
-                                                 </span>
-                                             </div>
-                                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                                                 <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; text-align: center;">
-                                                     <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 5px;">PRECIO</div>
-                                                     <div style="color: #4caf50; font-weight: 700; font-size: 1.3rem;">${producto.precio.toLocaleString()}</div>
-                                                 </div>
-                                                 <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; text-align: center;">
-                                                     <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 5px;">STOCK</div>
-                                                     <div style="color: ${producto.stock < 5 ? '#f44336' : (producto.stock < 15 ? '#ff9800' : '#4caf50')}; font-weight: 700; font-size: 1.3rem;">${producto.stock}</div>
-                                                 </div>
-                                             </div>
-                                             ${producto.descripcion ? `
-                                                 <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                                                     <h4 style="color: #fbb5b5; margin-bottom: 10px; font-size: 1rem;">Descripción</h4>
-                                                     <p style="color: rgba(255,255,255,0.8); line-height: 1.5; margin: 0;">${producto.descripcion}</p>
-                                                 </div>
-                                             ` : ''}
-                                         </div>
-                                     </div>
-                                     
-                                     <div style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                                         <h4 style="color: #fbb5b5; margin-bottom: 20px; font-size: 1.2rem; text-align: center;">
-                                             <i class="fas fa-plus-circle"></i> Adicionales Disponibles (${adicionales.length})
-                                         </h4>
-                                         <div style="max-height: 300px; overflow-y: auto;">
-                                             ${adicionalesHtml}
-                                         </div>
-                                         ${adicionales.length > 0 ? `
-                                             <div style="margin-top: 20px; padding: 15px; background: rgba(76,175,80,0.1); border-radius: 8px; border-left: 4px solid #4caf50; text-align: center;">
-                                                 <small style="color: rgba(255,255,255,0.8);">
-                                                     <i class="fas fa-info-circle"></i> 
-                                                     Los adicionales se asignan automáticamente según la categoría del producto
-                                                 </small>
-                                             </div>
-                                         ` : ''}
-                                     </div>
-                                 </div>
-                             </div>
-                         `;
-     
-                         document.body.appendChild(modal);
-                         setTimeout(() => modal.classList.add('show'), 10);
-                         
-                         const closeModal = () => {
-                             modal.classList.remove('show');
-                             setTimeout(() => {
-                                 if (document.body.contains(modal)) {
-                                     document.body.removeChild(modal);
-                                 }
-                             }, 300);
-                         };
-     
-                         modal.querySelector('.modal-close').addEventListener('click', closeModal);
-                         modal.addEventListener('click', (e) => {
-                             if (e.target === modal) closeModal();
-                         });
-     
-                         const escHandler = (e) => {
-                             if (e.key === 'Escape') {
-                                 closeModal();
-                                 document.removeEventListener('keydown', escHandler);
-                             }
-                         };
-                         document.addEventListener('keydown', escHandler);
-     
-                     } else {
-                         alert('Error al cargar la información del producto');
-                     }
-                 } catch (error) {
-                     console.error('Error:', error);
-                     alert('Error al cargar los adicionales');
-                 }
-             }
-     
-             // Función para actualizar adicionales
-             async function updateAllAdicionales() {
-                 if (!confirm('¿Deseas actualizar las relaciones de adicionales para todos los productos?')) {
-                     return;
-                 }
-     
-                 try {
-                     const response = await fetch('/admin/api/update-adicionales', {
-                         method: 'POST'
-                     });
-                     
-                     const result = await response.json();
-                     
-                     if (result.success) {
-                         alert(`${result.message}\nAdicionales actualizados: ${result.count}`);
-                     } else {
-                         alert(`Error: ${result.message}`);
-                     }
-                 } catch (error) {
-                     console.error('Error:', error);
-                     alert('Error al actualizar adicionales');
-                 }
-             }
-     
-             // Hacer funciones globales
-             window.showProductAdicionales = showProductAdicionales;
-             window.updateAllAdicionales = updateAllAdicionales;
-     
-             // Inicialización
-             document.addEventListener('DOMContentLoaded', function() {
-                 console.log('Admin Products page loaded');
-                 
-                 // Animación de entrada para las tarjetas
-                 setTimeout(() => {
-                     const cards = document.querySelectorAll('.product-card');
-                     cards.forEach((card, index) => {
-                         card.style.opacity = '0';
-                         card.style.transform = 'translateY(30px)';
-                         
-                         setTimeout(() => {
-                             card.style.transition = 'all 0.6s ease';
-                             card.style.opacity = '1';
-                             card.style.transform = 'translateY(0)';
-                         }, index * 100);
-                     });
-                 }, 200);
-     
-                 // Tooltip para doble click
-                 const cards = document.querySelectorAll('.product-card[data-product-id]');
-                 cards.forEach(card => {
-                     card.title = 'Doble click para ver adicionales disponibles';
-                     card.style.cursor = 'pointer';
-                 });
-             });
-         </script>
-     
-         <!-- Estilos para modal de detalles -->
-         <style>
-             .product-details-modal {
-                 position: fixed;
-                 top: 0;
-                 left: 0;
-                 width: 100%;
-                 height: 100%;
-                 background: rgba(0, 0, 0, 0.85);
-                 z-index: 1000;
-                 display: flex;
-                 justify-content: center;
-                 align-items: center;
-                 opacity: 0;
-                 visibility: hidden;
-                 transition: all 0.3s ease;
-                 backdrop-filter: blur(8px);
-             }
-             
-             .product-details-modal.show {
-                 opacity: 1;
-                 visibility: visible;
-             }
-             
-             .product-details-modal .modal-content {
-                 background: #12372a;
-                 border: 2px solid #fbb5b5;
-                 border-radius: 15px;
-                 width: 90%;
-                 max-width: 900px;
-                 max-height: 90vh;
-                 overflow-y: auto;
-                 transform: scale(0.9);
-                 transition: transform 0.3s ease;
-                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-             }
-             
-             .product-details-modal.show .modal-content {
-                 transform: scale(1);
-             }
-             
-             .product-details-modal .modal-header {
-                 padding: 25px;
-                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                 display: flex;
-                 justify-content: space-between;
-                 align-items: center;
-                 background: linear-gradient(135deg, rgba(251, 181, 181, 0.2) 0%, rgba(18, 55, 42, 0.8) 100%);
-             }
-     
-             .product-details-modal .modal-header h3 {
-                 color: white;
-                 margin: 0;
-                 font-family: 'Lexend Zetta', sans-serif;
-                 font-size: 1.4rem;
-                 display: flex;
-                 align-items: center;
-                 gap: 12px;
-             }
-     
-             .product-details-modal .modal-close {
-                 background: none;
-                 border: none;
-                 font-size: 2rem;
-                 color: white;
-                 cursor: pointer;
-                 padding: 0;
-                 width: 40px;
-                 height: 40px;
-                 display: flex;
-                 align-items: center;
-                 justify-content: center;
-                 border-radius: 50%;
-                 transition: all 0.3s ease;
-             }
-     
-             .product-details-modal .modal-close:hover {
-                 background: rgba(244, 67, 54, 0.2);
-                 color: #f44336;
-                 transform: scale(1.1);
-             }
-             
-             .product-details-modal .modal-body {
-                 padding: 30px;
-                 color: white;
-             }
-     
-             @media (max-width: 768px) {
-                 .product-details-modal .modal-body > div:first-child {
-                     grid-template-columns: 1fr !important;
-                     gap: 20px !important;
-                 }
-                 
-                 .product-details-modal .modal-content {
-                     width: 95%;
-                     margin: 10px;
-                 }
-             }
-         </style>
+         <script th:src="@{/js/Modules/admin/admin-products-page.js}" defer></script>
      </body>
      </html>
