@@ -89,7 +89,7 @@ public class DataBaseInit implements CommandLineRunner {
             new Adicional("Champiñones", 3000, true, Arrays.asList("hamburguesa", "perro caliente")),
             new Adicional("Yuca Frita", 4800, true, Arrays.asList("acompañamiento")),
             new Adicional("Jarabe de Chocolate", 1800, true, Arrays.asList("postre", "bebida")),
-            new Adicional("Limón", 600, true, Arrays.asList("bebida")),
+            new Adicional("Limón", 600, true, Arrays.asList("bebida"))
         );
 
         int created = 0;
