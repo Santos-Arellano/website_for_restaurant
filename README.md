@@ -1,5 +1,7 @@
 <div align="center">
   
+  <img src="docs/logo.png" alt="Burger Club Logo" width="150" height="150">
+  
   # 🍔 Burger Club - Sistema de Gestión de Restaurante
   
   <p><em>"La mejor experiencia gastronómica, ahora digital"</em></p>
