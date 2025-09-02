@@ -543,8 +543,8 @@ git push origin feature/nueva-caracteristica
   
   ### 🍔 Burger Club
   
-  **Desarrollado con ❤️ y ☕ por [Santos Arellano](https://github.com/Santos-Arellano) [David León](https://github.com/NIxved) [Andrés Felipe Trujillo] (https://github.com/TruHe-7)**
-  
+  **Desarrollado con ❤️ y ☕ por [Santos Arellano](https://github.com/Santos-Arellano) [David León](https://github.com/NIxved) [Andrés Felipe Trujillo](https://github.com/TruHe-7)**
+    
   *"La mejor experiencia gastronómica, ahora digital"*
   
   [![GitHub](https://img.shields.io/badge/GitHub-Santos--Arellano-181717?style=flat&logo=github)](https://github.com/Santos-Arellano)
