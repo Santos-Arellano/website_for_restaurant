@@ -9,7 +9,7 @@
     --color-info: #2196f3;
     --border-radius: 12px;
     --border-radius-small: 6px;
-    --font-primary: 'Sansita Swashed', cursive;
+    --font-primary: 'Inter', 'Poppins', sans-serif;
     --font-secondary: 'Lexend Zetta', sans-serif;
     --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -227,18 +227,19 @@ body {
     background: linear-gradient(135deg, var(--color-success), #45a049);
     color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 16px 28px;
     border-radius: 50px;
     font-family: var(--font-primary);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
     white-space: nowrap;
+    min-height: 48px;
 }
 
 .btn-add-product:hover {

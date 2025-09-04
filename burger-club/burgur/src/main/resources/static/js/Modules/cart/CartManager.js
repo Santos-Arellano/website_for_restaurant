@@ -97,7 +97,7 @@ initializeCartButtonsDelegation() {
         const product = {
             name: addButton.dataset.product || 'Producto',
             price: parseInt(addButton.dataset.price) || 0,
-            image: addButton.dataset.image || 'images/default-burger.png',
+            image: addButton.dataset.image || 'Images/default-burger.png',
             adicionales: [] // Los botones del menú no tienen adicionales
         };
         
@@ -129,7 +129,7 @@ initializeCartButtonsDelegation() {
             id: product.id || Date.now(),
             name: product.name || product.nombre || 'Producto sin nombre',
             price: product.price || product.precio || 0,
-            image: product.image || product.imagen || product.imgURL || 'images/default-burger.png',
+            image: product.image || product.imagen || product.imgURL || 'Images/default-burger.png',
             categoria: product.categoria || 'sin categoria',
             adicionales: product.adicionales || []
         };

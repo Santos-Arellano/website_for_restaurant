@@ -44,4 +44,8 @@ burger-club/burgur/src/main/resources/static/css/base/variables.css
     /* Layout */
     --container-max-width: 1440px;
     --section-padding: 80px;
+    
+    /* Legacy variables for compatibility */
+    --bg-color: var(--color-background);
+    --text-white: var(--color-white);
 }

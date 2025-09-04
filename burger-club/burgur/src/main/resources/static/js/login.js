@@ -33,7 +33,7 @@ class LoginManager {
         this.setLoading(true);
         
         try {
-            const response = await fetch('/auth/api/login', {
+            const response = await fetch('/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

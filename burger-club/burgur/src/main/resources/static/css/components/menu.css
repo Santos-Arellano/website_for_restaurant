@@ -194,6 +194,19 @@ burger-club/burgur/src/main/resources/static/css/components/menu.css
     z-index: 2;
 }
 
+/* Limitar el ancho máximo de las tarjetas cuando hay pocos resultados */
+.menu-grid .menu-card {
+    max-width: 400px;
+    justify-self: center;
+}
+
+/* Para pantallas grandes, centrar el grid cuando hay pocos elementos */
+@media (min-width: 1200px) {
+    .menu-grid {
+        justify-content: center;
+    }
+}
+
 .menu-card {
     background: var(--color-card-bg);
     backdrop-filter: blur(10px);
@@ -426,34 +439,39 @@ burger-club/burgur/src/main/resources/static/css/components/menu.css
 .btn-load-more {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 15px 30px;
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-primary);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    gap: 12px;
+    padding: 20px 40px;
+    background: var(--color-cta-stroke);
+    color: var(--color-background);
+    border: 3px solid var(--color-cta-stroke);
     border-radius: var(--border-radius-large);
     font-family: var(--font-primary);
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all var(--transition-speed) ease;
     backdrop-filter: blur(10px);
     text-decoration: none;
+    box-shadow: 0 4px 15px rgba(251, 181, 181, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-load-more:hover {
-    background: var(--color-cta-stroke);
-    color: var(--color-background);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-cta-stroke);
     border-color: var(--color-cta-stroke);
-    transform: translateY(-3px);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(251, 181, 181, 0.4);
 }
 
 .btn-load-more i {
     transition: transform var(--transition-speed) ease;
+    font-size: 1.3rem;
 }
 
 .btn-load-more:hover i {
-    transform: translateY(3px);
+    transform: translateX(5px) rotate(15deg);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -562,9 +580,9 @@ burger-club/burgur/src/main/resources/static/css/components/menu.css
     }
     
     .btn-load-more {
-        padding: 12px 25px;
-        font-size: 1rem;
-        gap: 8px;
+        padding: 18px 35px;
+        font-size: 1.1rem;
+        gap: 10px;
     }
     
     .deco-item {

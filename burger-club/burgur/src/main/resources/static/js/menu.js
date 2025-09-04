@@ -9,24 +9,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('.menu-search-input');
     const searchClear = document.querySelector('.search-clear');
     
-    // Auto-submit al escribir (con debounce)
+    // Optimized search with debounce
     let searchTimeout;
-    if (searchInput) {
+    if (searchInput && searchForm) {
+        const handleSearch = () => {
+            const query = searchInput.value.trim();
+            if (query.length >= 2 || query.length === 0) {
+                searchForm.submit();
+            }
+        };
+        
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                if (this.value.length >= 2 || this.value.length === 0) {
-                    searchForm.submit();
-                }
-            }, 800);
+            searchTimeout = setTimeout(handleSearch, 600); // Reduced from 800ms
         });
         
-        // Submit al presionar Enter
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 clearTimeout(searchTimeout);
-                searchForm.submit();
+                handleSearch();
             }
         });
     }
@@ -43,6 +45,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize product detail modal
     if (typeof ProductDetailModal !== 'undefined') {
         window.productDetailModal = new ProductDetailModal();
+    }
+    
+    // Check if we should auto-open modal from promotion
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldOpenModal = urlParams.get('openModal') === 'true';
+    if (shouldOpenModal && window.productDetailModal) {
+        // Wait a bit for the page to fully load, then open modal for first product
+        setTimeout(() => {
+            const firstMenuCard = document.querySelector('.menu-card[data-id]');
+            if (firstMenuCard) {
+                const productId = firstMenuCard.getAttribute('data-id');
+                window.productDetailModal.showProductDetail(productId);
+                // Clean URL by removing openModal parameter
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.delete('openModal');
+                window.history.replaceState({}, '', newUrl);
+            }
+        }, 500);
     }
     
     // Enhance existing menu cards with click-to-view-details functionality
@@ -81,21 +101,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Quick notification function
-    function showQuickNotification(message, type = 'info') {
+    function showQuickNotification(message, type = 'success') {
+        // Remove any existing notifications efficiently
+        document.querySelectorAll('.quick-notification').forEach(notif => {
+            notif.remove();
+        });
+        
         const notification = document.createElement('div');
         notification.className = `quick-notification ${type}`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
         notification.innerHTML = `
             <div class="notification-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <i class="fas ${icon}"></i>
                 <span>${message}</span>
             </div>
         `;
         
-        // Add styles if not exist
+        // Add styles only once
         if (!document.getElementById('quick-notification-styles')) {
-            const style = document.createElement('style');
-            style.id = 'quick-notification-styles';
-            style.textContent = `
+            addQuickNotificationStyles();
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+        });
+        
+        // Auto-remove with cleanup
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 2500);
+    }
+    
+    function addQuickNotificationStyles() {
+        const style = document.createElement('style');
+        style.id = 'quick-notification-styles';
+        style.textContent = `
                 .quick-notification {
                     position: fixed;
                     top: 20px;
@@ -235,44 +280,41 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             document.head.appendChild(style);
         }
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => notification.classList.add('show'), 10);
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                if (document.body.contains(notification)) {
-                    document.body.removeChild(notification);
-                }
-            }, 300);
-        }, 2500);
-    }
     
-    // Add authentication check for better UX
-    checkAuthenticationStatus();
-    
+    // Optimized authentication check
     async function checkAuthenticationStatus() {
         try {
-            const response = await fetch('/auth/api/current');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+            
+            const response = await fetch('/auth/api/current', {
+                signal: controller.signal,
+                cache: 'no-cache'
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
             const data = await response.json();
             
-            if (data.authenticated) {
+            if (data.authenticated && data.cliente) {
                 updateHeaderForLoggedInUser(data.cliente);
             } else {
-                // Show auth CTA for non-authenticated users
-                const authCta = document.getElementById('authCta');
-                if (authCta) {
-                    authCta.style.display = 'block';
-                }
+                showAuthCTA();
             }
         } catch (error) {
-            console.log('Authentication check failed:', error);
-            // Show auth CTA on error
-            const authCta = document.getElementById('authCta');
-            if (authCta) {
-                authCta.style.display = 'block';
-            }
+            console.log('Authentication check failed:', error.message);
+            showAuthCTA();
+        }
+    }
+    
+    function showAuthCTA() {
+        const authCta = document.getElementById('authCta');
+        if (authCta && authCta.style.display !== 'block') {
+            authCta.style.display = 'block';
         }
     }
     
@@ -368,6 +410,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+    
+    // Initialize authentication check
+    checkAuthenticationStatus();
     
     // Make showQuickNotification globally available
     window.showQuickNotification = showQuickNotification;

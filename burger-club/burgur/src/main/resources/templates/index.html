@@ -63,7 +63,7 @@
                      <i class="fas fa-map-marker-alt"></i>
                      <span>Encuéntranos acá</span>
                  </div>
-                 <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                 <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Abrir menú de navegación móvil" aria-expanded="false">
                      <span class="hamburger-icon"></span>
                  </button>
              </div>
@@ -83,49 +83,47 @@
      
          <!-- Welcome Section -->
          <section id="welcome" class="welcome-section">
-             <div class="container">
-                 <div class="welcome-content">
-                     <div class="welcome-text">
-                         <h1 class="welcome-title">
-                             <span class="welcome-small">Bienvenidos a</span>
-                             <span class="welcome-big">Burger Club</span>
-                         </h1>
-                         <p class="welcome-tagline">Donde cada hamburguesa cuenta una historia</p>
-                         <div class="welcome-features">
-                             <div class="welcome-feature">
-                                 <i class="fas fa-clock"></i>
-                                 <span>Entrega Rápida</span>
-                             </div>
-                             <div class="welcome-feature">
-                                 <i class="fas fa-star"></i>
-                                 <span>Calidad Premium</span>
-                             </div>
-                             <div class="welcome-feature">
-                                 <i class="fas fa-fire"></i>
-                                 <span>Recién Hechas</span>
-                             </div>
+             <div class="welcome-content">
+                 <div class="welcome-text">
+                     <h1 class="welcome-title">
+                         <span class="welcome-small">Bienvenidos a</span>
+                         <span class="welcome-big">Burger Club</span>
+                     </h1>
+                     <p class="welcome-tagline">Donde cada hamburguesa cuenta una historia</p>
+                     <div class="welcome-features">
+                         <div class="welcome-feature">
+                             <i class="fas fa-clock"></i>
+                             <span>Entrega Rápida</span>
                          </div>
-                         <div class="welcome-cta">
-                             <a href="#hero" class="btn-scroll-down">
-                                 <span>Descubre Nuestras Promociones</span>
-                                 <i class="fas fa-chevron-down"></i>
-                             </a>
+                         <div class="welcome-feature">
+                             <i class="fas fa-star"></i>
+                             <span>Calidad Premium</span>
+                         </div>
+                         <div class="welcome-feature">
+                             <i class="fas fa-fire"></i>
+                             <span>Recién Hechas</span>
                          </div>
                      </div>
-                     <div class="welcome-image">
-                         <img th:src="@{/images/OurPlace.png}" alt="Burger especial" class="welcome-burger">
-                         <div class="welcome-decoration">
-                             <div class="deco-circle deco-circle-1"></div>
-                             <div class="deco-circle deco-circle-2"></div>
-                             <div class="deco-circle deco-circle-3"></div>
-                         </div>
+                     <div class="welcome-cta">
+                         <a href="#hero" class="btn-scroll-down">
+                             <span>Descubre Nuestras Promociones</span>
+                             <i class="fas fa-chevron-down"></i>
+                         </a>
                      </div>
                  </div>
-                 <div class="welcome-bottom">
-                     <div class="scroll-indicator">
-                         <i class="fas fa-mouse"></i>
-                         <span>Scroll para más</span>
+                 <div class="welcome-image">
+                     <img th:src="@{/images/OurPlace.png}" alt="Interior acogedor del restaurante Burger Club" class="welcome-burger">
+                     <div class="welcome-decoration">
+                         <div class="deco-circle deco-circle-1"></div>
+                         <div class="deco-circle deco-circle-2"></div>
+                         <div class="deco-circle deco-circle-3"></div>
                      </div>
+                 </div>
+             </div>
+             <div class="welcome-bottom">
+                 <div class="scroll-indicator">
+                     <i class="fas fa-mouse"></i>
+                     <span>Scroll para más</span>
                  </div>
              </div>
          </section>
@@ -177,18 +175,18 @@
                  <div class="hero-right-column">
                      <div class="hero-image-wrapper">
                          <div class="hero-image-container">
-                             <img th:src="@{/images/burger.png}" alt="Deliciosa hamburguesa gourmet" class="hero-burger-img">
+                             <img th:src="@{/images/Burger.png}" alt="Hamburguesa gourmet premium con ingredientes frescos" class="hero-burger-img">
                              <div class="hero-image-glow"></div>
                          </div>
-                         <a th:href="@{/menu}" class="hero-cta">
-                             <span>Ir al Menú</span>
-                             <i class="fas fa-utensils"></i>
-                         </a>
-                         <div class="promo-dots">
-                             <span class="dot active" data-dot="0"></span>
-                             <span class="dot" data-dot="1"></span>
-                             <span class="dot" data-dot="2"></span>
-                             <span class="dot" data-dot="3"></span>
+                         <a href="#" class="hero-cta" id="hero-cta-btn" aria-label="Ver detalles del producto destacado">
+                            <span>Ver Detalles del Producto</span>
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        </a>
+                         <div class="promo-dots" role="tablist" aria-label="Navegación de promociones">
+                             <span class="dot active" data-dot="0" role="tab" aria-selected="true" aria-label="Promoción 1"></span>
+                             <span class="dot" data-dot="1" role="tab" aria-selected="false" aria-label="Promoción 2"></span>
+                             <span class="dot" data-dot="2" role="tab" aria-selected="false" aria-label="Promoción 3"></span>
+                             <span class="dot" data-dot="3" role="tab" aria-selected="false" aria-label="Promoción 4"></span>
                          </div>
                      </div>
                  </div>
@@ -196,9 +194,9 @@
              <div class="hero-decorations">
                  <div class="deco-ellipse-1"></div>
                  <div class="deco-ellipse-2"></div>
-                 <div class="deco-sparkle deco-sparkle-1">✨</div>
-                 <div class="deco-sparkle deco-sparkle-2">⭐</div>
-                 <div class="deco-sparkle deco-sparkle-3">💫</div>
+                 <div class="deco-sparkle deco-sparkle-1"></div>
+                 <div class="deco-sparkle deco-sparkle-2"></div>
+                 <div class="deco-sparkle deco-sparkle-3"></div>
              </div>
          </section>
      

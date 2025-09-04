@@ -6,7 +6,7 @@
 // Función para actualizar adicionales
 async function updateAdicionales() {
     try {
-        const response = await fetch('/admin/api/update-adicionales', {
+        const response = await fetch('/admin/update-adicionales', {
             method: 'POST'
         });
         

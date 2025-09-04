@@ -124,7 +124,7 @@ Burger Club utiliza una paleta de colores cuidadosamente seleccionada que reflej
 | **Crema** | `#fbfada` | Fondos, áreas de contenido | ![#fbfada](https://via.placeholder.com/50x30/fbfada/fbfada.png) |
 
 ### 📄 Documentación Completa
-Para más detalles sobre el uso de colores, consulta: [`burger-club/Paleta de colores burgur.pdf`](burger-club/Paleta%20de%20colores%20burgur.pdf)
+Para más detalles sobre el uso de colores, consulta: [`burger-club/docs/Paleta de colores burgur.pdf`](burger-club/Paleta%20de%20colores%20burgur.pdf)
 
 </div>
 

@@ -18,9 +18,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "adicional")
+@NoArgsConstructor
 public class Adicional {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,21 +52,18 @@ public class Adicional {
 
     // Constructor completo
     public Adicional(String nombre, double precio, boolean activo, List<String> categoria) {
+        this.categoria = new ArrayList<>();
+        this.activo = true;
         this.nombre = nombre;
         this.precio = precio;
         this.activo = activo;
         this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();
     }
 
-    // Constructor vacío 
-    public Adicional() {
-        this.categoria = new ArrayList<>();
-        this.activo = true;
-    }
-
     // Constructor con validaciones
     public Adicional(String nombre, double precio, List<String> categoria) {
-        this();
+        this.categoria = new ArrayList<>();
+        this.activo = true;
         this.nombre = nombre;
         this.precio = precio;
         this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();

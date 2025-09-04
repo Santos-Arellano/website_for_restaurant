@@ -51,9 +51,6 @@ public class AdicionalServiceImpl implements AdicionalService {
             // 4) Guardar con manejo de errores de BD
             return adicionalRepository.save(adicional);
             
-        } catch (IllegalArgumentException e) {
-            // Re-lanzar errores de validación
-            throw e;
         } catch (DataIntegrityViolationException e) {
             // Manejar violaciones de integridad de BD
             throw new IllegalArgumentException("Error de integridad de datos: " + e.getMostSpecificCause().getMessage());
@@ -87,8 +84,6 @@ public class AdicionalServiceImpl implements AdicionalService {
                 adicionalRepository.deleteById(id);
             }
             
-        } catch (IllegalArgumentException e) {
-            throw e;
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("No se puede eliminar el adicional porque está siendo usado por productos");
         } catch (Exception e) {
@@ -108,8 +103,6 @@ public class AdicionalServiceImpl implements AdicionalService {
             return adicionalRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el adicional con ID: " + id));
                 
-        } catch (IllegalArgumentException e) {
-            throw e;
         } catch (Exception e) {
             System.err.println("Error al buscar adicional por ID: " + e.getMessage());
             e.printStackTrace();
@@ -119,23 +112,12 @@ public class AdicionalServiceImpl implements AdicionalService {
 
     @Override
     public List<Adicional> findAll() {
-        try {
-            return adicionalRepository.findAll();
-        } catch (Exception e) {
-            System.err.println("Error al obtener todos los adicionales: " + e.getMessage());
-            e.printStackTrace();
-            return List.of(); // Retornar lista vacía en caso de error
-        }
+        return adicionalRepository.findAll();
     }
 
     @Override
     public boolean existsById(Long id) {
-        try {
-            return id != null && adicionalRepository.existsById(id);
-        } catch (Exception e) {
-            System.err.println("Error al verificar existencia del adicional: " + e.getMessage());
-            return false;
-        }
+        return id != null && adicionalRepository.existsById(id);
     }
 
     // ==========================================
@@ -147,7 +129,12 @@ public class AdicionalServiceImpl implements AdicionalService {
             throw new IllegalArgumentException("El adicional no puede ser nulo");
         }
 
-        // Validar nombre
+        validateNombreAdicional(adicional);
+        validatePrecioAdicional(adicional);
+        validateCategoriasAdicional(adicional);
+    }
+    
+    private void validateNombreAdicional(Adicional adicional) {
         if (adicional.getNombre() == null || adicional.getNombre().trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del adicional es requerido");
         }
@@ -155,8 +142,9 @@ public class AdicionalServiceImpl implements AdicionalService {
         if (adicional.getNombre().trim().length() > 100) {
             throw new IllegalArgumentException("El nombre del adicional no puede exceder 100 caracteres");
         }
-
-        // Validar precio
+    }
+    
+    private void validatePrecioAdicional(Adicional adicional) {
         if (adicional.getPrecio() <= 0) {
             throw new IllegalArgumentException("El precio debe ser mayor a 0");
         }
@@ -164,37 +152,41 @@ public class AdicionalServiceImpl implements AdicionalService {
         if (adicional.getPrecio() > 500_000) {
             throw new IllegalArgumentException("El precio no puede exceder $500,000");
         }
-
-        // Validar categorías
+    }
+    
+    private void validateCategoriasAdicional(Adicional adicional) {
         if (adicional.getCategoria() == null || adicional.getCategoria().isEmpty()) {
             throw new IllegalArgumentException("Debe asignarse al menos una categoría al adicional");
         }
 
-        // Validar cada categoría individualmente
         String[] categoriasPermitidas = {
             "hamburguesa", "acompañamiento", "bebida", "postre", "perro caliente"
         };
         
         for (String cat : adicional.getCategoria()) {
-            if (cat == null || cat.trim().isEmpty()) {
-                throw new IllegalArgumentException("Una categoría del adicional está vacía o nula");
+            validateSingleCategoria(cat, categoriasPermitidas);
+        }
+    }
+    
+    private void validateSingleCategoria(String cat, String[] categoriasPermitidas) {
+        if (cat == null || cat.trim().isEmpty()) {
+            throw new IllegalArgumentException("Una categoría del adicional está vacía o nula");
+        }
+        
+        boolean categoriaValida = false;
+        String catNormalizada = cat.trim().toLowerCase();
+        
+        for (String permitida : categoriasPermitidas) {
+            if (permitida.equals(catNormalizada)) {
+                categoriaValida = true;
+                break;
             }
-            
-            boolean categoriaValida = false;
-            String catNormalizada = cat.trim().toLowerCase();
-            
-            for (String permitida : categoriasPermitidas) {
-                if (permitida.equals(catNormalizada)) {
-                    categoriaValida = true;
-                    break;
-                }
-            }
-            
-            if (!categoriaValida) {
-                throw new IllegalArgumentException(
-                    "Categoría no válida: '" + cat + "'. Debe ser una de: hamburguesa, acompañamiento, bebida, postre, perro caliente"
-                );
-            }
+        }
+        
+        if (!categoriaValida) {
+            throw new IllegalArgumentException(
+                "Categoría no válida: '" + cat + "'. Debe ser una de: hamburguesa, acompañamiento, bebida, postre, perro caliente"
+            );
         }
     }
 

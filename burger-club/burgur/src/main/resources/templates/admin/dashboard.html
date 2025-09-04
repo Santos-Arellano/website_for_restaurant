@@ -14,7 +14,7 @@
          <!-- Google Fonts -->
          <link rel="preconnect" href="https://fonts.googleapis.com">
          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-         <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap" rel="stylesheet">
+         <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
          
          <!-- Font Awesome -->
          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -22,7 +22,11 @@
          <!-- Main CSS -->
          <link rel="stylesheet" th:href="@{/css/main.css}">
          
+         <!-- Admin CSS -->
          <link th:href="@{/css/components/admin-dashboard.css}" rel="stylesheet">
+         
+         <!-- Ensure footer styles are applied -->
+         <link th:href="@{/css/components/footer.css}" rel="stylesheet">
      </head>
      <body>
          <!-- Header -->
@@ -119,11 +123,7 @@
                                  <div class="status-value">Conectada</div>
                              </div>
                              
-                             <div class="status-item">
-                                 <div class="status-indicator"></div>
-                                 <div class="status-label">APIs</div>
-                                 <div class="status-value">Operativas</div>
-                             </div>
+
                              
                              <div class="status-item">
                                  <div class="status-indicator warning" th:if="${stockBajo > 0}"></div>
@@ -195,19 +195,44 @@
          </main>
      
          <!-- Footer -->
-         <footer class="site-footer">
-             <div class="container">
-                 <div class="footer-social">
-                     <h3>Panel Administrativo</h3>
-                     <p style="color: var(--text-light); opacity: 0.8;">
-                         Burger Club - Sistema de gestión v1.0
-                     </p>
-                 </div>
-                 <div class="footer-bottom">
-                     <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
-                 </div>
-             </div>
-         </footer>
+        <footer class="site-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <div class="footer-logo">
+                            <img th:src="@{/images/Logo.png}" alt="Burger Club" class="footer-logo-img">
+                            <h3>Burger Club Admin</h3>
+                        </div>
+                        <p>Panel de administración para la gestión completa del restaurante.</p>
+                    </div>
+                    <div class="footer-section">
+                        <h3>Gestión</h3>
+                        <ul class="footer-links">
+                            <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <li><a th:href="@{/menu/admin}">Productos</a></li>
+                            <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                            <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h3>Sistema</h3>
+                        <div class="contact-info">
+                            <p><i class="fas fa-server"></i> Sistema v1.0</p>
+                            <p><i class="fas fa-database"></i> Base de datos activa</p>
+                            <p><i class="fas fa-shield-alt"></i> Acceso seguro</p>
+                            <p><i class="fas fa-clock"></i> Última actualización: Hoy</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 Burger Club. Panel Administrativo - Todos los derechos reservados.</p>
+                    <div class="footer-bottom-links">
+                        <a th:href="@{/}">Volver al sitio</a>
+                        <a href="#">Soporte técnico</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
      
          <!-- JavaScript -->
          <script th:src="@{/js/Modules/admin/admin-dashboard.js}" defer></script>

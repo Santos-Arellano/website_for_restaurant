@@ -51,31 +51,7 @@ public interface ProductoService {
     //Buscar productos por categoría
     List<Producto> findByCategoria(String categoria);
     
-    /**
-     * Buscar productos por múltiples criterios
-     * Busca en nombre, descripción e ingredientes
-     */
-    List<Producto> search(String termino);
-    
-    /**
-     * Obtener productos nuevos
-     */
-    List<Producto> findByNuevo(boolean nuevo);
-    
-    /**
-     * Obtener productos populares
-     */
-    List<Producto> findByPopular(boolean popular);
-    
-    /**
-     * Obtener productos con stock bajo
-     */
-    List<Producto> findByStockBajo(int limite);
-    
-    /**
-     * Obtener productos activos
-     */
-    List<Producto> findByActivo(boolean activo);
+
 
     //Proyectar los adicionales permitidos para un producto
     List<Adicional> obtenerAdicionalesPermitidos(Long productoId); 
@@ -90,64 +66,13 @@ public interface ProductoService {
      */
     long countTotal();
     
-    /**
-     * Contar productos por categoría
-     */
-    long countByCategoria(String categoria);
-    
-    /**
-     * Contar productos nuevos
-     */
-    long countByNuevo();
-    
-    /**
-     * Contar productos populares
-     */
-    long countByPopular();
-    
-    /**
-     * Contar productos con stock bajo
-     */
-    long countByStockBajo();
+
     
     // ==========================================
     // MÉTODOS DE ACTUALIZACIÓN ESPECÍFICA
     // ==========================================
     
-    /**
-     * Actualizar solo el stock de un producto
-     */
-    Producto updateStock(Long id, Integer nuevoStock);
-    
-    /**
-     * Cambiar estado de producto nuevo
-     */
-    Producto toggleNuevo(Long id);
-    
-    /**
-     * Cambiar estado de producto popular
-     */
-    Producto togglePopular(Long id);
 
-    /**
-     * Cambiar estado activo del producto
-     */
-    Producto toggleActivo(Long id);
-
-    // ==========================================
-    // MÉTODOS ADICIONALES DE UTILIDAD
-    // ==========================================
-
-    // Búsqueda avanzada de productos
-    List<Producto> searchAdvanced(String nombre, String categoria,
-                                   Boolean nuevo, Boolean popular,
-                                   Boolean stockBajo);
-
-    // Obtener productos más vendidos
-    List<Producto> findTopSelling(int limit);
-
-    // Obtener productos por rango de precio
-    List<Producto> findByPriceRange(double minPrice, double maxPrice);
 
 
 

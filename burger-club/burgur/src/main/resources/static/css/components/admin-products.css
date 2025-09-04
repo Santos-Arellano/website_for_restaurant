@@ -11,7 +11,7 @@
   --status-popular-bg: rgba(249, 255, 0, 0.75);
   --status-activo-bg: rgba(40, 255, 20, 0.75);
   --row-bg-gradient: linear-gradient(180deg, #09342f 0%, rgba(58, 89, 78, 0) 100%);
-  --font-primary: 'Sansita Swashed', cursive;
+  --font-primary: 'Inter', 'Poppins', sans-serif;
   --font-secondary: 'Lexend Zetta', sans-serif;
   --border-radius: 8px;
   --border-radius-small: 4px;
@@ -180,17 +180,18 @@
   background: var(--status-activo-bg);
   color: var(--text-white);
   border: none;
-  padding: 12px 20px;
+  padding: 16px 28px;
   border-radius: var(--border-radius-small);
   font-family: var(--font-primary);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: all var(--transition-speed) ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  min-height: 48px;
 }
 
 .btn-add-product:hover {
@@ -767,8 +768,9 @@
   }
   
   .btn-add-product {
-    padding: 10px 15px;
-    font-size: 13px;
+    padding: 14px 20px;
+    font-size: 15px;
+    min-height: 44px;
   }
   
   .table-row {

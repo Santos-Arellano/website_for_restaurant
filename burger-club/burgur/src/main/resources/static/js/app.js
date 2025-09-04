@@ -8,7 +8,6 @@ import {
     throttle, 
     debounce, 
     preloadImages, 
-    smoothScrollTo,
     formatPrice 
 } from './utils/helpers.js';
 
@@ -19,19 +18,19 @@ import {
 } from './utils/constants.js';
 
 // Import core modules
-import { HeaderManager } from './modules/navigation/header.js';
-import { MobileMenuManager } from './modules/navigation/mobile-menu.js';
-import { CartManager } from './modules/cart/CartManager.js';
-import { AnimationManager } from './modules/ui/animations.js';
-import { NotificationManager } from './modules/ui/notifications.js';
+import { HeaderManager } from './Modules/navigation/header.js';
+import { MobileMenuManager } from './Modules/navigation/mobile-menu.js';
+import { CartManager } from './Modules/cart/CartManager.js';
+import { AnimationManager } from './Modules/ui/animations.js';
+import { NotificationManager } from './Modules/ui/notifications.js';
 
 // Import UI components
-import { PromoSlider } from './modules/ui/promo-slider.js';
-import { LocationModal } from './modules/ui/location-modal.js';
-import { ScrollEffects } from './modules/ui/scroll-effects.js';
+import { PromoSlider } from './Modules/ui/promo-slider.js';
+import { LocationModal } from './Modules/ui/location-modal.js';
+import { ScrollEffects } from './Modules/ui/scroll-effects.js';
 
 // Import menu enhancements (only visual effects, not logic)
-import { MenuEnhancements } from './modules/menu/menu-enhancements.js';
+import { MenuEnhancements } from './Modules/menu/menu-enhancements.js';
 
 // ========== MAIN APPLICATION CLASS ==========
 class BurgerClubApp {
@@ -100,7 +99,6 @@ class BurgerClubApp {
             notifications: this.notificationManager,
             animations: this.animationManager,
             showNotification: this.notificationManager.show.bind(this.notificationManager),
-            smoothScrollTo,
             formatPrice
         };
         
@@ -165,12 +163,12 @@ class BurgerClubApp {
     // ========== COUNTERS ==========
     initializeCounters() {
         const counters = document.querySelectorAll('[data-count]');
+        if (!counters.length) return;
         
         counters.forEach(counter => {
             counter.style.opacity = '0';
         });
         
-        // Setup intersection observer for counters
         this.setupCounterObserver();
     }
     
@@ -179,13 +177,13 @@ class BurgerClubApp {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const counter = entry.target.querySelector('[data-count]');
-                    if (counter) {
+                    if (counter && !counter.dataset.animated) {
                         this.triggerCounterAnimation(counter);
                         observer.unobserve(entry.target);
                     }
                 }
             });
-        }, { threshold: 0.3 });
+        }, { threshold: 0.3, rootMargin: '0px 0px -50px 0px' });
         
         document.querySelectorAll('.stat-item').forEach(item => {
             observer.observe(item);
@@ -194,21 +192,32 @@ class BurgerClubApp {
     
     triggerCounterAnimation(counter) {
         const target = parseInt(counter.dataset.count);
-        const duration = 2000;
-        const increment = target / (duration / 16);
-        let current = 0;
+        if (isNaN(target)) return;
         
+        counter.dataset.animated = 'true';
         counter.style.opacity = '1';
         
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                counter.textContent = target;
-                clearInterval(timer);
+        const duration = 2000;
+        const startTime = performance.now();
+        
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function for smoother animation
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            const current = Math.floor(target * easeOutQuart);
+            
+            counter.textContent = current;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
             } else {
-                counter.textContent = Math.floor(current);
+                counter.textContent = target;
             }
-        }, 16);
+        };
+        
+        requestAnimationFrame(animate);
     }
     
     // ========== BACK TO TOP ==========
@@ -248,50 +257,80 @@ class BurgerClubApp {
     
     // ========== GLOBAL EVENT LISTENERS ==========
     setupGlobalEvents() {
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // ESC to close modals
-            if (e.key === 'Escape') {
-                // Close any open modals
-                const modals = document.querySelectorAll('.cart-modal.active, .location-modal.active');
-                modals.forEach(modal => {
-                    if (modal.classList.contains('cart-modal')) {
-                        this.cartManager.closeCart();
-                    } else if (this.locationModal) {
-                        this.locationModal.close();
+        // Keyboard shortcuts with throttling
+        const handleKeydown = throttle((e) => {
+            switch (e.key) {
+                case 'Escape':
+                    this.handleEscapeKey();
+                    break;
+                case 'C':
+                    if (e.ctrlKey && e.shiftKey) {
+                        e.preventDefault();
+                        this.cartManager?.openCart();
                     }
-                });
+                    break;
             }
-            
-            // Ctrl+Shift+C to open cart (for power users)
-            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-                e.preventDefault();
-                this.cartManager.openCart();
+        }, 100);
+        
+        document.addEventListener('keydown', handleKeydown);
+        
+        // Optimized error handling
+        this.setupErrorHandling();
+        
+        // Performance monitoring (development only)
+        if (window.location.hostname === 'localhost' && 'performance' in window) {
+            this.setupPerformanceMonitoring();
+        }
+    }
+    
+    handleEscapeKey() {
+        const activeModals = document.querySelectorAll('.cart-modal.active, .location-modal.active');
+        if (!activeModals.length) return;
+        
+        activeModals.forEach(modal => {
+            if (modal.classList.contains('cart-modal')) {
+                this.cartManager?.closeCart();
+            } else if (this.locationModal) {
+                this.locationModal.close();
             }
         });
+    }
+    
+    setupErrorHandling() {
+        let errorCount = 0;
+        const maxErrors = 5;
         
-        // Error handling
         window.addEventListener('error', (e) => {
             console.error('JavaScript Error:', e.error);
             
-            if (e.filename && e.filename.includes('burger-club')) {
-                this.notificationManager.show('Algo salió mal. Por favor recarga la página.', 'danger');
+            if (++errorCount <= maxErrors && e.filename?.includes('burger-club')) {
+                this.notificationManager?.show('Algo salió mal. Por favor recarga la página.', 'danger');
             }
         });
         
         window.addEventListener('unhandledrejection', (e) => {
             console.error('Unhandled Promise Rejection:', e.reason);
+            e.preventDefault(); // Prevent default browser handling
         });
-        
-        // Performance monitoring
-        if ('performance' in window) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
+    }
+    
+    setupPerformanceMonitoring() {
+        window.addEventListener('load', () => {
+            requestIdleCallback(() => {
+                try {
                     const perfData = performance.getEntriesByType('navigation')[0];
-                    console.log(`⚡ Page load time: ${perfData.loadEventEnd - perfData.fetchStart}ms`);
-                }, 0);
+                    const loadTime = perfData.loadEventEnd - perfData.fetchStart;
+                    console.log(`⚡ Page load time: ${loadTime}ms`);
+                    
+                    // Log performance metrics
+                    if (loadTime > 3000) {
+                        console.warn('⚠️ Slow page load detected');
+                    }
+                } catch (error) {
+                    console.warn('Performance monitoring failed:', error);
+                }
             });
-        }
+        });
     }
     
     // ========== INITIAL ANIMATIONS ==========

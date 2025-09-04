@@ -3,14 +3,33 @@
 // BURGER CLUB - PROMO SLIDER MODULE
 // ==========================================
 
-import { PROMO_IMAGES } from '../../utils/constants.js';
+import { PROMO_IMAGES, PROMO_PRODUCTS } from '../../utils/constants.js';
 
 export class PromoSlider {
     constructor() {
-        this.currentPromoIndex = 0;
+        this.currentPromoIndex = this.getInitialActivePromo();
         this.promoInterval = null;
         
         this.init();
+    }
+    
+    getInitialActivePromo() {
+        // Buscar el promo-item que tiene la clase 'active'
+        const activePromoItem = document.querySelector('.promo-item.active');
+        if (activePromoItem) {
+            const promoIndex = parseInt(activePromoItem.getAttribute('data-promo'));
+            return isNaN(promoIndex) ? 0 : promoIndex;
+        }
+        
+        // Si no hay ninguno activo, buscar el dot activo
+        const activeDot = document.querySelector('.promo-dots .dot.active');
+        if (activeDot) {
+            const dotIndex = parseInt(activeDot.getAttribute('data-dot'));
+            return isNaN(dotIndex) ? 0 : dotIndex;
+        }
+        
+        // Fallback al índice 0
+        return 0;
     }
     
     init() {
@@ -19,7 +38,10 @@ export class PromoSlider {
         
         if (promoDots.length === 0 && promoItems.length === 0) return;
         
-        console.log('🎬 Promo slider initialized');
+
+        
+        // Sincronizar la vista inicial con el índice actual
+        this.updatePromoDisplay();
         
         this.setupAutoRotation();
         this.setupEventListeners();
@@ -60,6 +82,7 @@ export class PromoSlider {
         const promoItems = document.querySelectorAll('.promo-item');
         promoItems.forEach((item, index) => {
             item.addEventListener('click', () => {
+                // Cambiar a la promoción seleccionada
                 this.goToPromo(index);
                 this.restartAutoRotation();
             });
@@ -75,6 +98,15 @@ export class PromoSlider {
                 this.resumeAutoRotation();
             });
         });
+        
+        // Hero CTA button handler
+        const heroCta = document.getElementById('hero-cta-btn');
+        if (heroCta) {
+            heroCta.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.openCurrentProductModal();
+            });
+        }
     }
     
     setupKeyboardNavigation() {
@@ -90,7 +122,9 @@ export class PromoSlider {
     }
     
     nextPromo() {
+        const oldIndex = this.currentPromoIndex;
         this.currentPromoIndex = (this.currentPromoIndex + 1) % PROMO_IMAGES.length;
+        console.log('🔄 DEBUG - Promo changed from', oldIndex, 'to', this.currentPromoIndex);
         this.updatePromoDisplay();
     }
     
@@ -163,6 +197,39 @@ export class PromoSlider {
         }, 8000); // Wait 8 seconds before resuming auto-rotation
     }
     
+    redirectToProduct(index) {
+        // Obtener el producto correspondiente a la promoción
+        const product = PROMO_PRODUCTS[index];
+        if (product && product.searchTerm) {
+            // Redirigir al menú con búsqueda específica del producto
+            window.location.href = `/menu?search=${encodeURIComponent(product.searchTerm)}`;
+        } else {
+            // Fallback al menú general si no se encuentra el producto
+            window.location.href = '/menu';
+        }
+    }
+    
+    openCurrentProductModal() {
+        // Debug: mostrar información actual
+        console.log('🔍 DEBUG - Current promo index:', this.currentPromoIndex);
+        console.log('🔍 DEBUG - Available products:', PROMO_PRODUCTS);
+        
+        // Obtener el producto de la promoción activa
+        const currentProduct = PROMO_PRODUCTS[this.currentPromoIndex];
+        console.log('🔍 DEBUG - Selected product:', currentProduct);
+        
+        if (currentProduct && currentProduct.searchTerm) {
+            // Redirigir al menú con búsqueda específica y abrir modal
+            const searchTerm = encodeURIComponent(currentProduct.searchTerm);
+            console.log('🔍 DEBUG - Redirecting with search term:', searchTerm);
+            window.location.href = `/menu?nombre=${searchTerm}`;
+        } else {
+            // Fallback al menú general
+            console.log('🔍 DEBUG - No product found, redirecting to general menu');
+            window.location.href = '/menu';
+        }
+    }
+
     destroy() {
         if (this.promoInterval) {
             clearInterval(this.promoInterval);

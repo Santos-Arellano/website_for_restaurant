@@ -48,7 +48,7 @@ class RegisterManager {
         this.setLoading(true);
         
         try {
-            const response = await fetch('/auth/api/register', {
+            const response = await fetch('/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -112,6 +112,11 @@ class RegisterManager {
             valid = false;
         }
         
+        if (!data.direccion) {
+            this.showError('direccion', 'La dirección es requerida');
+            valid = false;
+        }
+        
         if (!data.password) {
             this.showError('password', 'La contraseña es requerida');
             valid = false;
@@ -150,6 +155,11 @@ class RegisterManager {
             case 'confirmPassword':
                 if (value && value !== this.inputs.password.value) {
                     this.showError(field, 'Las contraseñas no coinciden');
+                }
+                break;
+            case 'direccion':
+                if (!value) {
+                    this.showError(field, 'La dirección es requerida');
                 }
                 break;
         }

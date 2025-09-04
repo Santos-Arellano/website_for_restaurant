@@ -42,7 +42,7 @@
 
 .loading-text {
     font-size: 1.1rem;
-    font-family: 'Sansita Swashed', cursive;
+    font-family: 'Inter', 'Poppins', sans-serif;
     font-weight: 600;
 }
 
@@ -67,7 +67,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: 'Sansita Swashed', cursive;
+    font-family: 'Inter', 'Poppins', sans-serif;
     font-size: 14px;
     max-width: 350px;
 }
@@ -136,7 +136,7 @@
     border: none;
     padding: 12px 20px;
     border-radius: 25px;
-    font-family: 'Sansita Swashed', cursive;
+    font-family: 'Inter', 'Poppins', sans-serif;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -201,7 +201,7 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    font-family: 'Sansita Swashed', cursive;
+    font-family: 'Inter', 'Poppins', sans-serif;
     font-size: 14px;
 }
 
@@ -358,7 +358,7 @@
     padding: 12px 25px;
     border: none;
     border-radius: 8px;
-    font-family: 'Sansita Swashed', cursive;
+    font-family: 'Inter', 'Poppins', sans-serif;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;

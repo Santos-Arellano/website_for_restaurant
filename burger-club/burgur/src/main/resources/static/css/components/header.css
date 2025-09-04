@@ -42,8 +42,8 @@ burger-club/burgur/src/main/resources/static/css/components/header.css
 }
 
 .logo-icon-wrapper {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -58,10 +58,11 @@ burger-club/burgur/src/main/resources/static/css/components/header.css
 }
 
 .logo-icon {
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     filter: brightness(1.2);
     transition: all var(--transition-speed) ease;
+    object-fit: contain;
 }
 
 .logo-text {
@@ -70,6 +71,8 @@ burger-club/burgur/src/main/resources/static/css/components/header.css
     font-weight: 700;
     color: var(--color-text-primary);
     letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: visible;
 }
 
 /* Navigation */
@@ -272,8 +275,8 @@ burger-club/burgur/src/main/resources/static/css/components/header.css
     }
     
     .logo-text {
-        font-size: 1.1rem;
-        display: none;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
     }
     
     .mobile-nav-toggle {

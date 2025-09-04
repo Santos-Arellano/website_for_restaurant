@@ -31,16 +31,24 @@ export const Z_INDEX = {
 };
 
 export const PROMO_IMAGES = [
-    'images/menu/BURGER.png',        // Hamburguesa Classic
-    'images/menu/BBQ-especial.png',  // BBQ Deluxe
-    'images/menu/Hot-Dog-Supreme.png', // Perro Supremo
-    'images/menu/Chocolate-milkshake.png' // Malteada Chocolate
+    'Images/menu/BURGER.png',        // Hamburguesa Classic
+    'Images/menu/BBQ-especial.png',  // BBQ Deluxe
+    'Images/menu/Hot-Dog-Supreme.png', // Perro Supremo
+    'Images/menu/Chocolate-milkshake.png' // Malteada Chocolate
+];
+
+// Mapeo de promociones con sus productos correspondientes
+export const PROMO_PRODUCTS = [
+    { name: 'Hamburguesa Classic', searchTerm: 'Hamburguesa Classic' },
+    { name: 'BBQ Deluxe', searchTerm: 'Hamburguesa BBQ Deluxe' },
+    { name: 'Perro Supremo', searchTerm: 'Perro Caliente Supremo' },
+    { name: 'Malteada Chocolate', searchTerm: 'Malteada de Chocolate' }
 ];
 
 export const CRITICAL_IMAGES = [
-    'images/burger.png',
-    'images/Logo.png',
-    'images/OurPlace.png',
+    'Images/Burger.png',
+    'Images/Logo.png',
+    'Images/OurPlace.png',
     ...PROMO_IMAGES
 ];
 
@@ -79,11 +87,7 @@ export const SOCIAL_LINKS = {
     whatsapp: `https://wa.me/${CONTACT_INFO.whatsapp}`
 };
 
-export const API_ENDPOINTS = {
-    menu: '/api/menu',
-    orders: '/api/orders',
-    contact: '/api/contact'
-};
+// API_ENDPOINTS removido - no se utilizan estos endpoints
 
 export const ERROR_MESSAGES = {
     networkError: 'Error de conexión. Por favor intenta de nuevo.',

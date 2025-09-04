@@ -235,30 +235,33 @@ burger-club/burgur/src/main/resources/static/css/components/hero.css
 
 .hero-cta {
     position: absolute;
-    bottom: 15%;
+    bottom: 12%;
     left: 50%;
     transform: translateX(-50%);
-    padding: 15px 30px;
+    padding: 12px 24px;
     background: var(--color-cta-stroke);
     color: var(--color-background);
     border: none;
     border-radius: var(--border-radius-large);
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: all var(--transition-speed) ease;
     font-family: var(--font-primary);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     box-shadow: var(--box-shadow-light);
-    z-index: 3;
+    z-index: 4;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .hero-cta:hover {
     background: var(--color-white);
-    transform: translateX(-50%) translateY(-5px);
+    transform: translateX(-50%) translateY(-5px) scale(1.05);
     box-shadow: var(--box-shadow-hover);
+    border-color: var(--color-cta-stroke);
 }
 
 .hero-cta:active {
@@ -267,12 +270,12 @@ burger-club/burgur/src/main/resources/static/css/components/hero.css
 
 .promo-dots {
     position: absolute;
-    bottom: 8%;
+    bottom: 5%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 12px;
-    z-index: 3;
+    z-index: 4;
 }
 
 .dot {

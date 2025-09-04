@@ -22,19 +22,7 @@ burger-club/burgur/src/main/resources/static/css/main.css
 @import url('./components/admin-products.css');
 
 
-/* CSS Variables */
-:root {
-    --bg-color: #12372a;
-    --text-light: #fbfada;
-    --text-white: #ffffff;
-    --color-cta-stroke: #fbb5b5;
-    --color-background: #12372a;
-    --font-primary: 'Sansita Swashed', cursive;
-    --font-secondary: 'Lexend Zetta', sans-serif;
-    --border-radius: 8px;
-    --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    --box-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
+/* CSS Variables are imported from base/variables.css */
 
 .cart-item-extras {
     font-size: 0.8rem;
