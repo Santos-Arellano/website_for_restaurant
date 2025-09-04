@@ -30,7 +30,7 @@ export class HeaderManager {
         // Scroll effect
         window.addEventListener('scroll', throttle(() => {
             this.handleScroll();
-        }, 10));
+        }, 10), { passive: true });
         
         // Nav links click handlers
         this.navLinks.forEach(link => {

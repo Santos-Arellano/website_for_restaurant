@@ -80,9 +80,9 @@ export class MenuEnhancements {
             // Enhanced click effect
             button.addEventListener('click', () => {
                 // Visual feedback before navigation
-                button.style.transform = 'scale(0.95)';
+                button.style.transform = 'translateY(2px)';
                 setTimeout(() => {
-                    button.style.transform = 'scale(1)';
+                    button.style.transform = 'translateY(0)';
                 }, 150);
                 
                 // Show loading notification
@@ -92,13 +92,13 @@ export class MenuEnhancements {
             // Enhanced hover effect
             button.addEventListener('mouseenter', () => {
                 if (!button.classList.contains('active')) {
-                    button.style.transform = 'translateY(-3px) scale(1.05)';
+                    button.style.transform = 'translateY(-3px)';
                 }
             });
             
             button.addEventListener('mouseleave', () => {
                 if (!button.classList.contains('active')) {
-                    button.style.transform = 'translateY(0) scale(1)';
+                    button.style.transform = 'translateY(0)';
                 }
             });
         });
@@ -200,7 +200,7 @@ export class MenuEnhancements {
             if (menuGrid) {
                 this.animateVisibleCards();
             }
-        }, 10));
+        }, 10), { passive: true });
     }
     
     // ========== VISIBLE CARDS ANIMATION ==========

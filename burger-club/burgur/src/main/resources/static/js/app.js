@@ -3,7 +3,10 @@
 // BURGER CLUB - MAIN APPLICATION (MODULAR)
 // ==========================================
 
-// Import utilities
+// Dynamic imports for better performance
+let modules = {};
+
+// Core utilities - load immediately
 import { 
     throttle, 
     debounce, 
@@ -17,20 +20,58 @@ import {
     PROMO_IMAGES 
 } from './utils/constants.js';
 
-// Import core modules
-import { HeaderManager } from './Modules/navigation/header.js';
-import { MobileMenuManager } from './Modules/navigation/mobile-menu.js';
-import { CartManager } from './Modules/cart/CartManager.js';
-import { AnimationManager } from './Modules/ui/animations.js';
-import { NotificationManager } from './Modules/ui/notifications.js';
+// Async module loader
+async function loadModule(path, exportName = 'default') {
+    try {
+        const module = await import(path);
+        return exportName === 'default' ? module.default : module[exportName];
+    } catch (error) {
+        console.warn(`Failed to load module ${path}:`, error);
+        return null;
+    }
+}
 
-// Import UI components
-import { PromoSlider } from './Modules/ui/promo-slider.js';
-import { LocationModal } from './Modules/ui/location-modal.js';
-import { ScrollEffects } from './Modules/ui/scroll-effects.js';
+// Load critical modules first
+async function loadCriticalModules() {
+    const [HeaderManager, MobileMenuManager, CartManager, NotificationManager] = await Promise.all([
+        loadModule('./Modules/navigation/header.js', 'HeaderManager'),
+        loadModule('./Modules/navigation/mobile-menu.js', 'MobileMenuManager'),
+        loadModule('./Modules/cart/CartManager.js', 'CartManager'),
+        loadModule('./Modules/ui/notifications.js', 'NotificationManager')
+    ]);
+    
+    return { HeaderManager, MobileMenuManager, CartManager, NotificationManager };
+}
 
-// Import menu enhancements (only visual effects, not logic)
-import { MenuEnhancements } from './Modules/menu/menu-enhancements.js';
+// Load secondary modules
+async function loadSecondaryModules() {
+    const [AnimationManager, ScrollEffects, SmoothScrollManager, LoadingAnimationsManager, LazyLoadingManager] = await Promise.all([
+        loadModule('./Modules/ui/animations.js', 'AnimationManager'),
+        loadModule('./Modules/ui/scroll-effects.js', 'ScrollEffects'),
+        loadModule('./smooth-scroll.js', 'SmoothScrollManager'),
+        loadModule('./components/loading-animations.js', 'LoadingAnimationsManager'),
+        loadModule('./components/lazy-loading.js')
+    ]);
+    
+    return { AnimationManager, ScrollEffects, SmoothScrollManager, LoadingAnimationsManager, LazyLoadingManager };
+}
+
+// Load optional modules (can be deferred)
+async function loadOptionalModules() {
+    const [PromoSlider, LocationModal, HeroCarousel, initializeCarouselEffects, TestimonialsManager, ParallaxManager, InteractiveMapManager, NewsletterManager, MenuEnhancements] = await Promise.all([
+        loadModule('./Modules/ui/promo-slider.js', 'PromoSlider'),
+        loadModule('./Modules/ui/location-modal.js', 'LocationModal'),
+loadModule('./hero-carousel.js', 'HeroCarousel'),
+        loadModule('./hero-carousel.js', 'initializeCarouselEffects'),
+        loadModule('./testimonials.js', 'TestimonialsManager'),
+        loadModule('./parallax-effects.js', 'ParallaxManager'),
+        loadModule('./interactive-map.js', 'InteractiveMapManager'),
+        loadModule('./newsletter.js', 'NewsletterManager'),
+        loadModule('./Modules/menu/menu-enhancements.js', 'MenuEnhancements')
+    ]);
+    
+    return { PromoSlider, LocationModal, HeroCarousel, initializeCarouselEffects, TestimonialsManager, ParallaxManager, InteractiveMapManager, NewsletterManager, MenuEnhancements };
+}
 
 // ========== MAIN APPLICATION CLASS ==========
 class BurgerClubApp {
@@ -50,6 +91,15 @@ class BurgerClubApp {
         this.locationModal = null;
         this.scrollEffects = null;
         this.menuEnhancements = null;
+        this.heroCarousel = null;
+        this.smoothScrollManager = null;
+        this.testimonialsManager = null;
+
+        this.parallaxManager = null;
+        this.interactiveMapManager = null;
+        this.newsletterManager = null;
+        this.loadingAnimationsManager = null;
+        this.lazyLoadingManager = null;
         
         this.init();
     }
@@ -58,25 +108,37 @@ class BurgerClubApp {
         try {
             this.showLoader();
             
-            // Preload critical images
-            await this.preloadCriticalAssets();
+            // Load critical modules first (parallel with asset preloading)
+            const [criticalModules] = await Promise.all([
+                loadCriticalModules(),
+                this.preloadCriticalAssets()
+            ]);
             
-            // Initialize core managers
-            this.initializeManagers();
+            // Store critical modules
+            modules.critical = criticalModules;
             
-            // Initialize UI components
-            await this.initializeComponents();
+            // Initialize critical managers immediately
+            this.initializeCriticalManagers(criticalModules);
+            
+            // Load secondary modules in background
+            loadSecondaryModules().then(secondaryModules => {
+                modules.secondary = secondaryModules;
+                this.initializeSecondaryComponents(secondaryModules);
+            });
             
             // Setup global event listeners
             this.setupGlobalEvents();
             
-            // Hide loader and show content
+            // Show initial content faster
             setTimeout(() => {
                 this.hideLoader();
                 this.triggerInitialAnimations();
                 this.isLoaded = true;
                 console.log('🍔 Burger Club App initialized successfully!');
-            }, ANIMATION_DURATIONS.loader);
+                
+                // Load optional modules after initial render
+                this.loadOptionalComponentsDeferred();
+            }, 300); // Reduced from ANIMATION_DURATIONS.loader
             
         } catch (error) {
             console.error('Failed to initialize Burger Club App:', error);
@@ -85,12 +147,14 @@ class BurgerClubApp {
     }
     
     // ========== INITIALIZATION METHODS ==========
-    initializeManagers() {
-        this.notificationManager = new NotificationManager();
-        this.animationManager = new AnimationManager();
-        this.headerManager = new HeaderManager();
-        this.mobileMenuManager = new MobileMenuManager();
-        this.cartManager = new CartManager();
+    initializeCriticalManagers(criticalModules) {
+        const { HeaderManager, MobileMenuManager, CartManager, NotificationManager } = criticalModules;
+        
+        // Initialize only critical managers for fast initial render
+        if (HeaderManager) this.headerManager = new HeaderManager();
+        if (MobileMenuManager) this.mobileMenuManager = new MobileMenuManager();
+        if (CartManager) this.cartManager = new CartManager();
+        if (NotificationManager) this.notificationManager = new NotificationManager();
         
         // Make managers globally available
         window.BurgerClub = {
@@ -98,31 +162,82 @@ class BurgerClubApp {
             cart: this.cartManager,
             notifications: this.notificationManager,
             animations: this.animationManager,
-            showNotification: this.notificationManager.show.bind(this.notificationManager),
+            showNotification: this.notificationManager?.show?.bind(this.notificationManager),
             formatPrice
         };
         
-        console.log('🔧 Core managers initialized');
+        console.log('🔧 Critical managers initialized');
     }
     
-    async initializeComponents() {
-        // Initialize UI components
-        this.promoSlider = new PromoSlider();
-        this.locationModal = new LocationModal(this.notificationManager);
-        this.scrollEffects = new ScrollEffects();
+    initializeSecondaryComponents(secondaryModules) {
+        const { AnimationManager, ScrollEffects, SmoothScrollManager, LoadingAnimationsManager, LazyLoadingManager } = secondaryModules;
         
-        // Initialize menu enhancements only on menu page
-        if (document.getElementById('menuGrid')) {
-            this.menuEnhancements = new MenuEnhancements(this.notificationManager);
-            console.log('📋 Menu enhancements initialized');
+        // Initialize secondary components
+        if (AnimationManager) this.animationManager = new AnimationManager();
+        if (ScrollEffects) this.scrollEffects = new ScrollEffects();
+        if (SmoothScrollManager) this.smoothScrollManager = new SmoothScrollManager();
+        if (LoadingAnimationsManager) this.loadingAnimationsManager = new LoadingAnimationsManager();
+        if (LazyLoadingManager) {
+            this.lazyLoadingManager = new LazyLoadingManager({
+                enablePerformanceMonitoring: false,
+                enableWebP: true,
+                enableProgressiveLoading: true
+            });
         }
         
-        // Initialize counters
-        this.initializeCounters();
+        // Update global reference for animations
+        if (window.BurgerClub && this.animationManager) {
+            window.BurgerClub.animations = this.animationManager;
+        }
         
-        // Initialize back to top button
-        this.initializeBackToTop();
+        console.log('🔧 Secondary components initialized');
     }
+    
+    async loadOptionalComponentsDeferred() {
+        try {
+            const optionalModules = await loadOptionalModules();
+            modules.optional = optionalModules;
+            
+            const { PromoSlider, LocationModal, HeroCarousel, initializeCarouselEffects, TestimonialsManager, ParallaxManager, InteractiveMapManager, NewsletterManager, MenuEnhancements } = optionalModules;
+            
+            // Initialize optional components
+            if (PromoSlider) this.promoSlider = new PromoSlider();
+            if (LocationModal) this.locationModal = new LocationModal(this.notificationManager);
+            if (ParallaxManager) this.parallaxManager = new ParallaxManager();
+            if (InteractiveMapManager) this.interactiveMapManager = new InteractiveMapManager();
+            if (NewsletterManager) this.newsletterManager = new NewsletterManager();
+            
+            // Initialize page-specific components
+            if (HeroCarousel && document.querySelector('.hero-carousel-section')) {
+                this.heroCarousel = new HeroCarousel();
+                if (initializeCarouselEffects) {
+                    initializeCarouselEffects();
+                }
+                console.log('🎠 Hero carousel initialized');
+            }
+            
+            if (TestimonialsManager && document.querySelector('.testimonials-section')) {
+                this.testimonialsManager = new TestimonialsManager();
+                console.log('💬 Testimonials manager initialized');
+            }
+            
+            if (MenuEnhancements && document.getElementById('menuGrid')) {
+                this.menuEnhancements = new MenuEnhancements(this.notificationManager);
+                console.log('📋 Menu enhancements initialized');
+            }
+            
+            // Initialize counters and back to top after optional components
+            this.initializeCounters();
+            this.initializeBackToTop();
+            
+            console.log('🔧 Optional components loaded');
+        } catch (error) {
+            console.warn('Some optional components failed to load:', error);
+        }
+    }
+    
+    // This method is now replaced by the new async loading system
+    // Components are initialized in initializeCriticalManagers, initializeSecondaryComponents, and loadOptionalComponentsDeferred
     
     async preloadCriticalAssets() {
         try {
@@ -249,7 +364,7 @@ class BurgerClubApp {
             } else {
                 backToTop.classList.remove('visible');
             }
-        }, 100));
+        }, 100), { passive: true });
         
         // Add styles for back to top button
         this.addBackToTopStyles();
@@ -320,11 +435,21 @@ class BurgerClubApp {
                 try {
                     const perfData = performance.getEntriesByType('navigation')[0];
                     const loadTime = perfData.loadEventEnd - perfData.fetchStart;
-                    console.log(`⚡ Page load time: ${loadTime}ms`);
+                    const domContentLoaded = perfData.domContentLoadedEventEnd - perfData.fetchStart;
+                    const firstPaint = performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')?.startTime || 0;
                     
-                    // Log performance metrics
-                    if (loadTime > 3000) {
-                        console.warn('⚠️ Slow page load detected');
+                    console.log(`⚡ Performance metrics:`);
+                    console.log(`  - DOM Content Loaded: ${domContentLoaded}ms`);
+                    console.log(`  - First Paint: ${firstPaint}ms`);
+                    console.log(`  - Total Load Time: ${loadTime}ms`);
+                    
+                    // Adjusted threshold for better user experience
+                    if (loadTime > 5000) {
+                        console.warn('⚠️ Slow page load detected (>5s)');
+                    } else if (loadTime > 3000) {
+                        console.info('ℹ️ Page load time acceptable but could be improved');
+                    } else {
+                        console.log('✅ Good page load performance');
                     }
                 } catch (error) {
                     console.warn('Performance monitoring failed:', error);

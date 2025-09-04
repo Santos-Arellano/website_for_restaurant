@@ -281,8 +281,8 @@ class AdminManager {
     getApiUrl(itemId = null) {
         const baseUrls = {
             productos: '/menu/productos',
-            adicionales: '/admin/adicionales',
-            clientes: '/admin/clientes'
+            adicionales: '/admin/adicionales/api',
+            clientes: '/admin/clientes/api'
         };
         
         const baseUrl = baseUrls[this.currentSection];

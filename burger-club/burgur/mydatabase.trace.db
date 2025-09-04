@@ -28,3 +28,18 @@ delete from adicionales_permixproducto apx1_0 [50200-232]
 2025-09-03 19:40:31.126429-05:00 jdbc[18]: exception
 org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
 delete from adicionales_permixproducto apx1_0 [50200-232]
+2025-09-03 21:49:54.862004-05:00 jdbc[27]: exception
+org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
+delete from adicionales_permixproducto apx1_0 [50200-232]
+2025-09-03 21:49:54.862528-05:00 jdbc[25]: exception
+org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
+delete from adicionales_permixproducto apx1_0 [50200-232]
+2025-09-03 21:49:54.867561-05:00 jdbc[26]: exception
+org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
+delete from adicionales_permixproducto apx1_0 [50200-232]
+2025-09-03 23:17:49.788136-05:00 jdbc[59]: exception
+org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
+delete from adicionales_permixproducto apx1_0 [50200-232]
+2025-09-04 08:04:33.428372-05:00 jdbc[251]: exception
+org.h2.jdbc.JdbcSQLTimeoutException: Timeout trying to lock table "ADICIONALES_PERMIXPRODUCTO"; SQL statement:
+delete from adicionales_permixproducto apx1_0 [50200-232]

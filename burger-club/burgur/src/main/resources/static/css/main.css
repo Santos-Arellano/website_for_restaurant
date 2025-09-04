@@ -12,8 +12,17 @@ burger-club/burgur/src/main/resources/static/css/main.css
 @import url('./components/header.css');
 @import url('./components/welcome.css');
 @import url('./components/hero.css');
+@import url('./components/hero-carousel.css');
+@import url('./components/testimonials.css');
 @import url('./components/about.css');
 @import url('./components/menu.css');
+@import url('./components/menu-filters-enhanced.css');
+
+@import url('./components/parallax-effects.css');
+@import url('./components/interactive-map.css');
+@import url('./components/newsletter.css');
+@import url('./components/loading-animations.css');
+@import url('./components/lazy-loading.css');
 @import url('./components/footer.css');
 @import url('./components/cart.css');
 @import url('./components/modals.css');

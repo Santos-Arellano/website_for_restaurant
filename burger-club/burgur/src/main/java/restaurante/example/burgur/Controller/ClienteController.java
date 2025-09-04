@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Service.ClienteService;
+import lombok.Data;
 
 @Controller
 @RequestMapping("/admin/clientes")
@@ -78,16 +79,16 @@ public class ClienteController {
     public ResponseEntity<Map<String, Object>> crearCliente(@RequestBody ClienteRequest request) {
         try {
             if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El nombre es requerido"));
+                return handleBadRequest("El nombre es requerido");
             }
             if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El apellido es requerido"));
+                return handleBadRequest("El apellido es requerido");
             }
             if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El correo es requerido"));
+                return handleBadRequest("El correo es requerido");
             }
             if (request.getContrasena() == null || request.getContrasena().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "La contraseña es requerida"));
+                return handleBadRequest("La contraseña es requerida");
             }
             
             Cliente cliente = new Cliente();
@@ -107,9 +108,9 @@ public class ClienteController {
                 "cliente", savedCliente
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+            return handleInternalError("Error interno del servidor");
         }
     }
     
@@ -122,13 +123,13 @@ public class ClienteController {
                 return ResponseEntity.notFound().build();
             }
             if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El nombre es requerido"));
+                return handleBadRequest("El nombre es requerido");
             }
             if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El apellido es requerido"));
+                return handleBadRequest("El apellido es requerido");
             }
             if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "El correo es requerido"));
+                return handleBadRequest("El correo es requerido");
             }
             
             Cliente cliente = clienteService.obtenerClientePorId(id);
@@ -151,10 +152,22 @@ public class ClienteController {
                 "cliente", updatedCliente
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+            return handleInternalError("Error interno del servidor");
         }
+    }
+    
+    // ==========================================
+    // MÉTODOS UTILITARIOS PARA MANEJO DE ERRORES
+    // ==========================================
+    
+    private ResponseEntity<Map<String, Object>> handleBadRequest(String message) {
+        return ResponseEntity.badRequest().body(Map.of("success", false, "message", message));
+    }
+    
+    private ResponseEntity<Map<String, Object>> handleInternalError(String message) {
+        return ResponseEntity.internalServerError().body(Map.of("success", false, "message", message));
     }
     
     @DeleteMapping("/api/{id}")
@@ -162,14 +175,17 @@ public class ClienteController {
     public ResponseEntity<Map<String, Object>> eliminarCliente(@PathVariable Long id) {
         try {
             if (!clienteService.existeClientePorId(id)) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false, 
+                    "message", "Cliente no encontrado"
+                ));
             }
             clienteService.eliminarCliente(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Cliente eliminado correctamente"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error al eliminar el cliente"));
+            return handleInternalError("Error al eliminar el cliente");
         }
     }
     
@@ -177,6 +193,7 @@ public class ClienteController {
     // CLASES DE APOYO
     // ==========================================
     
+    @Data
     public static class ClienteRequest {
         private String nombre;
         private String apellido;
@@ -184,23 +201,5 @@ public class ClienteController {
         private String contrasena;
         private String telefono;
         private String direccion;
-        
-        public String getNombre() { return nombre; }
-        public void setNombre(String nombre) { this.nombre = nombre; }
-        
-        public String getApellido() { return apellido; }
-        public void setApellido(String apellido) { this.apellido = apellido; }
-        
-        public String getCorreo() { return correo; }
-        public void setCorreo(String correo) { this.correo = correo; }
-        
-        public String getContrasena() { return contrasena; }
-        public void setContrasena(String contrasena) { this.contrasena = contrasena; }
-        
-        public String getTelefono() { return telefono; }
-        public void setTelefono(String telefono) { this.telefono = telefono; }
-        
-        public String getDireccion() { return direccion; }
-        public void setDireccion(String direccion) { this.direccion = direccion; }
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Service.ClienteService;
+import lombok.Data;
 
 @Controller
 @RequestMapping("/auth")
@@ -52,7 +53,7 @@ public class AuthController {
     // API DE AUTENTICACIÓN
     // ==========================================
     
-    @PostMapping("/api/login")
+    @PostMapping("/login")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request, HttpSession session) {
         try {
@@ -89,19 +90,13 @@ public class AuthController {
             ));
             
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", e.getMessage()
-            ));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false,
-                "message", "Error interno del servidor"
-            ));
+            return handleInternalError("Error interno del servidor");
         }
     }
     
-    @PostMapping("/api/register")
+    @PostMapping("/register")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest request, HttpSession session) {
         try {
@@ -170,19 +165,25 @@ public class AuthController {
             ));
             
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", e.getMessage()
-            ));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false,
-                "message", "Error interno del servidor"
-            ));
+            return handleInternalError("Error interno del servidor");
         }
     }
     
-    @GetMapping("/api/current")
+    // ==========================================
+    // MÉTODOS UTILITARIOS PARA MANEJO DE ERRORES
+    // ==========================================
+    
+    private ResponseEntity<Map<String, Object>> handleBadRequest(String message) {
+        return ResponseEntity.badRequest().body(Map.of("success", false, "message", message));
+    }
+    
+    private ResponseEntity<Map<String, Object>> handleInternalError(String message) {
+        return ResponseEntity.internalServerError().body(Map.of("success", false, "message", message));
+    }
+    
+    @GetMapping("/current")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
         Cliente cliente = (Cliente) session.getAttribute("cliente");
@@ -206,17 +207,13 @@ public class AuthController {
     // CLASES DE REQUEST
     // ==========================================
     
+    @Data
     public static class LoginRequest {
         private String email;
         private String password;
-        
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
     }
     
+    @Data
     public static class RegisterRequest {
         private String nombre;
         private String apellido;
@@ -225,26 +222,5 @@ public class AuthController {
         private String confirmPassword;
         private String telefono;
         private String direccion;
-        
-        public String getNombre() { return nombre; }
-        public void setNombre(String nombre) { this.nombre = nombre; }
-        
-        public String getApellido() { return apellido; }
-        public void setApellido(String apellido) { this.apellido = apellido; }
-        
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        
-        public String getConfirmPassword() { return confirmPassword; }
-        public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
-        
-        public String getTelefono() { return telefono; }
-        public void setTelefono(String telefono) { this.telefono = telefono; }
-        
-        public String getDireccion() { return direccion; }
-        public void setDireccion(String direccion) { this.direccion = direccion; }
     }
 }

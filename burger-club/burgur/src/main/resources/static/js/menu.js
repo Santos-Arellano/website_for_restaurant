@@ -42,63 +42,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initialize product detail modal
-    if (typeof ProductDetailModal !== 'undefined') {
-        window.productDetailModal = new ProductDetailModal();
-    }
-    
-    // Check if we should auto-open modal from promotion
-    const urlParams = new URLSearchParams(window.location.search);
-    const shouldOpenModal = urlParams.get('openModal') === 'true';
-    if (shouldOpenModal && window.productDetailModal) {
-        // Wait a bit for the page to fully load, then open modal for first product
-        setTimeout(() => {
-            const firstMenuCard = document.querySelector('.menu-card[data-id]');
-            if (firstMenuCard) {
-                const productId = firstMenuCard.getAttribute('data-id');
-                window.productDetailModal.showProductDetail(productId);
-                // Clean URL by removing openModal parameter
-                const newUrl = new URL(window.location);
-                newUrl.searchParams.delete('openModal');
-                window.history.replaceState({}, '', newUrl);
-            }
-        }, 500);
-    }
-    
-    // Enhance existing menu cards with click-to-view-details functionality
-    const menuCards = document.querySelectorAll('.menu-card');
-    menuCards.forEach((card, index) => {
-        // Add click handler for product details
-        card.addEventListener('click', (e) => {
-            // Don't trigger if clicking the add to cart button directly
-            if (e.target.closest('.btn-add-cart')) {
-                return;
+    // Initialize product detail modal de forma optimizada
+    const initializeProductModal = () => {
+        if (typeof ProductDetailModal !== 'undefined') {
+            window.productDetailModal = new ProductDetailModal();
+            
+            // Configurar las tarjetas de menú una sola vez
+            if (window.productDetailModal.setupMenuCards) {
+                window.productDetailModal.setupMenuCards();
             }
             
-            const productId = card.getAttribute('data-id');
-            if (window.productDetailModal && productId) {
-                window.productDetailModal.showProductDetail(productId);
+            // Check if we should auto-open modal from promotion
+            const urlParams = new URLSearchParams(window.location.search);
+            const shouldOpenModal = urlParams.get('openModal') === 'true';
+            if (shouldOpenModal) {
+                setTimeout(() => {
+                    const firstMenuCard = document.querySelector('.menu-card[data-id]');
+                    if (firstMenuCard) {
+                        const productId = firstMenuCard.getAttribute('data-id');
+                        window.productDetailModal.showProductDetail(productId);
+                        // Clean URL by removing openModal parameter
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.delete('openModal');
+                        window.history.replaceState({}, '', newUrl);
+                    }
+                }, 300);
             }
-        });
-        
-        // Enhance visual feedback
-        card.style.cursor = 'pointer';
-        
-        // Add hover effect to show overlay
-        card.addEventListener('mouseenter', () => {
-            const overlay = card.querySelector('.card-overlay');
-            if (overlay) {
-                overlay.style.opacity = '1';
-            }
-        });
-        
-        card.addEventListener('mouseleave', () => {
-            const overlay = card.querySelector('.card-overlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-            }
-        });
-    });
+        }
+    };
+    
+    // Inicializar cuando el DOM esté listo o inmediatamente si ya está listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeProductModal);
+    } else {
+        // DOM ya está listo, inicializar inmediatamente
+        setTimeout(initializeProductModal, 0);
+    }
+    
+    // Agregar efectos hover básicos sin duplicar event listeners
+    const menuCards = document.querySelectorAll('.menu-card');
+    menuCards.forEach((card) => {
+        // Solo agregar hover effects si no están ya configurados
+        if (!card.hasAttribute('data-hover-configured')) {
+            card.addEventListener('mouseenter', () => {
+                const overlay = card.querySelector('.card-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '1';
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                 const overlay = card.querySelector('.card-overlay');
+                 if (overlay) {
+                     overlay.style.opacity = '0';
+                 }
+             });
+             
+             // Marcar como configurado
+             card.setAttribute('data-hover-configured', 'true');
+         }
+     });
     
     // Quick notification function
     function showQuickNotification(message, type = 'success') {
@@ -287,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
             
-            const response = await fetch('/auth/api/current', {
+            const response = await fetch('/auth/current', {
                 signal: controller.signal,
                 cache: 'no-cache'
             });
@@ -323,11 +326,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const mobileNav = document.querySelector('.mobile-menu ul');
         
         if (nav && cliente) {
-            // Replace login/register links with user menu in desktop nav
-            const authLinks = nav.querySelectorAll('.auth-link');
-            authLinks.forEach(link => link.parentElement.remove());
+            // Update login link to show user profile instead of removing it
+            const loginLink = nav.querySelector('#loginLink');
+            if (loginLink) {
+                loginLink.textContent = 'Mi Perfil';
+                loginLink.href = '/user/profile'; // We'll create this later
+            }
             
-            // Add user menu
+            // Remove only the register link
+            const registerLink = nav.querySelector('#registerLink');
+            if (registerLink && registerLink.parentElement) {
+                registerLink.parentElement.remove();
+            }
+            
+            // Add user menu after the profile link
             const userMenuItem = document.createElement('li');
             userMenuItem.innerHTML = `
                 <div class="user-menu">
@@ -341,12 +353,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update mobile nav too
             if (mobileNav) {
-                const mobileAuthLinks = mobileNav.querySelectorAll('.mobile-auth-link');
-                mobileAuthLinks.forEach(link => link.parentElement.remove());
+                const mobileLoginLink = mobileNav.querySelector('.mobile-auth-link[href*="login"]');
+                if (mobileLoginLink) {
+                    mobileLoginLink.textContent = 'Mi Perfil';
+                    mobileLoginLink.href = '/user/profile';
+                }
+                
+                // Remove only the mobile register link
+                const mobileRegisterLink = mobileNav.querySelector('.mobile-auth-link[href*="register"]');
+                if (mobileRegisterLink && mobileRegisterLink.parentElement) {
+                    mobileRegisterLink.parentElement.remove();
+                }
                 
                 const mobileUserItem = document.createElement('li');
                 mobileUserItem.innerHTML = `<a href="/auth/logout" class="mobile-nav-link">Cerrar Sesión (${cliente.nombre})</a>`;
-                mobileNav.insertBefore(mobileUserItem, mobileNav.children[3]); // Before cart link
+                mobileNav.insertBefore(mobileUserItem, mobileNav.children[mobileNav.children.length - 2]); // Before location link
             }
             
             // Add user menu styles

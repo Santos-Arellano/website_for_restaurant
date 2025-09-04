@@ -282,6 +282,11 @@ export class AnimationManager {
             }
             
             await fn();
+            
+            // Add small delay to prevent main thread blocking
+            if (this.animationQueue.length > 0) {
+                await new Promise(resolve => setTimeout(resolve, 16)); // ~60fps
+            }
         }
         
         this.isRunning = false;

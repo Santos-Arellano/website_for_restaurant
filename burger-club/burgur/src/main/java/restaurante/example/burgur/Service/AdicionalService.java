@@ -21,6 +21,8 @@ public interface AdicionalService {
     Adicional findById(Long id);
     // Obtener todos los adicionales
     List<Adicional> findAll();
+    // Obtener solo adicionales activos
+    List<Adicional> findByActivoTrue();
     // Verificar si un adicional existe por su ID
     boolean existsById(Long id);
 }

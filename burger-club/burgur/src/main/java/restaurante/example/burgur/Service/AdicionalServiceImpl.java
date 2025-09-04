@@ -30,20 +30,7 @@ public class AdicionalServiceImpl implements AdicionalService {
             validateAdicional(adicional);
 
             // 2) Reglas de unicidad por nombre (case-insensitive)
-            if (adicional.getId() == null) {
-                // CREAR - verificar que no existe
-                if (adicionalRepository.existsByNombreIgnoreCase(adicional.getNombre())) {
-                    throw new IllegalArgumentException("Ya existe un adicional con el nombre: " + adicional.getNombre());
-                }
-            } else {
-                // ACTUALIZAR - verificar existencia y unicidad
-                if (!adicionalRepository.existsById(adicional.getId())) {
-                    throw new IllegalArgumentException("No existe adicional con ID: " + adicional.getId());
-                }
-                if (adicionalRepository.existsByNombreIgnoreCaseAndIdNot(adicional.getNombre(), adicional.getId())) {
-                    throw new IllegalArgumentException("Ya existe otro adicional con el nombre: " + adicional.getNombre());
-                }
-            }
+            validateUniqueness(adicional);
 
             // 3) Preparar para persistencia
             prepareForPersistence(adicional);
@@ -65,24 +52,8 @@ public class AdicionalServiceImpl implements AdicionalService {
     @Override
     public void delete(Long id) {
         try {
-            if (id == null) {
-                throw new IllegalArgumentException("El ID no puede ser nulo");
-            }
-            
-            if (!adicionalRepository.existsById(id)) {
-                throw new IllegalArgumentException("No existe el adicional con ID: " + id);
-            }
-            
-            // Verificar si el adicional está en uso
-            Adicional adicional = adicionalRepository.findById(id).orElse(null);
-            if (adicional != null && adicional.getProductos() != null && !adicional.getProductos().isEmpty()) {
-                // En lugar de impedir la eliminación, podríamos desactivarlo
-                adicional.setActivo(false);
-                adicionalRepository.save(adicional);
-                System.out.println("Adicional desactivado en lugar de eliminado debido a relaciones existentes");
-            } else {
-                adicionalRepository.deleteById(id);
-            }
+            validateDeleteRequest(id);
+            handleAdicionalDeletion(id);
             
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("No se puede eliminar el adicional porque está siendo usado por productos");
@@ -95,24 +66,22 @@ public class AdicionalServiceImpl implements AdicionalService {
 
     @Override
     public Adicional findById(Long id) {
-        try {
-            if (id == null) {
-                throw new IllegalArgumentException("El ID no puede ser nulo");
-            }
-            
-            return adicionalRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No existe el adicional con ID: " + id));
-                
-        } catch (Exception e) {
-            System.err.println("Error al buscar adicional por ID: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Error interno al buscar adicional: " + e.getMessage(), e);
+        if (id == null) {
+            throw new IllegalArgumentException("El ID no puede ser nulo");
         }
+        
+        return adicionalRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("No existe el adicional con ID: " + id));
     }
 
     @Override
     public List<Adicional> findAll() {
         return adicionalRepository.findAll();
+    }
+    
+    @Override
+    public List<Adicional> findByActivoTrue() {
+        return adicionalRepository.findByActivoTrue();
     }
 
     @Override
@@ -123,15 +92,67 @@ public class AdicionalServiceImpl implements AdicionalService {
     // ==========================================
     // MÉTODOS DE VALIDACIÓN Y PREPARACIÓN
     // ==========================================
-    
+
     private void validateAdicional(Adicional adicional) {
         if (adicional == null) {
             throw new IllegalArgumentException("El adicional no puede ser nulo");
         }
-
         validateNombreAdicional(adicional);
         validatePrecioAdicional(adicional);
         validateCategoriasAdicional(adicional);
+    }
+
+    private void validateUniqueness(Adicional adicional) {
+        if (adicional.getId() == null) {
+            // CREAR - verificar que no existe
+            validateCreateUniqueness(adicional);
+        } else {
+            // ACTUALIZAR - verificar existencia y unicidad
+            validateUpdateUniqueness(adicional);
+        }
+    }
+
+    private void validateCreateUniqueness(Adicional adicional) {
+        if (adicionalRepository.existsByNombreIgnoreCase(adicional.getNombre())) {
+            throw new IllegalArgumentException("Ya existe un adicional con el nombre: " + adicional.getNombre());
+        }
+    }
+
+    private void validateUpdateUniqueness(Adicional adicional) {
+        if (!adicionalRepository.existsById(adicional.getId())) {
+            throw new IllegalArgumentException("No existe adicional con ID: " + adicional.getId());
+        }
+        if (adicionalRepository.existsByNombreIgnoreCaseAndIdNot(adicional.getNombre(), adicional.getId())) {
+            throw new IllegalArgumentException("Ya existe otro adicional con el nombre: " + adicional.getNombre());
+        }
+    }
+
+    private void validateDeleteRequest(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El ID no puede ser nulo");
+        }
+        if (!adicionalRepository.existsById(id)) {
+            throw new IllegalArgumentException("No existe el adicional con ID: " + id);
+        }
+    }
+
+    private void handleAdicionalDeletion(Long id) {
+        Adicional adicional = adicionalRepository.findById(id).orElse(null);
+        if (hasActiveRelationships(adicional)) {
+            deactivateAdicional(adicional);
+        } else {
+            adicionalRepository.deleteById(id);
+        }
+    }
+
+    private boolean hasActiveRelationships(Adicional adicional) {
+        return adicional != null && adicional.getProductos() != null && !adicional.getProductos().isEmpty();
+    }
+
+    private void deactivateAdicional(Adicional adicional) {
+        adicional.setActivo(false);
+        adicionalRepository.save(adicional);
+        System.out.println("Adicional desactivado en lugar de eliminado debido a relaciones existentes");
     }
     
     private void validateNombreAdicional(Adicional adicional) {
@@ -220,53 +241,4 @@ public class AdicionalServiceImpl implements AdicionalService {
     // ==========================================
     // MÉTODOS ADICIONALES DE UTILIDAD
     // ==========================================
-    
-   
-    public List<Adicional> findByCategoria(String categoria) {
-        try {
-            if (categoria == null || categoria.trim().isEmpty()) {
-                return List.of();
-            }
-            
-            // Buscar adicionales que contengan la categoría especificada
-            return adicionalRepository.findAll().stream()
-                .filter(adicional -> adicional.getCategoria() != null && 
-                       adicional.getCategoria().contains(categoria.trim().toLowerCase()))
-                .toList();
-                
-        } catch (Exception e) {
-            System.err.println("Error al buscar adicionales por categoría: " + e.getMessage());
-            return List.of();
-        }
-    }
-
-
-    public List<Adicional> findActivosOnly() {
-        try {
-            return adicionalRepository.findByActivoTrue();
-        } catch (Exception e) {
-            System.err.println("Error al buscar adicionales activos: " + e.getMessage());
-            return List.of();
-        }
-    }
-
-
-    public long countActivos() {
-        try {
-            return adicionalRepository.countByActivoTrue();
-        } catch (Exception e) {
-            System.err.println("Error al contar adicionales activos: " + e.getMessage());
-            return 0;
-        }
-    }
-
-    public Adicional toggleActivo(Long id) {
-        try {
-            Adicional adicional = findById(id); // Esto ya maneja validaciones
-            adicional.setActivo(!adicional.isActivo());
-            return save(adicional);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al cambiar estado activo del adicional: " + e.getMessage(), e);
-        }
-    }
 }

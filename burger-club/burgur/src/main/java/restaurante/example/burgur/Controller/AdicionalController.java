@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Service.AdicionalService;
+import lombok.Data;
 
 @Controller
 @RequestMapping("/admin/adicionales")
@@ -27,16 +28,16 @@ public class AdicionalController {
     @GetMapping("")
     public String administrarAdicionales(Model model) {
         try {
-            List<Adicional> adicionales = adicionalService.findAll();
+            List<Adicional> todosLosAdicionales = adicionalService.findAll();
+            List<Adicional> adicionalesActivos = adicionalService.findByActivoTrue();
             
-            long totalAdicionales = adicionales.size();
-            long adicionalesActivos = adicionales.stream()
-                .filter(a -> a != null && a.isActivo())
-                .count();
+            long totalAdicionales = todosLosAdicionales.size();
+            long cantidadActivos = adicionalesActivos.size();
             
-            model.addAttribute("adicionales", adicionales);
+            // Mostrar solo los adicionales activos en la vista
+            model.addAttribute("adicionales", adicionalesActivos);
             model.addAttribute("totalAdicionales", totalAdicionales);
-            model.addAttribute("adicionalesActivos", adicionalesActivos);
+            model.addAttribute("adicionalesActivos", cantidadActivos);
             
             return "admin/admin-adicionales";
         } catch (Exception e) {
@@ -54,7 +55,8 @@ public class AdicionalController {
     @ResponseBody
     public ResponseEntity<List<Adicional>> obtenerTodosLosAdicionales() {
         try {
-            return ResponseEntity.ok(adicionalService.findAll());
+            // Devolver solo adicionales activos para el menú público
+            return ResponseEntity.ok(adicionalService.findByActivoTrue());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -101,9 +103,9 @@ public class AdicionalController {
                 "adicional", savedAdicional
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+            return handleInternalServerError();
         }
     }
     
@@ -139,9 +141,9 @@ public class AdicionalController {
                 "adicional", updatedAdicional
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+            return handleInternalServerError();
         }
     }
     
@@ -150,37 +152,45 @@ public class AdicionalController {
     public ResponseEntity<Map<String, Object>> eliminarAdicional(@PathVariable Long id) {
         try {
             if (!adicionalService.existsById(id)) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false, 
+                    "message", "Adicional no encontrado"
+                ));
             }
             adicionalService.delete(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Adicional eliminado correctamente"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+            return handleBadRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error al eliminar el adicional"));
+            return handleInternalServerError("Error al eliminar el adicional");
         }
+    }
+    
+    // ==========================================
+    // MÉTODOS HELPER PARA MANEJO DE ERRORES
+    // ==========================================
+    
+    private ResponseEntity<Map<String, Object>> handleBadRequest(String message) {
+        return ResponseEntity.badRequest().body(Map.of("success", false, "message", message));
+    }
+    
+    private ResponseEntity<Map<String, Object>> handleInternalServerError() {
+        return handleInternalServerError("Error interno del servidor");
+    }
+    
+    private ResponseEntity<Map<String, Object>> handleInternalServerError(String message) {
+        return ResponseEntity.internalServerError().body(Map.of("success", false, "message", message));
     }
     
     // ==========================================
     // CLASES DE APOYO
     // ==========================================
     
+    @Data
     public static class AdicionalRequest {
         private String nombre;
         private Double precio;
         private Boolean activo;
         private List<String> categoria;
-        
-        public String getNombre() { return nombre; }
-        public void setNombre(String nombre) { this.nombre = nombre; }
-        
-        public Double getPrecio() { return precio; }
-        public void setPrecio(Double precio) { this.precio = precio; }
-        
-        public Boolean getActivo() { return activo; }
-        public void setActivo(Boolean activo) { this.activo = activo; }
-        
-        public List<String> getCategoria() { return categoria; }
-        public void setCategoria(List<String> categoria) { this.categoria = categoria; }
     }
 }

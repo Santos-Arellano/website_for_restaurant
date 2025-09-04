@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Service.ProductoService;
+import lombok.Data;
 
 @Controller
 @RequestMapping("/menu")
@@ -32,30 +33,47 @@ public class ProductoController {
         productoService.rebuildAdicionalesDeTodosLosProductos();
         try {
             List<Producto> productos = productoService.findAll();
-            
-            long totalProductos = productos.size();
-            long productosNuevos = productos.stream()
-                .filter(p -> p != null && p.isNuevo())
-                .count();
-            long productosActivos = productos.stream()
-                .filter(p -> p != null && p.isActivo())
-                .count();
-            long stockBajo = productos.stream()
-                .filter(p -> p != null && p.isStockBajo())
-                .count();
-            
-            model.addAttribute("productos", productos);
-            model.addAttribute("totalProductos", totalProductos);
-            model.addAttribute("productosNuevos", productosNuevos);
-            model.addAttribute("productosActivos", productosActivos);
-            model.addAttribute("stockBajo", stockBajo);
-            
+            addProductStatisticsToModel(model, productos);
             return "admin/admin-products";
         } catch (Exception e) {
-            model.addAttribute("productos", List.of());
-            model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
+            handleAdminProductsError(model, e);
             return "admin/admin-products";
         }
+    }
+
+    private void addProductStatisticsToModel(Model model, List<Producto> productos) {
+        model.addAttribute("productos", productos);
+        model.addAttribute("totalProductos", calculateTotalProducts(productos));
+        model.addAttribute("productosNuevos", calculateNewProducts(productos));
+        model.addAttribute("productosActivos", calculateActiveProducts(productos));
+        model.addAttribute("stockBajo", calculateLowStockProducts(productos));
+    }
+
+    private long calculateTotalProducts(List<Producto> productos) {
+        return productos.size();
+    }
+
+    private long calculateNewProducts(List<Producto> productos) {
+        return productos.stream()
+            .filter(p -> p != null && p.isNuevo())
+            .count();
+    }
+
+    private long calculateActiveProducts(List<Producto> productos) {
+        return productos.stream()
+            .filter(p -> p != null && p.isActivo())
+            .count();
+    }
+
+    private long calculateLowStockProducts(List<Producto> productos) {
+        return productos.stream()
+            .filter(p -> p != null && p.isStockBajo())
+            .count();
+    }
+
+    private void handleAdminProductsError(Model model, Exception e) {
+        model.addAttribute("productos", List.of());
+        model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
     }
     
     
@@ -63,7 +81,7 @@ public class ProductoController {
     // API REST PARA PRODUCTOS
     // ==========================================
     
-    @GetMapping("/api/productos/{id}")
+    @GetMapping("/productos/{id}")
     // Retorna el producto junto con su lista de adicionales permitidos
     @ResponseBody
     public ResponseEntity<Map<String, Object>> obtenerProductoPorId(@PathVariable Long id) {
@@ -86,7 +104,7 @@ public class ProductoController {
         }
     }
     
-    @GetMapping("/api/productos")
+    @GetMapping("/productos")
     @ResponseBody
     public ResponseEntity<List<Producto>> obtenerTodosLosProductos() {
         try {
@@ -96,7 +114,7 @@ public class ProductoController {
         }
     }
     
-    @PostMapping("/api/productos")
+    @PostMapping("/productos")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> crearProducto(@RequestBody ProductoRequest request) {
         try {
@@ -139,7 +157,7 @@ public class ProductoController {
         }
     }
     
-    @PutMapping("/api/productos/{id}")
+    @PutMapping("/productos/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarProducto(
             @PathVariable Long id, @RequestBody ProductoRequest request) {
@@ -186,7 +204,7 @@ public class ProductoController {
         }
     }
     
-    @DeleteMapping("/api/productos/{id}")
+    @DeleteMapping("/productos/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> eliminarProducto(@PathVariable Long id) {
         try {
@@ -207,6 +225,7 @@ public class ProductoController {
     // CLASES DE APOYO
     // ==========================================
     
+    @Data
     public static class ProductoRequest {
         private String nombre;
         private String categoria;
@@ -218,36 +237,5 @@ public class ProductoController {
         private Boolean nuevo;
         private Boolean popular;
         private Boolean activo;
-        
-        // Getters y Setters
-        public String getNombre() { return nombre; }
-        public void setNombre(String nombre) { this.nombre = nombre; }
-        
-        public String getCategoria() { return categoria; }
-        public void setCategoria(String categoria) { this.categoria = categoria; }
-        
-        public Double getPrecio() { return precio; }
-        public void setPrecio(Double precio) { this.precio = precio; }
-        
-        public Integer getStock() { return stock; }
-        public void setStock(Integer stock) { this.stock = stock; }
-        
-        public String getDescripcion() { return descripcion; }
-        public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-        
-        public String getImgURL() { return imgURL; }
-        public void setImgURL(String imgURL) { this.imgURL = imgURL; }
-        
-        public List<String> getIngredientes() { return ingredientes; }
-        public void setIngredientes(List<String> ingredientes) { this.ingredientes = ingredientes; }
-        
-        public Boolean getNuevo() { return nuevo; }
-        public void setNuevo(Boolean nuevo) { this.nuevo = nuevo; }
-        
-        public Boolean getPopular() { return popular; }
-        public void setPopular(Boolean popular) { this.popular = popular; }
-        
-        public Boolean getActivo() { return activo; }
-        public void setActivo(Boolean activo) { this.activo = activo; }
     }
 }

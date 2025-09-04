@@ -85,7 +85,7 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public Integer updateAdicionalesDeTodosLosProductos() {
         List<Producto> productos = productoRepository.findAll();
-        List<Adicional> adicionales = adicionalRepository.findAll();
+        List<Adicional> adicionales = adicionalRepository.findByActivoTrue();
         
         Map<String, List<Adicional>> adsPorCat = buildAdicionalesPorCategoria(adicionales);
         List<AdicionalesPermiXProducto> nuevos = createNewProductAdicionalesLinks(productos, adsPorCat, false);
@@ -122,33 +122,61 @@ public class ProductoServiceImpl implements ProductoService {
         List<AdicionalesPermiXProducto> nuevos = new ArrayList<>();
         
         for (Producto p : productos) {
-            String catP = p.getCategoria();
-            if (catP == null || catP.isBlank()) continue;
-            String key = catP.trim().toLowerCase();
-            
-            List<Adicional> compatibles = adsPorCat.getOrDefault(key, List.of());
-            if (!isRebuild && compatibles.isEmpty()) continue;
-            
-            Set<Long> ya = null;
-            if (!isRebuild) {
-                // IDs ya vinculados para evitar duplicados (solo en update)
-                ya = p.getAdicionales().stream()
-                        .map(rel -> rel.getAdicional().getId())
-                        .collect(java.util.stream.Collectors.toSet());
-            }
-            
-            for (Adicional a : compatibles) {
-                if (a.getId() == null) continue;
-                if (!isRebuild && ya != null && ya.contains(a.getId())) continue;
-                
-                nuevos.add(nuevoLink(p, a));
-                if (!isRebuild && ya != null) {
-                    ya.add(a.getId());
-                }
-            }
+            processProductoForAdicionalesLinks(p, adsPorCat, isRebuild, nuevos);
         }
         
         return nuevos;
+    }
+
+    private void processProductoForAdicionalesLinks(
+            Producto producto, 
+            Map<String, List<Adicional>> adsPorCat, 
+            boolean isRebuild, 
+            List<AdicionalesPermiXProducto> nuevos) {
+        
+        String categoryKey = getCategoryKey(producto);
+        if (categoryKey == null) return;
+        
+        List<Adicional> compatibles = adsPorCat.getOrDefault(categoryKey, List.of());
+        if (!isRebuild && compatibles.isEmpty()) return;
+        
+        Set<Long> existingIds = getExistingAdicionalIds(producto, isRebuild);
+        
+        for (Adicional adicional : compatibles) {
+            if (shouldCreateLink(adicional, existingIds, isRebuild)) {
+                nuevos.add(nuevoLink(producto, adicional));
+                if (existingIds != null) {
+                    existingIds.add(adicional.getId());
+                }
+            }
+        }
+    }
+
+    private String getCategoryKey(Producto producto) {
+        String categoria = producto.getCategoria();
+        if (categoria == null || categoria.isBlank()) {
+            return null;
+        }
+        return categoria.trim().toLowerCase();
+    }
+
+    private Set<Long> getExistingAdicionalIds(Producto producto, boolean isRebuild) {
+        if (isRebuild) {
+            return null;
+        }
+        return producto.getAdicionales().stream()
+                .map(rel -> rel.getAdicional().getId())
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
+    private boolean shouldCreateLink(Adicional adicional, Set<Long> existingIds, boolean isRebuild) {
+        if (adicional.getId() == null) {
+            return false;
+        }
+        if (!isRebuild && existingIds != null && existingIds.contains(adicional.getId())) {
+            return false;
+        }
+        return true;
     }
 
     // Rebuild de los Adicionales Permitos para todos los productos
@@ -156,7 +184,7 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public Integer rebuildAdicionalesDeTodosLosProductos() {
         List<Producto> productos = productoRepository.findAll();
-        List<Adicional> adicionales = adicionalRepository.findAll();
+        List<Adicional> adicionales = adicionalRepository.findByActivoTrue();
         
         Map<String, List<Adicional>> adsPorCat = buildAdicionalesPorCategoria(adicionales);
         
@@ -181,26 +209,16 @@ public class ProductoServiceImpl implements ProductoService {
     
     @Override
     public List<Producto> findByNombre(String nombre) {
-        try {
-            if (nombre == null || nombre.trim().isEmpty()) return findAll();
-            return productoRepository.findByNombreContainingIgnoreCase(nombre.trim());
-        } catch (Exception e) {
-            System.err.println("Error al buscar productos por nombre: " + e.getMessage());
-            return List.of();
-        }
+        if (nombre == null || nombre.trim().isEmpty()) return findAll();
+        return productoRepository.findByNombreContainingIgnoreCase(nombre.trim());
     }
     
     @Override
     public List<Producto> findByCategoria(String categoria) {
-        try {
-            if (categoria == null || categoria.trim().isEmpty() || "todos".equalsIgnoreCase(categoria.trim())) {
-                return findAll();
-            }
-            return productoRepository.findByCategoriaIgnoreCase(categoria.trim());
-        } catch (Exception e) {
-            System.err.println("Error al buscar productos por categoría: " + e.getMessage());
-            return List.of();
+        if (categoria == null || categoria.trim().isEmpty() || "todos".equalsIgnoreCase(categoria.trim())) {
+            return findAll();
         }
+        return productoRepository.findByCategoriaIgnoreCase(categoria.trim());
     }
     
 

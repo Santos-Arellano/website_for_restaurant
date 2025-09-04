@@ -10,7 +10,7 @@ class ProductDetailModal {
     async showProductDetail(productId) {
         try {
             console.log('📦 Cargando detalles del producto:', productId);
-            const response = await fetch(`/menu/api/productos/${productId}`);
+            const response = await fetch(`/menu/productos/${productId}`);
             if (!response.ok) {
                 throw new Error('Error al cargar el producto');
             }
@@ -858,51 +858,40 @@ class ProductDetailModal {
 // Hacer ProductDetailModal disponible globalmente
 window.ProductDetailModal = ProductDetailModal;
 
-// Auto-inicializar cuando DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    window.productDetailModal = new ProductDetailModal();
-    
-    // Agregar click handlers a las tarjetas de menú existentes
+// Función para configurar las tarjetas de menú (llamada desde menu.js)
+ProductDetailModal.prototype.setupMenuCards = function() {
     const menuCards = document.querySelectorAll('.menu-card');
     console.log(`Encontradas ${menuCards.length} tarjetas de menú`);
     
     menuCards.forEach((card, index) => {
-        card.addEventListener('click', (e) => {
-            // No abrir modal si se hace clic en el botón de agregar al carrito
-            if (e.target.closest('.btn-add-cart')) {
-                console.log('Click en botón add-cart, no abrir modal');
-                return;
-            }
+        // Solo agregar el event listener si no existe ya
+        if (!card.hasAttribute('data-modal-configured')) {
+            card.addEventListener('click', (e) => {
+                // No abrir modal si se hace clic en el botón de agregar al carrito
+                if (e.target.closest('.btn-add-cart')) {
+                    return;
+                }
+                
+                const productId = card.getAttribute('data-id') || 
+                                card.getAttribute('data-product-id');
+                
+                if (productId && window.productDetailModal) {
+                    window.productDetailModal.showProductDetail(productId);
+                }
+            });
             
-            const productId = card.getAttribute('data-id') || 
-                            card.getAttribute('data-product-id');
-            
-            if (productId) {
-                console.log('Abriendo detalles del producto:', productId);
-                window.productDetailModal.showProductDetail(productId);
-            } else {
-                console.warn('No se encontró ID del producto en la tarjeta');
-            }
-        });
-        
-        // Mejorar el cursor y título
-        card.style.cursor = 'pointer';
-        card.title = 'Click para ver detalles y adicionales disponibles';
-        
-        // Agregar indicador visual de que es clickeable
-        if (!card.querySelector('.card-overlay')) {
-            const overlay = document.createElement('div');
-            overlay.className = 'card-overlay';
-            overlay.innerHTML = `
-                <div class="overlay-content">
-                    <p class="overlay-text">Ver detalles y adicionales</p>
-                    <i class="fas fa-eye overlay-icon"></i>
-                </div>
-            `;
-            card.querySelector('.menu-card-image').appendChild(overlay);
+            // Marcar como configurado para evitar duplicados
+            card.setAttribute('data-modal-configured', 'true');
+            card.style.cursor = 'pointer';
+            card.title = 'Click para ver detalles y adicionales disponibles';
         }
     });
     
     console.log(`ProductDetailModal configurado para ${menuCards.length} productos`);
-});
+};
+
+// Solo crear la instancia, no configurar las tarjetas aquí
+if (typeof window !== 'undefined') {
+    window.ProductDetailModal = ProductDetailModal;
+}
 

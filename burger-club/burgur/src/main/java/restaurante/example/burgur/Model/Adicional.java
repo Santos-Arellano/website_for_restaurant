@@ -18,11 +18,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "adicional")
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Adicional {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,16 +54,6 @@ public class Adicional {
     @JsonIgnore
     private List<AdicionalesPermiXProducto> productos = new ArrayList<>();
 
-    // Constructor completo
-    public Adicional(String nombre, double precio, boolean activo, List<String> categoria) {
-        this.categoria = new ArrayList<>();
-        this.activo = true;
-        this.nombre = nombre;
-        this.precio = precio;
-        this.activo = activo;
-        this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();
-    }
-
     // Constructor con validaciones
     public Adicional(String nombre, double precio, List<String> categoria) {
         this.categoria = new ArrayList<>();
@@ -69,39 +63,15 @@ public class Adicional {
         this.categoria = categoria != null ? new ArrayList<>(categoria) : new ArrayList<>();
     }
 
-    // Getters y Setters con validaciones
-    public Long getId() { 
-        return id; 
-    }
-    
-    public void setId(Long id) { 
-        this.id = id; 
-    }
-
-    public String getNombre() { 
-        return nombre; 
-    }
-    
+    // Métodos personalizados para validaciones (mantener lógica de negocio)
     public void setNombre(String nombre) { 
         this.nombre = nombre != null ? nombre.trim() : null; 
-    }
-
-    public double getPrecio() { 
-        return precio; 
     }
     
     public void setPrecio(double precio) { 
         this.precio = Math.max(0, precio); // Asegurar precio no negativo
     }
-
-    public boolean isActivo() { 
-        return activo; 
-    }
     
-    public void setActivo(boolean activo) { 
-        this.activo = activo; 
-    }
-
     public List<String> getCategoria() { 
         if (categoria == null) {
             categoria = new ArrayList<>();
@@ -123,46 +93,21 @@ public class Adicional {
     }
 
     @JsonIgnore
-    public List<AdicionalesPermiXProducto> getProductos() { 
+    public List<AdicionalesPermiXProducto> getProductos() {
         if (productos == null) {
             productos = new ArrayList<>();
         }
-        return productos; 
+        return productos;
     }
     
-    public void setProductos(List<AdicionalesPermiXProducto> productos) { 
-        this.productos = productos != null ? productos : new ArrayList<>(); 
-    }
-
-    // Métodos de utilidad
-    @JsonIgnore
-    public boolean hasCategoria(String categoria) {
-        if (categoria == null || categoria.trim().isEmpty()) {
-            return false;
-        }
-        return this.getCategoria().contains(categoria.trim().toLowerCase());
-    }
-
-    public void addCategoria(String categoria) {
-        if (categoria != null && !categoria.trim().isEmpty()) {
-            String normalizedCat = categoria.trim().toLowerCase();
-            if (!this.getCategoria().contains(normalizedCat)) {
-                this.getCategoria().add(normalizedCat);
-            }
-        }
-    }
-
-    public void removeCategoria(String categoria) {
-        if (categoria != null && !categoria.trim().isEmpty()) {
-            this.getCategoria().remove(categoria.trim().toLowerCase());
-        }
+    public void setProductos(List<AdicionalesPermiXProducto> productos) {
+        this.productos = productos != null ? productos : new ArrayList<>();
     }
 
     @JsonIgnore
     public boolean isValidForPersistence() {
         return nombre != null && !nombre.trim().isEmpty() && 
-               precio > 0 && 
-               categoria != null && !categoria.isEmpty();
+               precio >= 0;
     }
 
     // Método toString para debugging

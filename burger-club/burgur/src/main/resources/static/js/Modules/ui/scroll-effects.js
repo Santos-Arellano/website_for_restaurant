@@ -86,7 +86,7 @@ export class ScrollEffects {
                     element.style.transform = `translateY(${rate * direction}px)`;
                 }
             });
-        }, 10));
+        }, 10), { passive: true });
     }
     
     // ========== REVEAL ON SCROLL ==========

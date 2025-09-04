@@ -418,27 +418,14 @@ class UniversalAdminManager {
     }
     
     getItemName(itemId) {
-        const selectors = [
-            `[data-${this.currentSection.slice(0, -1)}-id="${itemId}"]`,
-            `[data-product-id="${itemId}"]`,
-            `[data-adicional-id="${itemId}"]`,
-            `[data-cliente-id="${itemId}"]`
-        ];
-        
-        let row = null;
-        for (const selector of selectors) {
-            row = document.querySelector(selector);
-            if (row) break;
-        }
+        // Use more specific selector to avoid multiple DOM queries
+        const row = document.querySelector(`[data-${this.currentSection.slice(0, -1)}-id="${itemId}"], [data-product-id="${itemId}"], [data-adicional-id="${itemId}"], [data-cliente-id="${itemId}"]`);
         
         if (row) {
             // Intentar obtener el nombre del elemento
-            const nameSelectors = ['.product-name', '.adicional-name', '.cliente-name', 'h3', '.name'];
-            for (const nameSelector of nameSelectors) {
-                const nameElement = row.querySelector(nameSelector);
-                if (nameElement) {
-                    return nameElement.textContent.trim();
-                }
+            const nameElement = row.querySelector('.product-name, .adicional-name, .cliente-name, h3, .name');
+            if (nameElement) {
+                return nameElement.textContent.trim();
             }
             
             // Si no encuentra nombre específico, usar el primer texto significativo
@@ -453,7 +440,7 @@ class UniversalAdminManager {
     
     getApiUrl(itemId = null) {
         const baseUrls = {
-            productos: '/menu/api/productos',
+            productos: '/menu/productos',
             adicionales: '/admin/adicionales/api',
             clientes: '/admin/clientes/api'
         };
@@ -464,18 +451,8 @@ class UniversalAdminManager {
     
     async animateRowDeletion(itemId) {
         return new Promise((resolve) => {
-            const selectors = [
-                `[data-${this.currentSection.slice(0, -1)}-id="${itemId}"]`,
-                `[data-product-id="${itemId}"]`,
-                `[data-adicional-id="${itemId}"]`,
-                `[data-cliente-id="${itemId}"]`
-            ];
-            
-            let row = null;
-            for (const selector of selectors) {
-                row = document.querySelector(selector);
-                if (row) break;
-            }
+            // Use more specific selector to avoid multiple DOM queries
+            const row = document.querySelector(`[data-${this.currentSection.slice(0, -1)}-id="${itemId}"], [data-product-id="${itemId}"], [data-adicional-id="${itemId}"], [data-cliente-id="${itemId}"]`);
             
             if (row) {
                 // Animación de eliminación mejorada

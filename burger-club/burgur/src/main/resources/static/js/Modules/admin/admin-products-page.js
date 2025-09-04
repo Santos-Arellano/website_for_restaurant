@@ -25,7 +25,7 @@ async function createProductDetailsModal(productId) {
     
     try {
         // Cargar datos del producto
-        const response = await fetch(`/menu/api/productos/${productId}`);
+        const response = await fetch(`/menu/productos/${productId}`);
         if (!response.ok) {
             throw new Error('Error al cargar producto');
         }

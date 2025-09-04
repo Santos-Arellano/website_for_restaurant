@@ -44,7 +44,7 @@ class AdminModalManager {
         if (isEdit && productData && typeof productData === 'number') {
             this.showLoading(true, 'Cargando datos del producto...');
             try {
-                const response = await fetch(`/menu/api/productos/${productData}`);
+                const response = await fetch(`/menu/productos/${productData}`);
                 if (response.ok) {
                     const data = await response.json();
                     productData = data.producto || data;
@@ -714,7 +714,7 @@ class AdminModalManager {
     
     getApiUrl(isEdit, itemId) {
         const baseUrls = {
-            productos: '/menu/api/productos',
+            productos: '/menu/productos',
             clientes: '/admin/clientes/api',
             adicionales: '/admin/adicionales/api'
         };

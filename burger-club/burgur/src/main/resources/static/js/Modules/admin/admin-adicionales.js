@@ -35,7 +35,6 @@ function editAdicional(id) {
  * @param {number} id - ID del adicional a eliminar
  */
 function deleteAdicional(id) {
-    console.log('deleteAdicional llamado con ID:', id);
     if (window.universalAdmin) {
         window.universalAdmin.deleteItem(id);
     } else {

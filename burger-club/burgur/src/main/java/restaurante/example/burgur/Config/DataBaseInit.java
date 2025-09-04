@@ -70,26 +70,26 @@ public class DataBaseInit implements CommandLineRunner {
         System.out.println("🍯 Creando adicionales...");
         
         List<Adicional> adicionales = Arrays.asList(
-            new Adicional("Queso Extra", 3000, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Bacon", 4000, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Aguacate", 3500, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Papas Fritas", 5000, true, Arrays.asList("acompañamiento")),
-            new Adicional("Anillos de Cebolla", 4500, true, Arrays.asList("acompañamiento")),
-            new Adicional("Salsa BBQ", 1500, true, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
-            new Adicional("Salsa Ranch", 1500, true, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
-            new Adicional("Hielo Extra", 500, true, Arrays.asList("bebida")),
-            new Adicional("Crema Batida", 2000, true, Arrays.asList("postre", "bebida")),
-            new Adicional("Carne Extra", 5000, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Pepinillos", 1000, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Tomate Extra", 800, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Lechuga Extra", 700, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Salsa Picante", 1200, true, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
-            new Adicional("Mayonesa Especial", 1000, true, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
-            new Adicional("Queso Cheddar", 2500, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Champiñones", 3000, true, Arrays.asList("hamburguesa", "perro caliente")),
-            new Adicional("Yuca Frita", 4800, true, Arrays.asList("acompañamiento")),
-            new Adicional("Jarabe de Chocolate", 1800, true, Arrays.asList("postre", "bebida")),
-            new Adicional("Limón", 600, true, Arrays.asList("bebida"))
+            new Adicional("Queso Extra", 3000.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Bacon", 4000.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Aguacate", 3500.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Papas Fritas", 5000.0, Arrays.asList("acompañamiento")),
+            new Adicional("Anillos de Cebolla", 4500.0, Arrays.asList("acompañamiento")),
+            new Adicional("Salsa BBQ", 1500.0, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
+            new Adicional("Salsa Ranch", 1500.0, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
+            new Adicional("Hielo Extra", 500.0, Arrays.asList("bebida")),
+            new Adicional("Crema Batida", 2000.0, Arrays.asList("postre", "bebida")),
+            new Adicional("Carne Extra", 5000.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Pepinillos", 1000.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Tomate Extra", 800.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Lechuga Extra", 700.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Salsa Picante", 1200.0, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
+            new Adicional("Mayonesa Especial", 1000.0, Arrays.asList("hamburguesa", "perro caliente", "acompañamiento")),
+            new Adicional("Queso Cheddar", 2500.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Champiñones", 3000.0, Arrays.asList("hamburguesa", "perro caliente")),
+            new Adicional("Yuca Frita", 4800.0, Arrays.asList("acompañamiento")),
+            new Adicional("Jarabe de Chocolate", 1800.0, Arrays.asList("postre", "bebida")),
+            new Adicional("Limón", 600.0, Arrays.asList("bebida"))
         );
 
         int created = 0;

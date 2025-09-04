@@ -346,14 +346,13 @@
         </div>
     </div>
 
-    <!-- JavaScript Files -->
+    <!-- JavaScript Files - Optimized loading order -->
     <script type="module" th:src="@{/js/app.js}" defer></script>
     
-    <!-- Product Detail Modal Script -->
-    <script th:src="@{/js/modules/menu/product-detail.js}" defer></script>
-    
-    <!-- Menu Page Script -->
+    <!-- Menu-specific scripts loaded directly -->
+    <script th:src="@{/js/Modules/menu/product-detail.js}" defer></script>
     <script th:src="@{/js/menu.js}" defer></script>
+    <script th:src="@{/js/menu-filters-enhanced.js}" defer></script>
 
 </body>
 </html>
