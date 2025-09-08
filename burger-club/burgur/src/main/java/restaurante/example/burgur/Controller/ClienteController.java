@@ -51,7 +51,7 @@ public class ClienteController {
     // API REST
     // ==========================================
     
-    @GetMapping("/api")
+    @GetMapping("/list")
     @ResponseBody
     public ResponseEntity<List<Cliente>> obtenerTodosLosClientes() {
         try {
@@ -61,7 +61,7 @@ public class ClienteController {
         }
     }
 
-    @GetMapping("/api/{id}")
+    @GetMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Cliente> obtenerClientePorId(@PathVariable Long id) {
         try {
@@ -74,7 +74,7 @@ public class ClienteController {
         }
     }
     
-    @PostMapping("/api")
+    @PostMapping("")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> crearCliente(@RequestBody ClienteRequest request) {
         try {
@@ -114,7 +114,7 @@ public class ClienteController {
         }
     }
     
-    @PutMapping("/api/{id}")
+    @PutMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarCliente(
             @PathVariable Long id, @RequestBody ClienteRequest request) {
@@ -170,7 +170,7 @@ public class ClienteController {
         return ResponseEntity.internalServerError().body(Map.of("success", false, "message", message));
     }
     
-    @DeleteMapping("/api/{id}")
+    @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> eliminarCliente(@PathVariable Long id) {
         try {

@@ -64,7 +64,7 @@ public class AdminController {
     // API PARA ACTUALIZAR ADICIONALES
     // ==========================================
     
-    @PostMapping("/api/rebuild-adicionales")
+    @PostMapping("/rebuild-adicionales")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> rebuildAdicionales() {
         try {
@@ -82,7 +82,7 @@ public class AdminController {
         }
     }
     
-    @PostMapping("/api/update-adicionales")
+    @PostMapping("/update-adicionales")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateAdicionales() {
         try {

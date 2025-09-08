@@ -204,7 +204,7 @@ class AdminModalManager {
         if (isEdit && clienteData && typeof clienteData === 'number') {
             this.showLoading(true, 'Cargando datos del cliente...');
             try {
-                const response = await fetch(`/admin/clientes/api/${clienteData}`);
+                const response = await fetch(`/admin/clientes/${clienteData}`);
                 if (response.ok) {
                     const data = await response.json();
                     clienteData = data.cliente || data;
@@ -310,7 +310,7 @@ class AdminModalManager {
         if (isEdit && adicionalData && typeof adicionalData === 'number') {
             this.showLoading(true, 'Cargando datos del adicional...');
             try {
-                const response = await fetch(`/admin/adicionales/api/${adicionalData}`);
+                const response = await fetch(`/admin/adicionales/${adicionalData}`);
                 if (response.ok) {
                     const data = await response.json();
                     adicionalData = data.adicional || data;
@@ -715,8 +715,8 @@ class AdminModalManager {
     getApiUrl(isEdit, itemId) {
         const baseUrls = {
             productos: '/menu/productos',
-            clientes: '/admin/clientes/api',
-            adicionales: '/admin/adicionales/api'
+            clientes: '/admin/clientes',
+            adicionales: '/admin/adicionales'
         };
         
         const baseUrl = baseUrls[this.currentSection];

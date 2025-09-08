@@ -124,7 +124,7 @@
                     
                     <div class="form-group">
                         <label for="newPassword">Nueva Contraseña <span class="required">*</span></label>
-                        <input type="password" id="newPassword" name="newPassword" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="64">
+                        <input type="password" id="newPassword" name="newPassword" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="64" autocomplete="new-password">
                         <div class="password-strength" id="passwordStrength">
                             <div class="strength-bar">
                                 <div class="strength-fill"></div>
@@ -136,7 +136,7 @@
                     
                     <div class="form-group">
                         <label for="confirmNewPassword">Confirmar Nueva Contraseña <span class="required">*</span></label>
-                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repite tu nueva contraseña">
+                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repite tu nueva contraseña" autocomplete="new-password">
                         <div class="error-message" id="confirmNewPasswordError"></div>
                     </div>
                     
@@ -159,13 +159,13 @@
                     <form class="profile-form" id="deleteForm">
                         <div class="form-group">
                             <label for="deletePassword">Confirma tu contraseña para eliminar la cuenta <span class="required">*</span></label>
-                            <input type="password" id="deletePassword" name="deletePassword" placeholder="Tu contraseña actual" required>
+                            <input type="password" id="deletePassword" name="deletePassword" placeholder="Tu contraseña actual" required autocomplete="current-password">
                             <div class="error-message" id="deletePasswordError"></div>
                         </div>
                         
                         <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="confirmDelete" required>
+                            <label class="checkbox-label" for="confirmDelete">
+                                <input type="checkbox" id="confirmDelete" name="confirmDelete" required>
                                 <span class="checkmark"></span>
                                 Entiendo que esta acción eliminará permanentemente mi cuenta
                             </label>

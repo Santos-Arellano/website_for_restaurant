@@ -441,12 +441,17 @@ class UniversalAdminManager {
     getApiUrl(itemId = null) {
         const baseUrls = {
             productos: '/menu/productos',
-            adicionales: '/admin/adicionales/api',
-            clientes: '/admin/clientes/api'
+            adicionales: '/admin/adicionales',
+            clientes: '/admin/clientes'
         };
         
         const baseUrl = baseUrls[this.currentSection];
-        return itemId ? `${baseUrl}/${itemId}` : baseUrl;
+        if (itemId) {
+            return `${baseUrl}/${itemId}`;
+        } else {
+            // Para adicionales y clientes, usar /list para obtener todos los elementos
+            return (this.currentSection === 'adicionales' || this.currentSection === 'clientes') ? `${baseUrl}/list` : baseUrl;
+        }
     }
     
     async animateRowDeletion(itemId) {

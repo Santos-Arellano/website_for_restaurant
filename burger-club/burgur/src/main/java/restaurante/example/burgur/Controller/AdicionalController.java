@@ -51,7 +51,7 @@ public class AdicionalController {
     // API REST
     // ==========================================
     
-    @GetMapping("/api")
+    @GetMapping("/list")
     @ResponseBody
     public ResponseEntity<List<Adicional>> obtenerTodosLosAdicionales() {
         try {
@@ -62,7 +62,7 @@ public class AdicionalController {
         }
     }
 
-    @GetMapping("/api/{id}")
+    @GetMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Adicional> obtenerAdicionalPorId(@PathVariable Long id) {
         try {
@@ -75,7 +75,7 @@ public class AdicionalController {
         }
     }
     
-    @PostMapping("/api")
+    @PostMapping("")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> crearAdicional(@RequestBody AdicionalRequest request) {
         try {
@@ -109,7 +109,7 @@ public class AdicionalController {
         }
     }
     
-    @PutMapping("/api/{id}")
+    @PutMapping("/{id}")
     @ResponseBody
     // Retorna el adicional actualizado con sus categorías
     public ResponseEntity<Map<String, Object>> actualizarAdicional(
@@ -147,7 +147,7 @@ public class AdicionalController {
         }
     }
     
-    @DeleteMapping("/api/{id}")
+    @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> eliminarAdicional(@PathVariable Long id) {
         try {
