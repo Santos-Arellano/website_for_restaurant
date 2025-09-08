@@ -19,7 +19,7 @@
 
 ## 📋 Descripción del Proyecto
 
-**Burger Club** es un sistema completo de gestión para restaurantes desarrollado con **Spring Boot**. Ofrece una solución integral que permite la administración eficiente de productos, clientes, adicionales y pedidos, proporcionando tanto una interfaz intuitiva para clientes como un panel administrativo robusto y completo.
+**Burger Club** es un sistema completo de gestión para restaurantes desarrollado con **Spring Boot**. Ofrece una solución integral que permite la administración eficiente de productos, clientes y adicionales, proporcionando tanto una interfaz intuitiva para clientes como un panel administrativo robusto y completo con arquitectura MVC integrada.
 
 ### 🎯 Características Principales
 
@@ -29,7 +29,7 @@
 - 📊 **Panel Administrativo Moderno**: Dashboard interactivo con estadísticas en tiempo real
 - 🔍 **Menú Dinámico**: Filtrado inteligente por categorías y búsqueda avanzada en tiempo real
 - 🗄️ **Base de Datos Robusta**: Inicialización automática con datos de prueba y persistencia H2
-- 🌐 **API REST Completa**: Endpoints RESTful para todas las operaciones CRUD
+- 🌐 **Arquitectura MVC Integrada**: Controladores unificados que manejan tanto vistas como operaciones de datos
 - 📱 **Diseño Responsive**: Interfaz completamente adaptable a móviles, tablets y desktop
 - ⚡ **Alto Rendimiento**: Optimizado para respuestas rápidas y experiencia fluida
 - 🔒 **Seguridad Integrada**: Validaciones robustas y manejo seguro de datos
@@ -53,9 +53,10 @@
 ├── 🎯 Frontend (Thymeleaf + Bootstrap)
 │   ├── Menú público
 │   ├── Sistema de autenticación
-│   └── Panel administrativo
-├── ⚙️ Backend (Spring Boot)
-│   ├── Controllers (REST + MVC)
+│   ├── Panel administrativo
+│   └── Perfil de usuario
+├── ⚙️ Backend (Spring Boot MVC)
+│   ├── Controllers (MVC integrado)
 │   ├── Services (Lógica de negocio)
 │   ├── Repositories (Acceso a datos)
 │   └── Models (Entidades JPA)
@@ -138,7 +139,8 @@ src/main/java/restaurante/example/burgur/
 │   ├── AuthController.java           # Autenticación
 │   ├── ClienteController.java        # Gestión de clientes
 │   ├── MenuController.java           # Menú público
-│   └── ProductoController.java       # Gestión de productos
+│   ├── ProductoController.java       # Gestión de productos
+│   └── UserController.java           # Perfil de usuario
 ├── 🔧 Service/
 │   ├── AdicionalService.java         # Interface adicionales
 │   ├── AdicionalServiceImpl.java     # Implementación adicionales
@@ -246,40 +248,43 @@ spring.jpa.hibernate.ddl-auto=update
    - Ver lista completa de clientes
    - Editar información de clientes
 
-## 🔌 API REST Endpoints
+## 🌐 Rutas y Endpoints
 
-### Productos
+### Rutas Públicas
 ```http
-GET    /menu/api/productos           # Listar todos los productos
-GET    /menu/api/productos/{id}      # Obtener producto por ID
-POST   /menu/api/productos           # Crear nuevo producto
-PUT    /menu/api/productos/{id}      # Actualizar producto
-DELETE /menu/api/productos/{id}      # Eliminar producto
+GET    /                             # Página principal
+GET    /menu                         # Menú de productos
+GET    /auth/login                   # Página de login
+GET    /auth/register                # Página de registro
+POST   /auth/login                   # Procesar login
+POST   /auth/register                # Procesar registro
 ```
 
-### Clientes
+### Panel Administrativo
 ```http
-GET    /admin/clientes/api           # Listar todos los clientes
-GET    /admin/clientes/api/{id}      # Obtener cliente por ID
-POST   /admin/clientes/api           # Crear nuevo cliente
-PUT    /admin/clientes/api/{id}      # Actualizar cliente
-DELETE /admin/clientes/api/{id}      # Eliminar cliente
+GET    /admin                        # Dashboard administrativo
+GET    /admin/productos              # Gestión de productos
+GET    /admin/clientes               # Gestión de clientes
+GET    /admin/adicionales            # Gestión de adicionales
+POST   /admin/productos              # Crear producto
+PUT    /admin/productos/{id}         # Actualizar producto
+DELETE /admin/productos/{id}         # Eliminar producto
+GET    /admin/clientes/{id}          # Obtener cliente
+POST   /admin/clientes               # Crear cliente
+PUT    /admin/clientes/{id}          # Actualizar cliente
+DELETE /admin/clientes/{id}          # Eliminar cliente
+GET    /admin/adicionales/list       # Listar adicionales
+POST   /admin/adicionales            # Crear adicional
+PUT    /admin/adicionales/{id}       # Actualizar adicional
+DELETE /admin/adicionales/{id}       # Eliminar adicional
 ```
 
-### Adicionales
+### Perfil de Usuario
 ```http
-GET    /admin/adicionales/api        # Listar todos los adicionales
-GET    /admin/adicionales/api/{id}   # Obtener adicional por ID
-POST   /admin/adicionales/api        # Crear nuevo adicional
-PUT    /admin/adicionales/api/{id}   # Actualizar adicional
-DELETE /admin/adicionales/api/{id}   # Eliminar adicional
-```
-
-### Autenticación
-```http
-POST   /auth/api/login               # Iniciar sesión
-POST   /auth/api/register            # Registrar nuevo usuario
-GET    /auth/api/current             # Usuario actual
+GET    /profile                      # Página de perfil
+POST   /profile/update               # Actualizar perfil
+POST   /profile/change-password      # Cambiar contraseña
+POST   /profile/delete               # Eliminar cuenta
 ```
 
 ## 🗄️ Modelo de Datos
@@ -372,17 +377,24 @@ GET    /auth/api/current             # Usuario actual
 
 La aplicación incluye datos de prueba que se cargan automáticamente:
 
-- **40+ Productos** distribuidos en 5 categorías
+- **40 Productos** distribuidos en 5 categorías
 - **20 Adicionales** con categorización inteligente
 - **10 Clientes** de prueba
-- **Relaciones automáticas** entre productos y adicionales
+- **320 Relaciones** automáticas entre productos y adicionales
 
 ### Categorías de Productos
-1. 🍔 **Hamburguesas** (15 variedades)
-2. 🌭 **Perros Calientes** (5 variedades)
-3. 🍟 **Acompañamientos** (10 opciones)
-4. 🥤 **Bebidas** (8 opciones)
-5. 🍰 **Postres** (6 opciones)
+1. 🍔 **Hamburguesas** - Variedad de hamburguesas gourmet
+2. 🌭 **Perros Calientes** - Hot dogs especiales
+3. 🍟 **Acompañamientos** - Papas, aros de cebolla, etc.
+4. 🥤 **Bebidas** - Refrescos, jugos y bebidas especiales
+5. 🍰 **Postres** - Dulces y postres caseros
+
+### Inicialización Automática
+Al iniciar la aplicación, verás en la consola:
+```
+Database initialization completed successfully!
+Statistics: 40 productos, 10 clientes, 20 adicionales, 320 relaciones producto-adicional
+```
 
 ## 🧪 Testing y Desarrollo
 
@@ -447,7 +459,7 @@ export DB_PASSWORD=
     <tr>
       <td align="center" width="25%">
         <h3>🚀 Alto Rendimiento</h3>
-        <p>Optimizado con Spring Boot y H2 Database para respuestas rápidas</p>
+        <p>Arquitectura MVC optimizada con Spring Boot y H2 Database para respuestas rápidas</p>
       </td>
       <td align="center" width="25%">
         <h3>📱 Responsive Design</h3>
@@ -455,11 +467,11 @@ export DB_PASSWORD=
       </td>
       <td align="center" width="25%">
         <h3>🔒 Seguro y Confiable</h3>
-        <p>Validaciones robustas y manejo seguro de datos de usuarios</p>
+        <p>Validaciones HTML5 y backend robustas con manejo seguro de datos</p>
       </td>
       <td align="center" width="25%">
         <h3>⚡ Fácil de Usar</h3>
-        <p>Interfaz intuitiva tanto para clientes como administradores</p>
+        <p>Interfaz intuitiva con gestión de perfiles y panel administrativo completo</p>
       </td>
     </tr>
   </table>
@@ -494,9 +506,19 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 📈 Roadmap y Futuras Mejoras
 
+### ✅ Completado
+- [x] 🏠 **Sistema de Gestión Completo**: CRUD para productos, clientes y adicionales
+- [x] 👤 **Gestión de Perfiles**: Actualización de datos, cambio de contraseña y eliminación de cuenta
+- [x] 🔐 **Autenticación Segura**: Login y registro con validaciones robustas
+- [x] 📊 **Panel Administrativo**: Dashboard con estadísticas y gestión completa
+- [x] 🎨 **Interfaz Moderna**: Diseño responsive con Bootstrap 5
+
+### 🚧 En Desarrollo
 - [ ] 🛒 **Sistema de Carrito de Compras**: Implementación completa del carrito
 - [ ] 💳 **Integración de Pagos**: Pasarelas de pago (PayPal, Stripe)
 - [ ] 📧 **Sistema de Notificaciones**: Email y SMS para pedidos
+
+### 🔮 Futuras Mejoras
 - [ ] 📱 **App Móvil**: Aplicación nativa para iOS y Android
 - [ ] 🔔 **Notificaciones Push**: Alertas en tiempo real
 - [ ] 📊 **Analytics Avanzados**: Reportes detallados de ventas
