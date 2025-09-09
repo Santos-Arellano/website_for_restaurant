@@ -668,7 +668,9 @@ burger-club/burgur/src/main/resources/static/css/components/menu.css
     .filter-btn span {
         display: inline;
     }
-}add-cart {
+}
+
+.btn-add-cart {
     width: 45px;
     height: 45px;
     border-radius: 50%;
@@ -683,6 +685,7 @@ burger-club/burgur/src/main/resources/static/css/components/menu.css
     font-size: 1.1rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(251, 181, 181, 0.3);
 }
 
 .btn-add-cart::before {
@@ -692,23 +695,25 @@ burger-club/burgur/src/main/resources/static/css/components/menu.css
     left: 50%;
     width: 0;
     height: 0;
-    background: var(--color-white);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    transition: all var(--transition-speed) ease;
+    transition: all 0.2s ease;
     transform: translate(-50%, -50%);
+    opacity: 0;
 }
 
 .btn-add-cart:hover::before {
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    height: 80%;
+    opacity: 1;
 }
 
 .btn-add-cart:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: var(--box-shadow-light);
+    transform: scale(1.05) rotate(3deg);
+    box-shadow: 0 4px 15px rgba(251, 181, 181, 0.4);
+    background: #e8a5a5;
 }
 
-.btn-
 .btn-add-cart:active {
     transform: scale(0.95) rotate(5deg);
 }

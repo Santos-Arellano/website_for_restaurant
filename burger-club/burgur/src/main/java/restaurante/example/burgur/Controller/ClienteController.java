@@ -78,35 +78,15 @@ public class ClienteController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> crearCliente(@RequestBody ClienteRequest request) {
         try {
-            if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
-                return handleBadRequest("El nombre es requerido");
-            }
-            if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
-                return handleBadRequest("El apellido es requerido");
-            }
-            if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
-                return handleBadRequest("El correo es requerido");
-            }
-            if (request.getContrasena() == null || request.getContrasena().trim().isEmpty()) {
-                return handleBadRequest("La contraseña es requerida");
+            ResponseEntity<Map<String, Object>> validationError = validateClienteRequest(request);
+            if (validationError != null) {
+                return validationError;
             }
             
-            Cliente cliente = new Cliente();
-            cliente.setNombre(request.getNombre());
-            cliente.setApellido(request.getApellido());
-            cliente.setCorreo(request.getCorreo());
-            cliente.setContrasena(request.getContrasena());
-            cliente.setTelefono(request.getTelefono());
-            cliente.setDireccion(request.getDireccion());
-            cliente.setActivo(true);
-            
+            Cliente cliente = buildClienteFromRequest(request);
             Cliente savedCliente = clienteService.save(cliente);
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Cliente creado correctamente",
-                "cliente", savedCliente
-            ));
+            return buildSuccessResponse("Cliente creado correctamente", savedCliente);
         } catch (IllegalArgumentException e) {
             return handleBadRequest(e.getMessage());
         } catch (Exception e) {
@@ -119,38 +99,16 @@ public class ClienteController {
     public ResponseEntity<Map<String, Object>> actualizarCliente(
             @PathVariable Long id, @RequestBody ClienteRequest request) {
         try {
-            if (!clienteService.existeClientePorId(id)) {
-                return ResponseEntity.notFound().build();
-            }
-            if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
-                return handleBadRequest("El nombre es requerido");
-            }
-            if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
-                return handleBadRequest("El apellido es requerido");
-            }
-            if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
-                return handleBadRequest("El correo es requerido");
+            ResponseEntity<Map<String, Object>> validationError = validateClienteUpdateRequest(request);
+            if (validationError != null) {
+                return validationError;
             }
             
             Cliente cliente = clienteService.obtenerClientePorId(id);
-            cliente.setNombre(request.getNombre());
-            cliente.setApellido(request.getApellido());
-            cliente.setCorreo(request.getCorreo());
-            cliente.setTelefono(request.getTelefono());
-            cliente.setDireccion(request.getDireccion());
-            
-            // Solo actualizar contraseña si se proporcionó una nueva
-            if (request.getContrasena() != null && !request.getContrasena().trim().isEmpty()) {
-                cliente.setContrasena(request.getContrasena());
-            }
-            
+            updateClienteFromRequest(cliente, request);
             Cliente updatedCliente = clienteService.save(cliente);
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Cliente actualizado correctamente",
-                "cliente", updatedCliente
-            ));
+            return buildSuccessResponse("Cliente actualizado correctamente", updatedCliente);
         } catch (IllegalArgumentException e) {
             return handleBadRequest(e.getMessage());
         } catch (Exception e) {
@@ -168,6 +126,68 @@ public class ClienteController {
     
     private ResponseEntity<Map<String, Object>> handleInternalError(String message) {
         return ResponseEntity.internalServerError().body(Map.of("success", false, "message", message));
+    }
+    
+    private ResponseEntity<Map<String, Object>> validateClienteRequest(ClienteRequest request) {
+        if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+            return handleBadRequest("El nombre es requerido");
+        }
+        if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
+            return handleBadRequest("El apellido es requerido");
+        }
+        if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
+            return handleBadRequest("El correo es requerido");
+        }
+        if (request.getContrasena() == null || request.getContrasena().trim().isEmpty()) {
+            return handleBadRequest("La contraseña es requerida");
+        }
+        return null; // No hay errores de validación
+    }
+    
+    private Cliente buildClienteFromRequest(ClienteRequest request) {
+        Cliente cliente = new Cliente();
+        cliente.setNombre(request.getNombre());
+        cliente.setApellido(request.getApellido());
+        cliente.setCorreo(request.getCorreo());
+        cliente.setContrasena(request.getContrasena());
+        cliente.setTelefono(request.getTelefono());
+        cliente.setDireccion(request.getDireccion());
+        cliente.setActivo(true);
+        return cliente;
+    }
+    
+    private ResponseEntity<Map<String, Object>> buildSuccessResponse(String message, Cliente cliente) {
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", message,
+            "cliente", cliente
+        ));
+    }
+    
+    private ResponseEntity<Map<String, Object>> validateClienteUpdateRequest(ClienteRequest request) {
+        if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+            return handleBadRequest("El nombre es requerido");
+        }
+        if (request.getApellido() == null || request.getApellido().trim().isEmpty()) {
+            return handleBadRequest("El apellido es requerido");
+        }
+        if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
+            return handleBadRequest("El correo es requerido");
+        }
+        return null; // No hay errores de validación
+    }
+    
+    private void updateClienteFromRequest(Cliente cliente, ClienteRequest request) {
+        cliente.setNombre(request.getNombre());
+        cliente.setApellido(request.getApellido());
+        cliente.setCorreo(request.getCorreo());
+        cliente.setTelefono(request.getTelefono());
+        cliente.setDireccion(request.getDireccion());
+        
+        // Solo actualizar contraseña si se proporcionó una nueva
+        if (request.getContrasena() != null && !request.getContrasena().trim().isEmpty()) {
+            cliente.setContrasena(request.getContrasena());
+        }
     }
     
     @DeleteMapping("/{id}")

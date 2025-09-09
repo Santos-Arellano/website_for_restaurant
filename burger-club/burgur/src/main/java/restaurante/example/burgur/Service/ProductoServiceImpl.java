@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,11 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public List<Producto> findAll() {
         return productoRepository.findAll();
+    }
+    
+    @Override
+    public List<Producto> findByActivoTrue() {
+        return productoRepository.findByActivo(true);
     }
     
     @Override
@@ -209,16 +215,20 @@ public class ProductoServiceImpl implements ProductoService {
     
     @Override
     public List<Producto> findByNombre(String nombre) {
-        if (nombre == null || nombre.trim().isEmpty()) return findAll();
-        return productoRepository.findByNombreContainingIgnoreCase(nombre.trim());
+        if (nombre == null || nombre.trim().isEmpty()) return findByActivoTrue();
+        return productoRepository.findByNombreContainingIgnoreCase(nombre.trim()).stream()
+            .filter(p -> p != null && p.isActivo())
+            .collect(Collectors.toList());
     }
     
     @Override
     public List<Producto> findByCategoria(String categoria) {
         if (categoria == null || categoria.trim().isEmpty() || "todos".equalsIgnoreCase(categoria.trim())) {
-            return findAll();
+            return findByActivoTrue();
         }
-        return productoRepository.findByCategoriaIgnoreCase(categoria.trim());
+        return productoRepository.findByCategoriaIgnoreCase(categoria.trim()).stream()
+            .filter(p -> p != null && p.isActivo())
+            .collect(Collectors.toList());
     }
     
 

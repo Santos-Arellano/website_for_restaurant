@@ -18,6 +18,9 @@ public interface ProductoService {
     //Obtener todos los productos
     List<Producto> findAll();
     
+    //Obtener solo productos activos
+    List<Producto> findByActivoTrue();
+    
 
     //Buscar producto por ID
     Optional<Producto> findById(Long id);

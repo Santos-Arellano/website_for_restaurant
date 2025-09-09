@@ -37,13 +37,8 @@ public class MenuController {
             } else if (categoria != null && !categoria.trim().isEmpty() && !"todos".equalsIgnoreCase(categoria)) {
                 productos = productoService.findByCategoria(categoria);
             } else {
-                productos = productoService.findAll();
+                productos = productoService.findByActivoTrue();
             }
-            
-            // Filtrar solo productos activos
-            productos = productos.stream()
-                .filter(p -> p != null && p.isActivo())
-                .collect(Collectors.toList());
             
             model.addAttribute("productos", productos);
             return "menu";
