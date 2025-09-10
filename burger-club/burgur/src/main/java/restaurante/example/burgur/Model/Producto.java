@@ -41,6 +41,7 @@ public class Producto {
     private List<String> ingredientes = new ArrayList<>();
     
     // Conexiones BDD
+    //1). Relación Producto-AdicionalesPermiXProducto (Uno a Muchos)
     @OneToMany(
         mappedBy = "producto",
         cascade = CascadeType.ALL,
@@ -49,7 +50,20 @@ public class Producto {
     )
     @JsonIgnore
     private List<AdicionalesPermiXProducto> adicionales = new ArrayList<>();
+
+    //2). Relación Producto-ProdYAdiPedido (Uno a Muchos)
+    @OneToMany(
+        mappedBy = "producto",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private List<ProdYAdiPedido> productosYAdicionales = new ArrayList<>();
+
+    //Constructor sin id y sin relaciones BDD
     
+
     // Método personalizado para verificar stock bajo
     public boolean isStockBajo() {
         return stock != null && stock < 10;
