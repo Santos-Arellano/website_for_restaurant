@@ -321,31 +321,41 @@ class MenuFiltersManager {
         }, 2000);
     }
     
-    updateFilterCounters() {
-        // This would typically fetch data from the server
-        // For now, we'll simulate with static data
-        const counters = {
-            'hamburguesa': 12,
-            'acompañamiento': 8,
-            'perro caliente': 6,
-            'bebida': 10,
-            'postre': 5
-        };
-        
-        this.filterButtons.forEach(btn => {
-            const href = btn.getAttribute('href');
-            if (href && href.includes('categoria=')) {
-                const category = href.split('categoria=')[1].split(')')[0];
-                const count = counters[category];
-                
-                if (count && !btn.querySelector('.filter-counter')) {
-                    const counter = document.createElement('span');
-                    counter.className = 'filter-counter';
-                    counter.textContent = count;
-                    btn.appendChild(counter);
-                }
+    async updateFilterCounters() {
+        try {
+            // Fetch real data from the server
+            const response = await fetch('/api/menu/category-counts');
+            if (!response.ok) {
+                console.warn('Failed to fetch category counts');
+                return;
             }
-        });
+            
+            const counters = await response.json();
+            
+            this.filterButtons.forEach(btn => {
+                const href = btn.getAttribute('href');
+                if (href && href.includes('categoria=')) {
+                    const category = href.split('categoria=')[1].split(')')[0];
+                    const count = counters[category];
+                    
+                    // Remove existing counter if present
+                    const existingCounter = btn.querySelector('.filter-counter');
+                    if (existingCounter) {
+                        existingCounter.remove();
+                    }
+                    
+                    // Add new counter if count > 0
+                    if (count && count > 0) {
+                        const counter = document.createElement('span');
+                        counter.className = 'filter-counter';
+                        counter.textContent = count;
+                        btn.appendChild(counter);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching category counts:', error);
+        }
     }
     
     createRippleEffect(element) {
