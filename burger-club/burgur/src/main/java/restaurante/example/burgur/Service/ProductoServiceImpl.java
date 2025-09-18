@@ -206,9 +206,6 @@ public class ProductoServiceImpl implements ProductoService {
         return nuevos.size();
     }
 
-
-        
-    
     // ==========================================
     // MÉTODOS DE BÚSQUEDA Y FILTRADO
     // ==========================================
@@ -231,16 +228,6 @@ public class ProductoServiceImpl implements ProductoService {
             .collect(Collectors.toList());
     }
     
-
-    
-
-    
-
-    
-
-    
-
-
     @Override
     @Transactional
     public List<Adicional> obtenerAdicionalesPermitidos(Long productoId){ 
@@ -249,6 +236,7 @@ public class ProductoServiceImpl implements ProductoService {
         }
         return adicionalesPermiXProductoRepository.findAdicionalesByProductoId(productoId);
     }
+
 
     // ==========================================
     // MÉTODOS DE ESTADÍSTICAS
@@ -264,36 +252,16 @@ public class ProductoServiceImpl implements ProductoService {
         }
     }
     
-
-    
-
-    
-
-    
-
     
     // ==========================================
     // MÉTODOS DE ACTUALIZACIÓN ESPECÍFICA
     // ==========================================
     
 
-    
-
-    
-
-    
-
-    
     // ==========================================
     // MÉTODOS ADICIONALES DE UTILIDAD
     // ==========================================
     
-
-    
-
-    
-
-
 
     // ==========================================
     // VALIDACIÓN

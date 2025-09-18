@@ -1,16 +1,12 @@
 package restaurante.example.burgur.Model;
 
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 
 @Entity
-public class ProdYAdiPedido {
+public class AdiXProdPedido {
     @Id
     @GeneratedValue
     private Long id;
@@ -18,27 +14,24 @@ public class ProdYAdiPedido {
     private float precioUnitario;
 
     //Relaciones BDD
-    //1). Relación Pedido-ProdYAdiPedido (Uno a Muchos)
+    //1). Relación AdiXProdPedido- ProdYAdiPedido (Muchos a Uno)
     @ManyToOne
-    private Pedido pedido;
+    private ProdYAdiPedido prodYAdiPedido;
 
-    //2). Relación ProdYAdiPedido- Producto (Muchos a Uno)
+    //2). Relación AdiXProdPedido- Adicional (Muchos a Uno)
     @ManyToOne
-    private Producto producto;
+    private Adicional adicional;
 
-    //3). Relación ProdYAdiPedido- AdiXProdPedido (Uno a Muchos)
-    @OneToMany(mappedBy = "prodYAdiPedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AdiXProdPedido> adicionalesPorProducto;
-    
     // Constructor vacio
-    public ProdYAdiPedido() {
+    public AdiXProdPedido() {
     }
+
     // Constructor con parametros sin id y sin relaciones BDD
-    public ProdYAdiPedido(int cantidad, float precioUnitario) {
+    public AdiXProdPedido(int cantidad, float precioUnitario) {
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
     }
-    
+
     // Getters y Setters
     public Long getId() {
         return id;
@@ -58,19 +51,18 @@ public class ProdYAdiPedido {
     public void setPrecioUnitario(float precioUnitario) {
         this.precioUnitario = precioUnitario;
     }
-    public Pedido getPedido() {
-        return pedido;
+    public ProdYAdiPedido getProdYAdiPedido() {
+        return prodYAdiPedido;
     }
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
+    public void setProdYAdiPedido(ProdYAdiPedido prodYAdiPedido) {
+        this.prodYAdiPedido = prodYAdiPedido;
     }
-    public Producto getProducto() {
-        return producto;
+    public Adicional getAdicional() {
+        return adicional;
     }
-    public void setProducto(Producto producto) {
-        this.producto = producto;
+    public void setAdicional(Adicional adicional) {
+        this.adicional = adicional;
     }
-
-
     
+
 }

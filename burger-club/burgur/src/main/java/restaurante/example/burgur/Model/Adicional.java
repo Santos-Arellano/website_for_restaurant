@@ -44,7 +44,18 @@ public class Adicional {
     @Column(name = "categoria", nullable = false, length = 50)
     private List<String> categoria = new ArrayList<>();
 
-    // Relación con productos (lazy loading para evitar problemas de rendimiento)
+    //Relaciones BDD
+    //1). Relación Adicional - AdicionalesPermiXProducto (Uno a Muchos)
+    @OneToMany(
+        mappedBy = "adicional",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private List<AdicionalesPermiXProducto> productosPermitidos = new ArrayList<>();
+
+    // 2). Relación Adicional - AdicionalesPermiXProducto (Uno a Muchos)
     @OneToMany(
         mappedBy = "adicional",
         cascade = CascadeType.ALL,
