@@ -40,15 +40,16 @@
                  </a>
      
                  <nav class="main-nav">
-                     <ul>
-                         <li><a th:href="@{/}">Inicio</a></li>
-                         <li><a th:href="@{/menu}">Menú</a></li>
-                         <li><a th:href="@{/admin/dashboard}" class="admin-nav">Dashboard</a></li>
-                         <li><a th:href="@{/menu/admin}">Productos</a></li>
-                         <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
-                         <li><a th:href="@{/admin/clientes}">Clientes</a></li>
-                     </ul>
-                 </nav>
+                    <ul>
+                        <li><a th:href="@{/}">Inicio</a></li>
+                        <li><a th:href="@{/menu}">Menú</a></li>
+                        <li><a th:href="@{/admin/dashboard}" class="admin-nav">Dashboard</a></li>
+                        <li><a th:href="@{/menu/admin}">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                        <li><a th:href="@{/admin/domiciliarios}">Domiciliarios</a></li>
+                    </ul>
+                </nav>
              </div>
          </header>
      
@@ -89,27 +90,32 @@
                  </div>
      
                  <!-- Acciones rápidas -->
-                 <div class="quick-actions">
-                     <a th:href="@{/menu/admin}" class="action-btn">
-                         <i class="fas fa-hamburger"></i>
-                         <span>Gestionar Productos</span>
-                     </a>
-                     
-                     <a th:href="@{/admin/clientes}" class="action-btn">
-                         <i class="fas fa-users"></i>
-                         <span>Gestionar Clientes</span>
-                     </a>
-                     
-                     <a th:href="@{/admin/adicionales}" class="action-btn">
-                         <i class="fas fa-plus-circle"></i>
-                         <span>Gestionar Adicionales</span>
-                     </a>
-                     
-                     <a href="#" class="action-btn" onclick="updateAdicionales()">
-                         <i class="fas fa-sync-alt"></i>
-                         <span>Actualizar Relaciones</span>
-                     </a>
-                 </div>
+                <div class="quick-actions">
+                    <a th:href="@{/menu/admin}" class="action-btn">
+                        <i class="fas fa-hamburger"></i>
+                        <span>Gestionar Productos</span>
+                    </a>
+                    
+                    <a th:href="@{/admin/clientes}" class="action-btn">
+                        <i class="fas fa-users"></i>
+                        <span>Gestionar Clientes</span>
+                    </a>
+                    
+                    <a th:href="@{/admin/adicionales}" class="action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Gestionar Adicionales</span>
+                    </a>
+                    
+                    <a th:href="@{/admin/domiciliarios}" class="action-btn">
+                        <i class="fas fa-motorcycle"></i>
+                        <span>Gestionar Domiciliarios</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn" onclick="updateAdicionales()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Actualizar Relaciones</span>
+                    </a>
+                </div>
      
                  <!-- Información del sistema -->
                  <div class="system-info">
@@ -206,14 +212,15 @@
                         <p>Panel de administración para la gestión completa del restaurante.</p>
                     </div>
                     <div class="footer-section">
-                        <h3>Gestión</h3>
-                        <ul class="footer-links">
-                            <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
-                            <li><a th:href="@{/menu/admin}">Productos</a></li>
-                            <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
-                            <li><a th:href="@{/admin/clientes}">Clientes</a></li>
-                        </ul>
-                    </div>
+                    <h3>Gestión</h3>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                        <li><a th:href="@{/menu/admin}">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                        <li><a th:href="@{/admin/domiciliarios}">Domiciliarios</a></li>
+                    </ul>
+                </div>
                     <div class="footer-section">
                         <h3>Sistema</h3>
                         <div class="contact-info">

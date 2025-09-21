@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import restaurante.example.burgur.Service.ProductoService;
 import restaurante.example.burgur.Service.ClienteService;
 import restaurante.example.burgur.Service.AdicionalService;
+import restaurante.example.burgur.Service.DomiciliarioService;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
-    
+
     @Autowired
     private ProductoService productoService;
     
@@ -29,6 +30,9 @@ public class AdminController {
     
     @Autowired
     private AdicionalService adicionalService;
+    
+    @Autowired
+    private DomiciliarioService domiciliarioService;
     
     @GetMapping("")
     public String redirectToProductos() {
@@ -57,6 +61,22 @@ public class AdminController {
         } catch (Exception e) {
             model.addAttribute("error", "Error al cargar las estadísticas");
             return "admin/dashboard";
+        }
+    }
+    
+    // Eliminado el método adminClientes para evitar conflicto con ClienteController
+    
+    @GetMapping("/domiciliarios")
+    public String adminDomiciliarios(Model model) {
+        try {
+            var domiciliarios = domiciliarioService.obtenerTodosLosDomiciliarios();
+            model.addAttribute("domiciliarios", domiciliarios);
+            model.addAttribute("totalDomiciliarios", domiciliarios.size());
+            model.addAttribute("domiciliariosDisponibles", domiciliarios.stream().filter(d -> d != null && d.isDisponible()).count());
+            return "admin/admin-domiciliarios";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error al cargar los domiciliarios");
+            return "admin/admin-domiciliarios";
         }
     }
     

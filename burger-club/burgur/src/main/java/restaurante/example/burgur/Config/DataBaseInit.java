@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 
 import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Model.Cliente;
+import restaurante.example.burgur.Model.Domiciliario;
 import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Service.AdicionalService;
 import restaurante.example.burgur.Service.ClienteService;
+import restaurante.example.burgur.Service.DomiciliarioService;
 import restaurante.example.burgur.Service.ProductoService;
 
 @Component
@@ -26,6 +28,9 @@ public class DataBaseInit implements CommandLineRunner {
     
     @Autowired
     private AdicionalService adicionalService;
+    
+    @Autowired
+    private DomiciliarioService domiciliarioService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -49,6 +54,9 @@ public class DataBaseInit implements CommandLineRunner {
             
             // Crear clientes
             createClientes();
+            
+            // Crear domiciliarios
+            createDomiciliarios();
             
             // Vincular adicionales con productos
             int relacionesCreadas = productoService.rebuildAdicionalesDeTodosLosProductos();
@@ -307,6 +315,35 @@ public class DataBaseInit implements CommandLineRunner {
         System.out.println("   📈 Productos creados: " + created + ", Errores: " + errors);
     }
 
+    private void createDomiciliarios() {
+        System.out.println("🚚 Creando domiciliarios...");
+        
+        List<Domiciliario> domiciliarios = Arrays.asList(
+            new Domiciliario("Carlos Ramírez", "1098765432", true),
+            new Domiciliario("Laura Mendoza", "1076543210", true),
+            new Domiciliario("Andrés Gómez", "1054321098", true),
+            new Domiciliario("Juliana Vargas", "1032109876", true),
+            new Domiciliario("Roberto Sánchez", "1010987654", false),
+            new Domiciliario("Camila Rodríguez", "1098765431", true)
+        );
+
+        int created = 0;
+        int errors = 0;
+        
+        for (Domiciliario domiciliario : domiciliarios) {
+            try {
+                domiciliarioService.save(domiciliario);
+                created++;
+                System.out.println("   ✓ Domiciliario creado: " + domiciliario.getNombre());
+            } catch (Exception e) {
+                errors++;
+                System.err.println("   ✗ Error creando domiciliario " + domiciliario.getNombre() + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("   📈 Domiciliarios creados: " + created + ", Errores: " + errors);
+    }
+    
     private void createClientes() {
         System.out.println("👥 Creando clientes...");
         
