@@ -42,11 +42,11 @@ public class DomiciliarioServiceImpl implements DomiciliarioService {
     }
     
     @Override
-    public Optional<Domiciliario> obtenerDomiciliarioPorId(Long id) {
+    public Domiciliario obtenerDomiciliarioPorId(Long id) {
         if (id == null) {
-            return Optional.empty();
+            return null;
         }
-        return domiciliarioRepository.findById(id);
+        return domiciliarioRepository.findById(id).get();
     }
     
     @Override

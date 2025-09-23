@@ -20,7 +20,7 @@ public interface DomiciliarioService {
     void eliminarDomiciliario(Long id);
     
     // Obtener Domiciliario por ID
-    Optional<Domiciliario> obtenerDomiciliarioPorId(Long id);
+    Domiciliario obtenerDomiciliarioPorId(Long id);
     
     // Obtener todos los Domiciliarios
     List<Domiciliario> obtenerTodosLosDomiciliarios();

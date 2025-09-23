@@ -21,7 +21,7 @@ import restaurante.example.burgur.Model.Domiciliario;
 import restaurante.example.burgur.Service.DomiciliarioService;
 
 @RestController
-@RequestMapping("/api/domiciliarios")
+@RequestMapping("/domiciliarios")
 public class DomiciliarioController {
 
     @Autowired
@@ -43,9 +43,8 @@ public class DomiciliarioController {
     
     @GetMapping("/{id}")
     public ResponseEntity<Domiciliario> obtenerPorId(@PathVariable Long id) {
-        Optional<Domiciliario> domiciliario = domiciliarioService.obtenerDomiciliarioPorId(id);
-        return domiciliario.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Domiciliario domiciliario = domiciliarioService.obtenerDomiciliarioPorId(id);
+        return domiciliario != null ? ResponseEntity.ok(domiciliario) : ResponseEntity.notFound().build();
     }
     
     @PostMapping
@@ -67,12 +66,11 @@ public class DomiciliarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Domiciliario> actualizar(@PathVariable Long id, @RequestBody DomiciliarioRequest request) {
         try {
-            Optional<Domiciliario> domiciliarioOpt = domiciliarioService.obtenerDomiciliarioPorId(id);
-            if (domiciliarioOpt.isEmpty()) {
+            Domiciliario domiciliario = domiciliarioService.obtenerDomiciliarioPorId(id);
+            if (domiciliario == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            Domiciliario domiciliario = domiciliarioOpt.get();
+
             domiciliario.setNombre(request.getNombre());
             domiciliario.setCedula(request.getCedula());
             
