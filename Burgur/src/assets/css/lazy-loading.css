@@ -1,0 +1,512 @@
+/**
+ * Lazy Loading and Performance Optimization
+ * Modern image loading with performance enhancements
+ */
+
+/* Lazy Loading Container */
+.lazy-container {
+    position: relative;
+    overflow: hidden;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.lazy-container.loading {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: lazy-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Lazy Image States */
+.lazy-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.1);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    filter: blur(0);
+}
+
+.lazy-image.loading {
+    opacity: 0;
+    transform: scale(1.05);
+    filter: blur(5px);
+}
+
+.lazy-image.loaded {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+}
+
+.lazy-image.error {
+    opacity: 0.7;
+    transform: scale(1);
+    filter: grayscale(100%);
+}
+
+/* Progressive Image Enhancement */
+.progressive-image {
+    position: relative;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.progressive-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%) rotate(45deg);
+    animation: progressive-shine 2s ease-in-out infinite;
+    z-index: 1;
+}
+
+.progressive-image.loaded::before {
+    display: none;
+}
+
+/* Low Quality Image Placeholder */
+.lqip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(10px);
+    transform: scale(1.1);
+    opacity: 1;
+    transition: opacity 0.6s ease;
+    z-index: 1;
+}
+
+.lqip.fade-out {
+    opacity: 0;
+}
+
+/* Intersection Observer Enhancements */
+.observe-lazy {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.observe-lazy.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Image Placeholder */
+.image-placeholder {
+    position: relative;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #6c757d;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.image-placeholder::before {
+    content: '📷';
+    font-size: 3rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+.image-placeholder::after {
+    content: 'Cargando imagen...';
+    position: absolute;
+    bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Loading Spinner for Images */
+.image-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 2;
+}
+
+/* Blur-to-Clear Effect */
+.blur-load {
+    position: relative;
+    overflow: hidden;
+}
+
+.blur-load img {
+    transition: filter 0.6s ease;
+}
+
+.blur-load.loading img {
+    filter: blur(20px);
+}
+
+.blur-load.loaded img {
+    filter: blur(0);
+}
+
+/* Fade-in Animation */
+.fade-in-image {
+    opacity: 0;
+    animation: fadeInImage 0.8s ease forwards;
+}
+
+@keyframes fadeInImage {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Slide-in Animation */
+.slide-in-image {
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slideInImage 0.8s ease forwards;
+}
+
+@keyframes slideInImage {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Performance Optimizations */
+.optimized-image {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Critical Images (Above the fold) */
+.critical-image {
+    opacity: 1;
+    transform: none;
+    transition: none;
+}
+
+/* Non-critical Images */
+.non-critical-image {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.non-critical-image.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Image Error State */
+.image-error {
+    position: relative;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #6c757d;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+}
+
+.image-error::before {
+    content: '⚠️';
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.image-error::after {
+    content: 'Error al cargar imagen';
+    position: absolute;
+    bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Responsive Image Container */
+.responsive-image-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.responsive-image-container.aspect-16-9 {
+    padding-bottom: 56.25%; /* 16:9 */
+}
+
+.responsive-image-container.aspect-4-3 {
+    padding-bottom: 75%; /* 4:3 */
+}
+
+.responsive-image-container.aspect-1-1 {
+    padding-bottom: 100%; /* 1:1 */
+}
+
+.responsive-image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* WebP Support Detection */
+.webp .webp-image {
+    display: block;
+}
+
+.webp .fallback-image {
+    display: none;
+}
+
+.no-webp .webp-image {
+    display: none;
+}
+
+.no-webp .fallback-image {
+    display: block;
+}
+
+/* Lazy Loading Grid */
+.lazy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.lazy-grid-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8f9fa;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.lazy-grid-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading States for Different Content Types */
+.content-skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text.large {
+    height: 1.5rem;
+}
+
+.skeleton-text.small {
+    height: 0.8rem;
+    width: 60%;
+}
+
+.skeleton-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.skeleton-card {
+    height: 200px;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Performance Monitoring */
+.perf-monitor {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-family: monospace;
+    z-index: 10000;
+    display: none;
+}
+
+.perf-monitor.show {
+    display: block;
+}
+
+/* Animations */
+@keyframes lazy-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes progressive-shine {
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(300%) rotate(45deg);
+    }
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Dark Mode Support - Removed for consistency */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .lazy-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    .image-placeholder {
+        min-height: 150px;
+        font-size: 1rem;
+    }
+    
+    .image-placeholder::before {
+        font-size: 2rem;
+    }
+    
+    .perf-monitor {
+        top: 5px;
+        right: 5px;
+        font-size: 0.7rem;
+        padding: 0.25rem;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .lazy-image,
+    .progressive-image::before,
+    .lqip,
+    .observe-lazy,
+    .fade-in-image,
+    .slide-in-image,
+    .non-critical-image,
+    .lazy-grid-item,
+    .lazy-container.loading,
+    .content-skeleton {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .image-placeholder,
+    .image-error {
+        border: 2px solid;
+        background: transparent;
+    }
+    
+    .content-skeleton {
+        background: #333;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .image-spinner,
+    .perf-monitor,
+    .progressive-image::before {
+        display: none !important;
+    }
+    
+    .lazy-image,
+    .progressive-image img {
+        opacity: 1 !important;
+        filter: none !important;
+        transform: none !important;
+    }
+}
+
+/* Connection-aware Loading */
+@media (prefers-reduced-data: reduce) {
+    .lazy-image {
+        transition-duration: 0.3s;
+    }
+    
+    .progressive-image::before {
+        animation-duration: 1s;
+    }
+    
+    .content-skeleton {
+        animation-duration: 1s;
+    }
+}

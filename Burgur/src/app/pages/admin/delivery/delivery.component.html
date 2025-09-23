@@ -1,0 +1,235 @@
+<!-- Admin Delivery Page -->
+<div class="admin-delivery">
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <h1>Administración de Domiciliarios</h1>
+      <nav class="admin-nav">
+        <a routerLink="/admin/dashboard" class="nav-link">Dashboard</a>
+        <a routerLink="/admin/products" class="nav-link">Productos</a>
+        <a routerLink="/admin/clients" class="nav-link">Clientes</a>
+        <a routerLink="/admin/delivery" class="nav-link active">Domiciliarios</a>
+        <a routerLink="/admin/additionals" class="nav-link">Adicionales</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Stats Cards -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🏍️</div>
+          <div class="stat-info">
+            <h3>{{ totalDeliveryPersons }}</h3>
+            <p>Total Domiciliarios</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3>{{ activeDeliveryPersons }}</h3>
+            <p>Activos Hoy</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-info">
+            <h3>{{ deliveriesInProgress }}</h3>
+            <p>Entregas en Curso</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-info">
+            <h3>{{ averageRating }}</h3>
+            <p>Calificación Promedio</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search and Filters -->
+    <section class="search-section">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          placeholder="Buscar domiciliarios..." 
+          [(ngModel)]="searchTerm"
+          (input)="filterDeliveryPersons()"
+          class="search-input">
+        <button class="search-btn">🔍</button>
+      </div>
+      
+      <div class="filters">
+        <select [(ngModel)]="selectedStatus" (ngModelChange)="filterDeliveryPersons()" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option value="disponible">Disponibles</option>
+          <option value="ocupado">Ocupados</option>
+          <option value="descanso">En Descanso</option>
+        </select>
+        
+        <button class="add-btn" (click)="openAddDeliveryModal()">+ Agregar Domiciliario</button>
+      </div>
+    </section>
+
+    <!-- Delivery Persons Grid -->
+    <section class="delivery-section">
+      <div class="delivery-grid" *ngIf="filteredDeliveryPersons.length > 0; else emptyState">
+        <div class="delivery-card" *ngFor="let person of filteredDeliveryPersons; trackBy: trackByPersonId">
+          <div class="card-header">
+            <div class="person-avatar">
+              <img [src]="person.foto || '/assets/default-avatar.png'" [alt]="person.nombre">
+            </div>
+            <div class="person-info">
+              <h3>{{ person.nombre }}</h3>
+              <p class="person-id">ID: {{ person.id }}</p>
+            </div>
+            <div class="status-badge" [class]="'status-' + person.estado">
+              {{ getStatusText(person.estado) }}
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="info-row">
+              <span class="label">📱 Teléfono:</span>
+              <span class="value">{{ person.telefono }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">🏍️ Vehículo:</span>
+              <span class="value">{{ person.vehiculo }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">📍 Zona:</span>
+              <span class="value">{{ person.zona }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">⭐ Calificación:</span>
+              <span class="value">{{ person.calificacion }}/5</span>
+            </div>
+            <div class="info-row">
+              <span class="label">📦 Entregas Hoy:</span>
+              <span class="value">{{ person.entregasHoy }}</span>
+            </div>
+          </div>
+          
+          <div class="card-actions">
+            <button class="action-btn edit" (click)="editDeliveryPerson(person)" title="Editar">✏️</button>
+            <button class="action-btn delete" (click)="deleteDeliveryPerson(person.id)" title="Eliminar">🗑️</button>
+            <button class="action-btn details" (click)="viewPersonDetails(person)" title="Ver detalles">👁️</button>
+            <button 
+              class="action-btn status" 
+              (click)="togglePersonStatus(person)" 
+              [title]="person.estado === 'disponible' ? 'Marcar como ocupado' : 'Marcar como disponible'">
+              {{ person.estado === 'disponible' ? '🔴' : '🟢' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <div class="empty-icon">🏍️</div>
+          <h3>No se encontraron domiciliarios</h3>
+          <p>No hay domiciliarios que coincidan con los filtros seleccionados.</p>
+          <button class="add-btn" (click)="openAddDeliveryModal()">Agregar Primer Domiciliario</button>
+        </div>
+      </ng-template>
+    </section>
+  </main>
+</div>
+
+<!-- Delivery Person Modal -->
+<div class="modal-overlay" *ngIf="showDeliveryModal" (click)="closeDeliveryModal()">
+  <div class="modal-content modal-form" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingPerson ? 'Editar Domiciliario' : 'Agregar Domiciliario' }}</h2>
+      <button class="close-btn" (click)="closeDeliveryModal()">×</button>
+    </div>
+    
+    <form [formGroup]="deliveryForm" (ngSubmit)="saveDeliveryPerson()" class="delivery-form">
+      <div class="form-group">
+        <label for="nombre">Nombre Completo *</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          formControlName="nombre" 
+          class="form-input"
+          placeholder="Ej: Carlos Rodríguez">
+        <div *ngIf="deliveryForm.get('nombre')?.invalid && deliveryForm.get('nombre')?.touched" class="error-message">
+          El nombre es requerido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono *</label>
+        <input 
+          type="tel" 
+          id="telefono" 
+          formControlName="telefono" 
+          class="form-input"
+          placeholder="300 123 4567">
+        <div *ngIf="deliveryForm.get('telefono')?.invalid && deliveryForm.get('telefono')?.touched" class="error-message">
+          El teléfono es requerido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="vehiculo">Tipo de Vehículo *</label>
+        <select id="vehiculo" formControlName="vehiculo" class="form-select">
+          <option value="">Seleccionar vehículo</option>
+          <option value="Motocicleta">Motocicleta</option>
+          <option value="Bicicleta">Bicicleta</option>
+          <option value="Carro">Carro</option>
+          <option value="A pie">A pie</option>
+        </select>
+        <div *ngIf="deliveryForm.get('vehiculo')?.invalid && deliveryForm.get('vehiculo')?.touched" class="error-message">
+          El tipo de vehículo es requerido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="zona">Zona de Cobertura *</label>
+        <select id="zona" formControlName="zona" class="form-select">
+          <option value="">Seleccionar zona</option>
+          <option value="Norte">Norte</option>
+          <option value="Sur">Sur</option>
+          <option value="Centro">Centro</option>
+          <option value="Oriente">Oriente</option>
+          <option value="Occidente">Occidente</option>
+        </select>
+        <div *ngIf="deliveryForm.get('zona')?.invalid && deliveryForm.get('zona')?.touched" class="error-message">
+          La zona de cobertura es requerida
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="foto">URL de Foto</label>
+        <input 
+          type="url" 
+          id="foto" 
+          formControlName="foto" 
+          class="form-input"
+          placeholder="https://ejemplo.com/foto.jpg">
+      </div>
+
+      <div class="form-group">
+        <label for="estado">Estado *</label>
+        <select id="estado" formControlName="estado" class="form-select">
+          <option value="disponible">Disponible</option>
+          <option value="ocupado">Ocupado</option>
+          <option value="descanso">En Descanso</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="closeDeliveryModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="deliveryForm.invalid">
+          {{ editingPerson ? 'Actualizar' : 'Crear' }} Domiciliario
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

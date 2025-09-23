@@ -1,0 +1,169 @@
+<!-- ==========================================
+     ARCHIVO: burger-club/burgur/src/main/resources/templates/admin/admin-clientes.html
+     ========================================== -->
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - Clientes | Burger Club</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    
+    <!-- Footer CSS -->
+    <link rel="stylesheet" th:href="@{/css/components/footer.css}">
+    
+    <!-- Admin Clientes CSS -->
+    <link th:href="@{/css/components/admin-clientes.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container header-container">
+            <a th:href="@{/}" class="logo">
+                <div class="logo-icon-wrapper">
+                    <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                </div>
+                <span class="logo-text">BURGER CLUB</span>
+            </a>
+
+            <nav class="main-nav">
+                    <ul>
+                        <li><a th:href="@{/}">Inicio</a></li>
+                        <li><a th:href="@{/menu}">Menú</a></li>
+                        <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                        <li><a th:href="@{/admin/productos}">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}" class="admin-nav">Clientes</a></li>
+                        <li><a th:href="@{/admin/domiciliarios}">Domiciliarios</a></li>
+                    </ul>
+                </nav>
+        </div>
+    </header>
+
+    <!-- Admin Clientes Section -->
+    <main class="admin-clientes-section">
+        <div class="container">
+            <!-- Admin Header -->
+            <div class="admin-header">
+                <h1 class="admin-title">Gestión de Clientes</h1>
+                <p class="admin-subtitle">Administra los clientes registrados en el sistema</p>
+                
+                <!-- Stats Cards -->
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" th:text="${totalClientes}">0</span>
+                            <span class="stat-label">Total Clientes</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-check"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" th:text="${clientesActivos}">0</span>
+                            <span class="stat-label">Clientes Activos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="search-bar">
+                <div class="search-input-group">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar clientes..." id="adminSearchInput">
+                </div>
+                <div class="filter-controls">
+                    <button class="btn-add-cliente" onclick="openAddClienteModal()">
+                        <i class="fas fa-user-plus"></i>
+                        Agregar Cliente
+                    </button>
+                </div>
+            </div>
+
+            <!-- Clientes Table -->
+            <div class="clientes-table">
+                <div class="table-header">
+                    <span>NOMBRE</span>
+                    <span>APELLIDO</span>
+                    <span>CORREO</span>
+                    <span>TELÉFONO</span>
+                    <span>ACCIONES</span>
+                </div>
+
+                <!-- Thymeleaf Clientes Loop -->
+                <div class="table-row" 
+                     th:each="cliente : ${clientes}" 
+                     th:attr="data-cliente-id=${cliente.id}">
+                    <div class="cell">
+                        <span class="cliente-name" th:text="${cliente.nombre}">Nombre</span>
+                    </div>
+                    <div class="cell">
+                        <span class="cliente-name" th:text="${cliente.apellido}">Apellido</span>
+                    </div>
+                    <div class="cell">
+                        <span class="cliente-email" th:text="${cliente.correo}">correo@ejemplo.com</span>
+                    </div>
+                    <div class="cell">
+                        <span class="cliente-phone" th:text="${cliente.telefono != null ? cliente.telefono : 'No registrado'}">Teléfono</span>
+                    </div>
+                    <div class="cell actions-cell">
+                        <button class="btn-action btn-edit" 
+                                th:onclick="'editCliente(' + ${cliente.id} + ')'">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" 
+                                th:onclick="'deleteCliente(' + ${cliente.id} + ')'">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" th:if="${#lists.isEmpty(clientes)}">
+                    <i class="fas fa-users"></i>
+                    <h3>No hay clientes</h3>
+                    <p>Comienza agregando tu primer cliente</p>
+                    <button class="btn-add-cliente" onclick="openAddClienteModal()">
+                        <i class="fas fa-user-plus"></i>
+                        Agregar Primer Cliente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-social">
+                <div class="social-links">
+                    <a th:href="@{/admin/dashboard}" class="social-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                    <a href="#" class="social-link"><i class="fas fa-sync-alt"></i><span>Actualizar</span></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/admin-universal.js}"></script>
+    <script th:src="@{/js/admin/admin-modal-manager.js}"></script>
+    <script th:src="@{/js/Modules/admin/admin-clientes.js}" defer></script>
+</body>
+</html>

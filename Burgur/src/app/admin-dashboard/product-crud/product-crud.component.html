@@ -1,0 +1,260 @@
+<!-- Admin Products Section -->
+<section class="admin-products-section">
+    <!-- Background Decorations -->
+    <div class="background-decor">
+        <div class="deco-item deco-1">🍔</div>
+        <div class="deco-item deco-2">🍟</div>
+        <div class="deco-item deco-3">🌭</div>
+        <div class="deco-item deco-4">🥤</div>
+        <div class="deco-item deco-5">🍕</div>
+    </div>
+
+    <div class="container content-wrapper">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <h1 class="admin-title">Gestión de Productos</h1>
+            <p class="admin-subtitle">Administra el menú de tu restaurante con estilo</p>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-bar">
+            <div class="search-input-group">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Buscar productos por nombre..."
+                    [(ngModel)]="searchTerm"
+                    (input)="filterProducts()">
+            </div>
+            
+            <div class="filter-controls">
+                <select 
+                    class="filter-select" 
+                    [(ngModel)]="selectedCategory"
+                    (change)="filterProducts()">
+                    <option value="">Todas las categorías</option>
+                    <option value="hamburguesa">Hamburguesas</option>
+                    <option value="perro caliente">Perros Calientes</option>
+                    <option value="acompañamiento">Acompañamientos</option>
+                    <option value="bebida">Bebidas</option>
+                </select>
+                
+                <button class="btn-add-product" (click)="openCreateModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>Agregar Producto</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="product-table">
+            <!-- Table Header -->
+            <div class="table-header">
+                <span>Imagen</span>
+                <span>Nombre</span>
+                <span>Categoría</span>
+                <span>Precio</span>
+                <span>Estado</span>
+                <span>Stock</span>
+                <span>Acciones</span>
+            </div>
+
+            <!-- Table Rows -->
+            <div class="table-row" *ngFor="let producto of filteredProducts">
+                <div class="cell">
+                    <img [src]="producto.imgURL" [alt]="producto.nombre" class="product-img">
+                </div>
+                <div class="cell">
+                    <div class="product-name">{{ producto.nombre }}</div>
+                </div>
+                <div class="cell">
+                    <div class="product-category">{{ producto.categoria }}</div>
+                </div>
+                <div class="cell">
+                    <div class="product-price">${{ producto.precio | number:'1.0-0' }}</div>
+                </div>
+                <div class="cell">
+                    <div class="status-badges">
+                        <span class="status status--nuevo" *ngIf="producto.nuevo">Nuevo</span>
+                        <span class="status status--popular" *ngIf="producto.popular">Popular</span>
+                        <span class="status status--activo" *ngIf="producto.activo">Activo</span>
+                    </div>
+                </div>
+                <div class="cell">
+                    <div class="stock-count" 
+                         [class.stock-low]="producto.stock <= 10"
+                         [class.stock-medium]="producto.stock > 10 && producto.stock <= 25"
+                         [class.stock-high]="producto.stock > 25">
+                        {{ producto.stock }}
+                    </div>
+                </div>
+                <div class="cell">
+                    <div class="actions-cell">
+                        <button class="btn-action btn-edit" 
+                                (click)="openEditModal(producto)"
+                                title="Editar producto">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" 
+                                (click)="deleteProduct(producto.id)"
+                                title="Eliminar producto">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="filteredProducts.length === 0">
+                <i class="fas fa-hamburger"></i>
+                <h3>No hay productos</h3>
+                <p>No se encontraron productos que coincidan con tu búsqueda.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal para Crear/Editar Producto -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content modal-form" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ isEditMode ? 'Editar Producto' : 'Crear Nuevo Producto' }}</h2>
+            <button class="btn-close" (click)="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="modal-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre del Producto</label>
+                    <input 
+                        type="text" 
+                        id="nombre" 
+                        formControlName="nombre"
+                        class="form-input"
+                        placeholder="Ej: Hamburguesa Classic">
+                    <div class="error-message" *ngIf="productForm.get('nombre')?.invalid && productForm.get('nombre')?.touched">
+                        El nombre es requerido
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoria">Categoría</label>
+                    <select id="categoria" formControlName="categoria" class="form-select">
+                        <option value="">Seleccionar categoría</option>
+                        <option value="hamburguesa">Hamburguesa</option>
+                        <option value="perro caliente">Perro Caliente</option>
+                        <option value="acompañamiento">Acompañamiento</option>
+                        <option value="bebida">Bebida</option>
+                    </select>
+                    <div class="error-message" *ngIf="productForm.get('categoria')?.invalid && productForm.get('categoria')?.touched">
+                        La categoría es requerida
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea 
+                    id="descripcion" 
+                    formControlName="descripcion"
+                    class="form-textarea"
+                    placeholder="Describe el producto..."
+                    rows="3"></textarea>
+                <div class="error-message" *ngIf="productForm.get('descripcion')?.invalid && productForm.get('descripcion')?.touched">
+                    La descripción es requerida
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="precio">Precio ($)</label>
+                    <input 
+                        type="number" 
+                        id="precio" 
+                        formControlName="precio"
+                        class="form-input"
+                        placeholder="0"
+                        min="0">
+                    <div class="error-message" *ngIf="productForm.get('precio')?.invalid && productForm.get('precio')?.touched">
+                        El precio debe ser mayor a 0
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stock">Stock</label>
+                    <input 
+                        type="number" 
+                        id="stock" 
+                        formControlName="stock"
+                        class="form-input"
+                        placeholder="0"
+                        min="0">
+                    <div class="error-message" *ngIf="productForm.get('stock')?.invalid && productForm.get('stock')?.touched">
+                        El stock debe ser mayor o igual a 0
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="imgURL">URL de la Imagen</label>
+                <input 
+                    type="url" 
+                    id="imgURL" 
+                    formControlName="imgURL"
+                    class="form-input"
+                    placeholder="https://ejemplo.com/imagen.jpg">
+                <div class="error-message" *ngIf="productForm.get('imgURL')?.invalid && productForm.get('imgURL')?.touched">
+                    La URL de la imagen es requerida
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="ingredientes">Ingredientes (separados por coma)</label>
+                <input 
+                    type="text" 
+                    id="ingredientes" 
+                    formControlName="ingredientes"
+                    class="form-input"
+                    placeholder="Carne, Lechuga, Tomate, Cebolla">
+            </div>
+            
+            <div class="form-row checkbox-row">
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" formControlName="nuevo" class="checkbox-input">
+                        <span class="checkbox-custom"></span>
+                        Producto Nuevo
+                    </label>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" formControlName="popular" class="checkbox-input">
+                        <span class="checkbox-custom"></span>
+                        Producto Popular
+                    </label>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" formControlName="activo" class="checkbox-input">
+                        <span class="checkbox-custom"></span>
+                        Producto Activo
+                    </label>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" (click)="closeModal()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-save" [disabled]="productForm.invalid">
+                    {{ isEditMode ? 'Actualizar' : 'Crear' }} Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

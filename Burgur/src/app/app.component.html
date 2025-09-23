@@ -1,1 +1,142 @@
-<h1>HOLI</h1>
+<!-- Pantalla de carga -->
+<div class="loader" id="loader">
+    <div class="loader-content">
+        <div class="loader-burger">
+            <i class="fas fa-hamburger"></i>
+        </div>
+        <p class="loader-text">Cargando sabores...</p>
+    </div>
+</div>
+
+<!-- Cart Component -->
+<app-cart></app-cart>
+
+<!-- Header -->
+<header class="site-header" id="header">
+    <div class="container header-container">
+        <a href="" class="logo">
+            <div class="logo-icon-wrapper">
+                <img src="assets/images/Logo.png" alt="Burger Club Logo" class="logo-icon">
+            </div>
+            <span class="logo-text">BURGER CLUB</span>
+        </a>
+        <nav class="main-nav" id="mainNav">
+           <ul>
+                <li><a href="#hero" class="nav-link active">Inicio</a></li>
+                <li><a href="/menu" class="nav-link">Menú</a></li>
+                <li><a href="/auth/login" class="nav-link auth-link" id="loginLink">Iniciar Sesión</a></li>
+                <li><a href="/auth/register" class="nav-link auth-link" id="registerLink">Registrarse</a></li>
+                <li>
+                    <button class="cart-link" id="cartBtn" (click)="toggleCart()">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Carrito</span>
+                        <span class="cart-count" id="cartCount">{{cartItemCount}}</span>
+                    </button>
+                </li>
+            </ul>
+       </nav>
+        <div class="location-info" id="locationBtn">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Encuéntranos acá</span>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Abrir menú de navegación móvil" aria-expanded="false">
+            <span class="hamburger-icon"></span>
+        </button>
+    </div>
+</header>
+
+<!-- Mobile Menu -->
+<nav class="mobile-menu" id="mobileMenu">
+   <ul>
+        <li><a href="#hero" class="mobile-nav-link">Inicio</a></li>
+        <li><a href="/menu" class="mobile-nav-link">Menú</a></li>
+        <li><a href="/auth/login" class="mobile-nav-link mobile-auth-link">Iniciar Sesión</a></li>
+        <li><a href="/auth/register" class="mobile-nav-link mobile-auth-link">Registrarse</a></li>
+        <li><a href="#" class="mobile-nav-link" id="mobileCartLink">Carrito</a></li>
+        <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
+    </ul>
+</nav>
+<div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+<router-outlet></router-outlet>
+
+<!-- Footer -->
+<footer id="footer" class="site-footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <img src="assets/images/Logo.png" alt="Burger Club" class="footer-logo-img">
+                    <h3>Burger Club</h3>
+                </div>
+                <p>Las mejores hamburguesas gourmet de la ciudad. Cada ingrediente cuenta una historia.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <ul class="footer-links">
+                    <li><a href="#hero">Inicio</a></li>
+                    <li><a href="/menu">Menú</a></li>
+                    <li><a href="#about">Sobre Nosotros</a></li>
+                    <li><a href="#footer">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <div class="contact-info">
+                    <p><i class="fas fa-phone"></i> +57 123 456 7890</p>
+                    <p><i class="fas fa-envelope"></i> info@burgerclub.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Carrera 13 #85-32, Bogotá, Colombia</p>
+                    <p><i class="fas fa-clock"></i> Lun - Dom: 11:00 - 23:00</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-social">
+            <h3 class="follow-us">¡Síguenos!</h3>
+            <div class="social-links">
+                <a href="#" class="social-link" aria-label="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                    <span>Facebook</span>
+                </a>
+                <a href="#" class="social-link" aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                    <span>Instagram</span>
+                </a>
+                <a href="#" class="social-link" aria-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                    <span>Twitter</span>
+                </a>
+                <a href="#" class="social-link" aria-label="WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
+            <div class="footer-bottom-links">
+                <a href="#">Términos y Condiciones</a>
+                <a href="#">Política de Privacidad</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Cart Modal -->
+<div class="cart-modal" id="cartModal">
+    <div class="cart-modal-content">
+        <div class="cart-modal-header">
+            <h2>Tu Carrito</h2>
+            <button class="cart-close" id="cartClose">&times;</button>
+        </div>
+        <div class="cart-modal-body" id="cartItems">
+            <p class="empty-cart">Tu carrito está vacío</p>
+        </div>
+        <div class="cart-modal-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">$0</span>
+            </div>
+            <button class="btn-checkout">Proceder al Pago</button>
+        </div>
+    </div>
+</div>

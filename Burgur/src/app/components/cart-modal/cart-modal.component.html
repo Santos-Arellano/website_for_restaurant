@@ -1,0 +1,67 @@
+<div class="cart-modal" [class.show]="isOpen" (click)="closeCart()">
+  <div class="cart-modal-content" (click)="$event.stopPropagation()">
+    <div class="cart-modal-header">
+      <h2>Tu Carrito</h2>
+      <button class="cart-close" (click)="closeCart()">&times;</button>
+    </div>
+    
+    <div class="cart-modal-body">
+      <div *ngIf="cartItems.length === 0" class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <p>Tu carrito está vacío</p>
+        <p class="empty-cart-subtitle">¡Agrega algunos productos deliciosos!</p>
+      </div>
+      
+      <div *ngFor="let item of cartItems; trackBy: trackByItem" class="cart-item">
+        <img [src]="item.imgURL" [alt]="item.nombre" class="cart-item-image">
+        <div class="cart-item-details">
+          <h4>{{item.nombre}}</h4>
+          <p class="cart-item-price">{{formatPrice(item.precio)}}</p>
+          <div *ngIf="hasAdicionales(item)" class="cart-item-extras">
+            <small>Adicionales: {{getAdicionalesText(item)}}</small>
+          </div>
+          <div class="cart-item-quantity">
+            <button 
+              class="quantity-btn decrease" 
+              (click)="decreaseQuantity(item.id)"
+              [disabled]="item.quantity <= 1"
+            >-</button>
+            <span class="quantity-display">{{item.quantity}}</span>
+            <button 
+              class="quantity-btn increase" 
+              (click)="increaseQuantity(item.id)"
+            >+</button>
+          </div>
+        </div>
+        <button (click)="removeItem(item.id)" class="remove-item" title="Eliminar producto">×</button>
+      </div>
+    </div>
+    
+    <div class="cart-modal-footer" *ngIf="cartItems.length > 0">
+      <div class="cart-actions">
+        <button class="btn-clear-cart" (click)="clearCart()">
+          <i class="fas fa-trash"></i>
+          Limpiar Carrito
+        </button>
+      </div>
+      
+      <div class="cart-total">
+        <div class="total-breakdown">
+          <div class="total-line">
+            <span>Subtotal ({{cartItems.length}} productos):</span>
+            <span>{{formatPrice(cartTotal)}}</span>
+          </div>
+          <div class="total-line total-final">
+            <span>Total:</span>
+            <span>{{formatPrice(cartTotal)}}</span>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn-checkout" (click)="checkout()">
+        <i class="fas fa-credit-card"></i>
+        Proceder al Pago
+      </button>
+    </div>
+  </div>
+</div>

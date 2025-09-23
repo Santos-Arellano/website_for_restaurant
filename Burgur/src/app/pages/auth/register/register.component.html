@@ -1,0 +1,150 @@
+<!-- Auth Section -->
+<section class="auth-section">
+  <div class="auth-background"></div>
+  
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <h1 class="auth-title">Crear Cuenta</h1>
+      <p class="auth-subtitle">Únete a la familia Burger Club</p>
+    </div>
+    
+    <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">Nombre <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="nombre" 
+            formControlName="nombre" 
+            placeholder="Tu nombre" 
+            maxlength="100"
+            [class.error]="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched">
+          <div class="error-message" *ngIf="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched">
+            <span *ngIf="registerForm.get('nombre')?.errors?.['required']">El nombre es requerido</span>
+            <span *ngIf="registerForm.get('nombre')?.errors?.['maxlength']">El nombre no puede exceder 100 caracteres</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="apellido">Apellido</label>
+          <input 
+            type="text" 
+            id="apellido" 
+            formControlName="apellido" 
+            placeholder="Tu apellido" 
+            maxlength="100"
+            [class.error]="registerForm.get('apellido')?.invalid && registerForm.get('apellido')?.touched">
+          <div class="error-message" *ngIf="registerForm.get('apellido')?.invalid && registerForm.get('apellido')?.touched">
+            <span *ngIf="registerForm.get('apellido')?.errors?.['maxlength']">El apellido no puede exceder 100 caracteres</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Correo Electrónico <span class="required">*</span></label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email" 
+          placeholder="tu@ejemplo.com" 
+          maxlength="150"
+          [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+        <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          <span *ngIf="registerForm.get('email')?.errors?.['required']">El correo es requerido</span>
+          <span *ngIf="registerForm.get('email')?.errors?.['email']">Ingresa un correo válido</span>
+          <span *ngIf="registerForm.get('email')?.errors?.['maxlength']">El correo no puede exceder 150 caracteres</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <input 
+          type="tel" 
+          id="telefono" 
+          formControlName="telefono" 
+          placeholder="+57 123 456 7890"
+          [class.error]="registerForm.get('telefono')?.invalid && registerForm.get('telefono')?.touched">
+        <div class="error-message" *ngIf="registerForm.get('telefono')?.invalid && registerForm.get('telefono')?.touched">
+          <span *ngIf="registerForm.get('telefono')?.errors?.['pattern']">Formato de teléfono inválido</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="direccion">Dirección</label>
+        <textarea 
+          id="direccion" 
+          formControlName="direccion" 
+          rows="2" 
+          placeholder="Tu dirección completa" 
+          maxlength="200"
+          [class.error]="registerForm.get('direccion')?.invalid && registerForm.get('direccion')?.touched">
+        </textarea>
+        <div class="error-message" *ngIf="registerForm.get('direccion')?.invalid && registerForm.get('direccion')?.touched">
+          <span *ngIf="registerForm.get('direccion')?.errors?.['maxlength']">La dirección no puede exceder 200 caracteres</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Contraseña <span class="required">*</span></label>
+        <input 
+          type="password" 
+          id="password" 
+          formControlName="password" 
+          placeholder="Mínimo 8 caracteres" 
+          minlength="8" 
+          maxlength="64"
+          (input)="onPasswordChange()"
+          [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+        <div class="password-strength" *ngIf="registerForm.get('password')?.value">
+          <div class="strength-bar">
+            <div class="strength-fill" [ngClass]="passwordStrength.class" [style.width.%]="passwordStrength.width"></div>
+          </div>
+          <span class="strength-text">{{ passwordStrength.text }}</span>
+        </div>
+        <div class="error-message" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          <span *ngIf="registerForm.get('password')?.errors?.['required']">La contraseña es requerida</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['minlength']">La contraseña debe tener al menos 8 caracteres</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['maxlength']">La contraseña no puede exceder 64 caracteres</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="confirmPassword">Confirmar Contraseña <span class="required">*</span></label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          formControlName="confirmPassword" 
+          placeholder="Repite tu contraseña"
+          [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+        <div class="error-message" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+          <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Confirma tu contraseña</span>
+          <span *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">Las contraseñas no coinciden</span>
+        </div>
+      </div>
+      
+      <!-- General error message -->
+      <div class="error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+      
+      <button 
+        type="submit" 
+        class="btn-auth" 
+        [disabled]="registerForm.invalid || isLoading">
+        <span class="loading-spinner" *ngIf="isLoading"></span>
+        <span>{{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}</span>
+      </button>
+    </form>
+    
+    <div class="auth-divider">
+      <span>¿Ya tienes cuenta?</span>
+    </div>
+    
+    <div class="auth-link">
+      <a routerLink="/auth/login">Iniciar sesión aquí</a>
+    </div>
+  </div>
+</section>

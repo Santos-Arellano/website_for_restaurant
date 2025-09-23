@@ -1,0 +1,214 @@
+<!-- Profile Section -->
+<section class="profile-section">
+  <div class="auth-background"></div>
+  
+  <div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <h1 class="profile-title">Mi Perfil</h1>
+      <p class="profile-subtitle">Hola, {{ currentUser?.nombre }}! Gestiona tu información personal</p>
+    </div>
+    
+    <!-- Profile Tabs -->
+    <div class="profile-tabs">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'info'"
+        (click)="setActiveTab('info')">
+        Información Personal
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'security'"
+        (click)="setActiveTab('security')">
+        Seguridad
+      </button>
+      <button 
+        class="tab-button danger" 
+        [class.active]="activeTab === 'delete'"
+        (click)="setActiveTab('delete')">
+        Eliminar Cuenta
+      </button>
+    </div>
+    
+    <!-- Tab Content: Información Personal -->
+    <div class="tab-content" [class.active]="activeTab === 'info'" *ngIf="activeTab === 'info'">
+      <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nombre">Nombre <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="nombre" 
+              formControlName="nombre" 
+              maxlength="50"
+              [class.error]="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched">
+            <div class="error-message" *ngIf="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched">
+              <span *ngIf="profileForm.get('nombre')?.errors?.['required']">El nombre es requerido</span>
+              <span *ngIf="profileForm.get('nombre')?.errors?.['maxlength']">El nombre no puede exceder 50 caracteres</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="apellido">Apellido</label>
+            <input 
+              type="text" 
+              id="apellido" 
+              formControlName="apellido" 
+              maxlength="50">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Correo Electrónico <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email" 
+            maxlength="100"
+            [class.error]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+          <div class="error-message" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+            <span *ngIf="profileForm.get('email')?.errors?.['required']">El correo es requerido</span>
+            <span *ngIf="profileForm.get('email')?.errors?.['email']">Ingresa un correo válido</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="telefono">Teléfono</label>
+          <input 
+            type="tel" 
+            id="telefono" 
+            formControlName="telefono" 
+            maxlength="20">
+        </div>
+        
+        <div class="form-group">
+          <label for="direccion">Dirección</label>
+          <textarea 
+            id="direccion" 
+            formControlName="direccion" 
+            rows="2" 
+            maxlength="200">
+          </textarea>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="btn-profile" 
+          [disabled]="profileForm.invalid || isUpdatingProfile">
+          <span class="loading-spinner" *ngIf="isUpdatingProfile"></span>
+          <span>{{ isUpdatingProfile ? 'Actualizando...' : 'Actualizar Información' }}</span>
+        </button>
+      </form>
+    </div>
+    
+    <!-- Tab Content: Seguridad -->
+    <div class="tab-content" [class.active]="activeTab === 'security'" *ngIf="activeTab === 'security'">
+      <form class="profile-form" [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+        <div class="security-info">
+          <i class="fas fa-shield-alt"></i>
+          <h3>Cambiar Contraseña</h3>
+          <p>Mantén tu cuenta segura actualizando tu contraseña regularmente</p>
+        </div>
+        
+        <div class="form-group">
+          <label for="newPassword">Nueva Contraseña <span class="required">*</span></label>
+          <input 
+            type="password" 
+            id="newPassword" 
+            formControlName="newPassword" 
+            placeholder="Mínimo 8 caracteres" 
+            minlength="8" 
+            maxlength="64" 
+            autocomplete="new-password"
+            [class.error]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+          <div class="password-strength" *ngIf="passwordForm.get('newPassword')?.value">
+            <div class="strength-bar">
+              <div class="strength-fill" [style.width.%]="passwordStrength"></div>
+            </div>
+            <span class="strength-text">{{ getPasswordStrengthText() }}</span>
+          </div>
+          <div class="error-message" *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+            <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']">La contraseña es requerida</span>
+            <span *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">La contraseña debe tener al menos 8 caracteres</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="confirmNewPassword">Confirmar Nueva Contraseña <span class="required">*</span></label>
+          <input 
+            type="password" 
+            id="confirmNewPassword" 
+            formControlName="confirmNewPassword" 
+            placeholder="Repite tu nueva contraseña" 
+            autocomplete="new-password"
+            [class.error]="passwordForm.get('confirmNewPassword')?.invalid && passwordForm.get('confirmNewPassword')?.touched">
+          <div class="error-message" *ngIf="passwordForm.get('confirmNewPassword')?.invalid && passwordForm.get('confirmNewPassword')?.touched">
+            <span *ngIf="passwordForm.get('confirmNewPassword')?.errors?.['required']">Confirma tu contraseña</span>
+            <span *ngIf="passwordForm.get('confirmNewPassword')?.errors?.['mismatch']">Las contraseñas no coinciden</span>
+          </div>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="btn-profile" 
+          [disabled]="passwordForm.invalid || isUpdatingPassword">
+          <span class="loading-spinner" *ngIf="isUpdatingPassword"></span>
+          <span>{{ isUpdatingPassword ? 'Cambiando...' : 'Cambiar Contraseña' }}</span>
+        </button>
+      </form>
+    </div>
+    
+    <!-- Tab Content: Eliminar Cuenta -->
+    <div class="tab-content" [class.active]="activeTab === 'delete'" *ngIf="activeTab === 'delete'">
+      <div class="danger-zone">
+        <div class="danger-header">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Zona Peligrosa</h3>
+          <p>Esta acción no se puede deshacer. Tu cuenta será desactivada permanentemente.</p>
+        </div>
+        
+        <form class="profile-form" [formGroup]="deleteForm" (ngSubmit)="deleteAccount()">
+          <div class="form-group">
+            <label for="deletePassword">Confirma tu contraseña para eliminar la cuenta <span class="required">*</span></label>
+            <input 
+              type="password" 
+              id="deletePassword" 
+              formControlName="deletePassword" 
+              placeholder="Tu contraseña actual" 
+              autocomplete="current-password"
+              [class.error]="deleteForm.get('deletePassword')?.invalid && deleteForm.get('deletePassword')?.touched">
+            <div class="error-message" *ngIf="deleteForm.get('deletePassword')?.invalid && deleteForm.get('deletePassword')?.touched">
+              <span *ngIf="deleteForm.get('deletePassword')?.errors?.['required']">La contraseña es requerida</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="checkbox-label" for="confirmDelete">
+              <input 
+                type="checkbox" 
+                id="confirmDelete" 
+                formControlName="confirmDelete">
+              <span class="checkmark"></span>
+              Entiendo que esta acción eliminará permanentemente mi cuenta
+            </label>
+            <div class="error-message" *ngIf="deleteForm.get('confirmDelete')?.invalid && deleteForm.get('confirmDelete')?.touched">
+              <span *ngIf="deleteForm.get('confirmDelete')?.errors?.['required']">Debes confirmar la eliminación</span>
+            </div>
+          </div>
+          
+          <button 
+            type="submit" 
+            class="btn-danger" 
+            [disabled]="deleteForm.invalid || isDeletingAccount">
+            <span class="loading-spinner" *ngIf="isDeletingAccount"></span>
+            <span>{{ isDeletingAccount ? 'Eliminando...' : 'Eliminar Mi Cuenta' }}</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

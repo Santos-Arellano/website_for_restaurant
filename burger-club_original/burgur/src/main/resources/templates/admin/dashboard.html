@@ -1,0 +1,247 @@
+<!-- ==========================================
+     ARCHIVO: src/main/resources/templates/admin/dashboard.html
+     ========================================== -->
+     <!DOCTYPE html>
+     <html lang="es" xmlns:th="http://www.thymeleaf.org">
+     <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Dashboard Administrativo | Burger Club</title>
+         
+         <!-- Favicon -->
+         <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
+         
+         <!-- Google Fonts -->
+         <link rel="preconnect" href="https://fonts.googleapis.com">
+         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+         <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+         
+         <!-- Font Awesome -->
+         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+         
+         <!-- Main CSS -->
+         <link rel="stylesheet" th:href="@{/css/main.css}">
+         
+         <!-- Admin CSS -->
+         <link th:href="@{/css/components/admin-dashboard.css}" rel="stylesheet">
+         
+         <!-- Ensure footer styles are applied -->
+         <link th:href="@{/css/components/footer.css}" rel="stylesheet">
+     </head>
+     <body>
+         <!-- Header -->
+         <header class="site-header">
+             <div class="container header-container">
+                 <a th:href="@{/}" class="logo">
+                     <div class="logo-icon-wrapper">
+                         <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                     </div>
+                     <span class="logo-text">BURGER CLUB</span>
+                 </a>
+     
+                 <nav class="main-nav">
+                    <ul>
+                        <li><a th:href="@{/}">Inicio</a></li>
+                        <li><a th:href="@{/menu}">Menú</a></li>
+                        <li><a th:href="@{/admin/dashboard}" class="admin-nav">Dashboard</a></li>
+                        <li><a th:href="@{/admin/productos}">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                        <li><a th:href="@{/admin/domiciliarios}">Domiciliarios</a></li>
+                    </ul>
+                </nav>
+             </div>
+         </header>
+     
+         <!-- Dashboard Main -->
+         <main class="dashboard-section">
+             <div class="container">
+                 <!-- Header -->
+                 <div class="dashboard-header">
+                     <h1 class="dashboard-title">Panel de Administración</h1>
+                     <p class="dashboard-subtitle">Gestiona tu restaurante desde un solo lugar</p>
+                 </div>
+     
+                 <!-- Estadísticas principales -->
+                 <div class="stats-grid">
+                     <div class="stat-card productos">
+                         <i class="fas fa-hamburger stat-icon"></i>
+                         <div class="stat-number" th:text="${totalProductos ?: 0}">0</div>
+                         <div class="stat-label">Productos Totales</div>
+                     </div>
+     
+                     <div class="stat-card clientes">
+                         <i class="fas fa-users stat-icon"></i>
+                         <div class="stat-number" th:text="${totalClientes ?: 0}">0</div>
+                         <div class="stat-label">Clientes Registrados</div>
+                     </div>
+     
+                     <div class="stat-card adicionales">
+                         <i class="fas fa-plus-circle stat-icon"></i>
+                         <div class="stat-number" th:text="${totalAdicionales ?: 0}">0</div>
+                         <div class="stat-label">Adicionales Disponibles</div>
+                     </div>
+     
+                     <div class="stat-card alertas">
+                         <i class="fas fa-exclamation-triangle stat-icon"></i>
+                         <div class="stat-number" th:text="${stockBajo ?: 0}">0</div>
+                         <div class="stat-label">Productos Stock Bajo</div>
+                     </div>
+                 </div>
+     
+                 <!-- Acciones rápidas -->
+                <div class="quick-actions">
+                    <a th:href="@{/menu/admin}" class="action-btn">
+                        <i class="fas fa-hamburger"></i>
+                        <span>Gestionar Productos</span>
+                    </a>
+                    
+                    <a th:href="@{/admin/clientes}" class="action-btn">
+                        <i class="fas fa-users"></i>
+                        <span>Gestionar Clientes</span>
+                    </a>
+                    
+                    <a th:href="@{/admin/adicionales}" class="action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Gestionar Adicionales</span>
+                    </a>
+                    
+                    <a th:href="@{/admin/domiciliarios}" class="action-btn">
+                        <i class="fas fa-motorcycle"></i>
+                        <span>Gestionar Domiciliarios</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn" onclick="updateAdicionales()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Actualizar Relaciones</span>
+                    </a>
+                </div>
+     
+                 <!-- Información del sistema -->
+                 <div class="system-info">
+                     <!-- Estado del Sistema -->
+                     <div class="info-section">
+                         <h3><i class="fas fa-server"></i> Estado del Sistema</h3>
+                         <div class="status-grid">
+                             <div class="status-item">
+                                 <div class="status-indicator"></div>
+                                 <div class="status-label">Base de Datos</div>
+                                 <div class="status-value">Conectada</div>
+                             </div>
+                             
+
+                             
+                             <div class="status-item">
+                                 <div class="status-indicator warning" th:if="${stockBajo > 0}"></div>
+                                 <div class="status-indicator" th:unless="${stockBajo > 0}"></div>
+                                 <div class="status-label">Inventario</div>
+                                 <div class="status-value" th:text="${stockBajo > 0} ? 'Atención Requerida' : 'Normal'">Normal</div>
+                             </div>
+                             
+                             <div class="status-item">
+                                 <div class="status-indicator"></div>
+                                 <div class="status-label">Adicionales</div>
+                                 <div class="status-value">Sincronizados</div>
+                             </div>
+                         </div>
+     
+                         <button class="update-btn" onclick="updateAdicionales()">
+                             <i class="fas fa-sync-alt"></i>
+                             Actualizar Relaciones Adicionales
+                         </button>
+                     </div>
+     
+                     <!-- Actividad Reciente -->
+                     <div class="info-section">
+                         <h3><i class="fas fa-clock"></i> Actividad del Sistema</h3>
+                         <div class="activity-list">
+                             <div class="activity-item">
+                                 <div class="activity-icon success">
+                                     <i class="fas fa-check"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     Sistema iniciado correctamente con <span th:text="${totalProductos ?: 0}">0</span> productos
+                                 </div>
+                                 <div class="activity-time">Inicio</div>
+                             </div>
+                             
+                             <div class="activity-item" th:if="${stockBajo > 0}">
+                                 <div class="activity-icon warning">
+                                     <i class="fas fa-exclamation-triangle"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     <span th:text="${stockBajo}">0</span> productos con stock bajo requieren atención
+                                 </div>
+                                 <div class="activity-time">Revisar</div>
+                             </div>
+                             
+                             <div class="activity-item">
+                                 <div class="activity-icon info">
+                                     <i class="fas fa-users"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     <span th:text="${clientesActivos ?: 0}">0</span> clientes activos registrados
+                                 </div>
+                                 <div class="activity-time">Total</div>
+                             </div>
+     
+                             <div class="activity-item">
+                                 <div class="activity-icon success">
+                                     <i class="fas fa-plus-circle"></i>
+                                 </div>
+                                 <div class="activity-text">
+                                     <span th:text="${adicionalesActivos ?: 0}">0</span> adicionales disponibles
+                                 </div>
+                                 <div class="activity-time">Activos</div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </main>
+     
+         <!-- Footer -->
+        <footer class="site-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <div class="footer-logo">
+                            <img th:src="@{/images/Logo.png}" alt="Burger Club" class="footer-logo-img">
+                            <h3>Burger Club Admin</h3>
+                        </div>
+                        <p>Panel de administración para la gestión completa del restaurante.</p>
+                    </div>
+                    <div class="footer-section">
+                    <h3>Gestión</h3>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                        <li><a th:href="@{/admin/productos}">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                        <li><a th:href="@{/admin/domiciliarios}">Domiciliarios</a></li>
+                    </ul>
+                </div>
+                    <div class="footer-section">
+                        <h3>Sistema</h3>
+                        <div class="contact-info">
+                            <p><i class="fas fa-server"></i> Sistema v1.0</p>
+                            <p><i class="fas fa-database"></i> Base de datos activa</p>
+                            <p><i class="fas fa-shield-alt"></i> Acceso seguro</p>
+                            <p><i class="fas fa-clock"></i> Última actualización: Hoy</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 Burger Club. Panel Administrativo - Todos los derechos reservados.</p>
+                    <div class="footer-bottom-links">
+                        <a th:href="@{/}">Volver al sitio</a>
+                        <a href="#">Soporte técnico</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+     
+         <!-- JavaScript -->
+         <script th:src="@{/js/Modules/admin/admin-dashboard.js}" defer></script>
+     </body>
+     </html>

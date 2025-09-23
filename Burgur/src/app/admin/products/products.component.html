@@ -1,0 +1,359 @@
+<!-- Header -->
+<header class="site-header">
+  <div class="container header-container">
+    <a routerLink="/" class="logo">
+      <div class="logo-icon-wrapper">
+        <img src="/assets/images/Logo.png" alt="Burger Club Logo" class="logo-icon">
+      </div>
+      <span class="logo-text">BURGER CLUB</span>
+    </a>
+
+    <nav class="main-nav">
+      <ul>
+        <li><a routerLink="/">Inicio</a></li>
+        <li><a routerLink="/menu">Menú</a></li>
+        <li><a routerLink="/admin/dashboard">Dashboard</a></li>
+        <li><a routerLink="/admin/products" class="admin-nav">Productos</a></li>
+        <li><a routerLink="/admin/adicionales">Adicionales</a></li>
+        <li><a routerLink="/admin/clientes">Clientes</a></li>
+        <li><a routerLink="/admin/domiciliarios">Domiciliarios</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Admin Products Section -->
+<section class="admin-products-section">
+  <div class="container">
+    <!-- Header -->
+    <div class="admin-header">
+      <h1 class="admin-title">Administración de Productos</h1>
+      <p class="admin-subtitle">Gestiona el catálogo de productos del restaurante</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ stats.total }}</div>
+          <div class="stat-label">Total Productos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ stats.activos }}</div>
+          <div class="stat-label">Productos Activos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ categories.length }}</div>
+          <div class="stat-label">Categorías</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ stats.stockBajo }}</div>
+          <div class="stat-label">Stock Bajo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="search-bar">
+      <div class="search-controls">
+        <div class="search-input-group">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            class="search-input" 
+            [(ngModel)]="searchTerm"
+            (input)="filterProducts()"
+            placeholder="Buscar productos...">
+        </div>
+        <div class="filter-controls">
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedCategory"
+            (change)="onCategoryChange()">
+            <option value="all">Todas las categorías</option>
+            <option *ngFor="let category of categories" [value]="category">{{ category | titlecase }}</option>
+          </select>
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()">
+            <option value="all">Todos los estados</option>
+            <option value="available">Disponibles</option>
+            <option value="unavailable">No disponibles</option>
+          </select>
+          <button class="btn-add-product" (click)="openFormModal()">
+            <i class="fas fa-plus"></i>
+            Agregar Producto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" id="productsGrid">
+      <!-- Product Cards -->
+      <div class="product-card" *ngFor="let product of filteredProducts" [attr.data-product-id]="product.id">
+        <div class="product-image">
+          <img *ngIf="product.imgURL" [src]="product.imgURL" [alt]="product.nombre" (error)="onImageError($event)" />
+          <i *ngIf="!product.imgURL" class="fas fa-hamburger"></i>
+        </div>
+        <div class="card-content">
+          <h3 class="product-name">{{ product.nombre }}</h3>
+          <p class="product-category">{{ product.categoria | titlecase }}</p>
+          <div class="product-price">{{ formatPrice(product.precio) }}</div>
+          
+          <div class="product-details">
+            <div class="detail-item">
+              <span>Nuevo:</span>
+              <span class="badge-value">{{ product.nuevo ? 'Sí' : 'No' }}</span>
+            </div>
+            <div class="detail-item">
+              <span>Popular:</span>
+              <span class="badge-value">{{ product.popular ? 'Sí' : 'No' }}</span>
+            </div>
+          </div>
+          
+          <div class="product-badges">
+            <span *ngFor="let badge of getProductBadges(product)" 
+                  class="product-badge" 
+                  [class]="'badge-' + badge">{{ badge | titlecase }}</span>
+          </div>
+          
+          <div class="product-actions">
+            <button class="btn-action btn-edit" (click)="openFormModal(product)">
+              <i class="fas fa-edit"></i>
+              Editar
+            </button>
+            <button class="btn-action btn-delete" (click)="deleteProduct(product)">
+              <i class="fas fa-trash"></i>
+              Eliminar
+            </button>
+            <button class="btn-action btn-details" (click)="openDetailsModal(product)">
+              <i class="fas fa-info-circle"></i>
+              Detalles
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" *ngIf="filteredProducts.length === 0">
+      <i class="fas fa-box-open"></i>
+      <h3>No hay productos</h3>
+      <p>No se encontraron productos que coincidan con los filtros seleccionados.</p>
+      <button class="btn-add-product" (click)="openFormModal()">
+        <i class="fas fa-plus"></i>
+        Agregar Primer Producto
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal de Detalles -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+  <div class="modal-content modal-form" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Detalles del Producto</h2>
+      <button class="btn-close" (click)="closeDetailsModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedProduct">
+      <div class="product-detail-grid">
+        <div class="product-image-detail">
+          <img [src]="selectedProduct.imgURL || '/assets/images/placeholder.jpg'" 
+               [alt]="selectedProduct.nombre">
+        </div>
+        
+        <div class="product-info-detail">
+          <h3>{{ selectedProduct.nombre }}</h3>
+          <p class="category">{{ selectedProduct.categoria | titlecase }}</p>
+          <p class="price">{{ formatPrice(selectedProduct.precio) }}</p>
+          <p class="description">{{ selectedProduct.descripcion }}</p>
+          
+          <div class="detail-stats">
+            <div class="stat-item">
+              <span class="label">Nuevo:</span>
+              <span class="value">{{ selectedProduct.nuevo ? 'Sí' : 'No' }}</span>
+            </div>
+            
+            <div class="stat-item">
+              <span class="label">Popular:</span>
+              <span class="value">{{ selectedProduct.popular ? 'Sí' : 'No' }}</span>
+            </div>
+          </div>
+          
+          <div class="product-badges-detail">
+            <span *ngFor="let badge of getProductBadges(selectedProduct)" 
+                  class="badge" 
+                  [class]="'badge-' + badge">{{ badge }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDetailsModal()">Cerrar</button>
+        <button class="btn btn-primary" (click)="selectedProduct && openFormModal(selectedProduct); closeDetailsModal()">
+          <i class="fas fa-edit"></i>
+          Editar
+        </button>
+      </div>
+  </div>
+</div>
+
+<!-- Modal de Formulario -->
+<div class="modal-overlay" *ngIf="showFormModal" (click)="closeFormModal()">
+  <div class="modal-content modal-form" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="fas fa-hamburger" *ngIf="!isEditing"></i>
+        <i class="fas fa-edit" *ngIf="isEditing"></i>
+        {{ isEditing ? 'Editar Producto' : 'Nuevo Producto' }}
+      </h2>
+      <button class="btn-close" (click)="closeFormModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form class="product-form" (ngSubmit)="saveProduct()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="productName">Nombre del Producto</label>
+            <input 
+              type="text" 
+              id="productName"
+              [(ngModel)]="productForm.nombre"
+              name="productName"
+              class="form-control"
+              placeholder="Ingrese el nombre del producto"
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label for="productCategory">Categoría</label>
+            <select 
+              id="productCategory"
+              [(ngModel)]="productForm.categoria"
+              name="productCategory"
+              class="form-control"
+              required>
+              <option value="">Seleccione una categoría</option>
+              <option *ngFor="let category of categories" [value]="category">
+                {{ category | titlecase }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="productPrice">Precio</label>
+            <input 
+              type="number" 
+              id="productPrice"
+              [(ngModel)]="productForm.precio"
+              name="productPrice"
+              class="form-control"
+              placeholder="0"
+              min="0"
+              step="100"
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <input 
+                type="checkbox" 
+                [(ngModel)]="productForm.nuevo"
+                name="productNuevo"
+                class="form-check-input me-2">
+              Producto Nuevo
+            </label>
+          </div>
+          
+          <div class="form-group">
+            <label>
+              <input 
+                type="checkbox" 
+                [(ngModel)]="productForm.popular"
+                name="productPopular"
+                class="form-check-input me-2">
+              Producto Popular
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="productDescription">Descripción</label>
+          <textarea 
+            id="productDescription"
+            [(ngModel)]="productForm.descripcion"
+            name="productDescription"
+            class="form-control"
+            rows="3"
+            placeholder="Descripción detallada del producto..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="productImage">URL de la Imagen</label>
+          <input 
+            type="url" 
+            id="productImage"
+            [(ngModel)]="productForm.imgURL"
+            name="productImage"
+            class="form-control"
+            placeholder="https://ejemplo.com/imagen.jpg">
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeFormModal()">
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="saveProduct()"
+        [disabled]="loading">
+        <i class="fas" [class]="loading ? 'fa-spinner fa-spin' : (isEditing ? 'fa-save' : 'fa-plus')"></i>
+        {{ loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>Burger Club Admin</h3>
+        <p>Panel de administración para gestionar productos, clientes y pedidos.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Enlaces Rápidos</h4>
+        <ul>
+          <li><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li><a routerLink="/admin/products">Productos</a></li>
+          <li><a routerLink="/admin/clientes">Clientes</a></li>
+          <li><a routerLink="/admin/adicionales">Adicionales</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Burger Club. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>

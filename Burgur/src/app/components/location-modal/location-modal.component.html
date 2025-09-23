@@ -1,0 +1,95 @@
+<div class="location-modal-overlay" [class.active]="isOpen" (click)="closeModal()" [style.display]="isOpen ? 'flex' : 'none'">
+  <div class="location-modal-content" (click)="$event.stopPropagation()">
+    <div class="location-modal-header">
+      <h3>
+        <i class="fas fa-map-marker-alt"></i>
+        {{restaurantInfo.name}}
+      </h3>
+      <button class="location-close" (click)="closeModal()" aria-label="Cerrar modal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="location-modal-body">
+      <!-- Restaurant Image -->
+      <div class="restaurant-image">
+        <img src="assets/images/OurPlace.png" alt="Interior del restaurante" class="restaurant-photo">
+      </div>
+      
+      <!-- Contact Information -->
+      <div class="location-info-grid">
+        <div class="location-info-item">
+          <div class="info-icon">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+          <div class="info-content">
+            <strong>Dirección</strong>
+            <p>{{restaurantInfo.address}}</p>
+          </div>
+        </div>
+        
+        <div class="location-info-item">
+          <div class="info-icon">
+            <i class="fas fa-phone"></i>
+          </div>
+          <div class="info-content">
+            <strong>Teléfono</strong>
+            <p>{{restaurantInfo.phone}}</p>
+          </div>
+        </div>
+        
+        <div class="location-info-item">
+          <div class="info-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <div class="info-content">
+            <strong>Email</strong>
+            <p>{{restaurantInfo.email}}</p>
+          </div>
+        </div>
+        
+        <div class="location-info-item">
+          <div class="info-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="info-content">
+            <strong>Horarios</strong>
+            <p>{{restaurantInfo.hours}}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Map Preview -->
+      <div class="map-preview">
+        <div class="map-placeholder">
+          <i class="fas fa-map-marked-alt"></i>
+          <h4>Nuestra Ubicación</h4>
+          <p>Haz clic en "Ver en Google Maps" para obtener direcciones detalladas</p>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="location-actions">
+        <button class="location-btn primary" (click)="getDirections()">
+          <i class="fas fa-directions"></i>
+          Cómo Llegar
+        </button>
+        
+        <button class="location-btn secondary" (click)="viewOnGoogleMaps()">
+          <i class="fab fa-google"></i>
+          Ver en Google Maps
+        </button>
+        
+        <button class="location-btn secondary" (click)="callRestaurant()">
+          <i class="fas fa-phone"></i>
+          Llamar
+        </button>
+        
+        <button class="location-btn secondary" (click)="shareLocation()">
+          <i class="fas fa-share-alt"></i>
+          Compartir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+<!-- Cart Modal -->
+<div class="cart-modal" [class.active]="isOpen" (click)="closeCart()">
+  <div class="cart-content" (click)="$event.stopPropagation()">
+    <div class="cart-header">
+      <h3>Tu Carrito ({{count}})</h3>
+      <button class="cart-close" (click)="closeCart()">&times;</button>
+    </div>
+    
+    <div class="cart-body">
+      <div *ngIf="items.length === 0" class="cart-empty">
+        <i class="fas fa-shopping-cart"></i>
+        <p>Tu carrito está vacío</p>
+        <p>¡Agrega algunos productos deliciosos!</p>
+      </div>
+      
+      <div *ngIf="items.length > 0">
+        <div *ngFor="let item of items" class="cart-item">
+          <div class="item-image">
+            <img [src]="item.image" [alt]="item.name">
+          </div>
+          <div class="item-details">
+            <h4>{{item.name}}</h4>
+            <p class="item-price">${{item.price}}</p>
+            <div class="quantity-controls">
+              <button (click)="decreaseQuantity(item.id)" class="quantity-btn">-</button>
+              <span class="quantity">{{item.quantity}}</span>
+              <button (click)="increaseQuantity(item.id)" class="quantity-btn">+</button>
+            </div>
+          </div>
+          <div class="item-actions">
+            <span class="item-total">${{getItemTotalPrice(item)}}</span>
+            <button (click)="removeItem(item.id)" class="remove-btn">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div *ngIf="items.length > 0" class="cart-footer">
+      <div class="cart-total">
+        <strong>Total: ${{total}}</strong>
+      </div>
+      <div class="cart-actions">
+        <button (click)="clearCart()" class="clear-btn">Limpiar Carrito</button>
+        <button (click)="checkout()" class="checkout-btn">Proceder al Pago</button>
+      </div>
+    </div>
+  </div>
+</div>
