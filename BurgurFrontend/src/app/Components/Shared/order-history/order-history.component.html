@@ -1,0 +1,108 @@
+<div class="order-history-container">
+  <div class="order-header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+      Volver
+    </button>
+    <h2>Historial de Pedidos</h2>
+    <button class="btn-refresh" (click)="refreshOrders()" [disabled]="isLoading">
+      <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Estado de carga -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+    <p>Cargando historial de pedidos...</p>
+  </div>
+
+  <!-- Lista de pedidos -->
+  <div class="orders-content" *ngIf="!isLoading">
+    <!-- Sin pedidos -->
+    <div class="empty-state" *ngIf="pedidos.length === 0">
+      <div class="empty-icon">
+        <i class="fas fa-receipt"></i>
+      </div>
+      <h3>No tienes pedidos aún</h3>
+      <p>Cuando realices tu primer pedido, aparecerá aquí.</p>
+      <button class="btn-menu" (click)="goBack()">
+        <i class="fas fa-utensils"></i>
+        Ver Menú
+      </button>
+    </div>
+
+    <!-- Lista de pedidos -->
+    <div class="orders-list" *ngIf="pedidos.length > 0">
+      <div class="order-card" *ngFor="let pedido of pedidos" (click)="viewOrderDetails(pedido.id)">
+        <div class="order-header-card">
+          <div class="order-info">
+            <h4>Pedido #{{ pedido.id }}</h4>
+            <p class="order-date">{{ pedido.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="order-status">
+            <span class="status-badge" [ngClass]="getEstadoClass(pedido.estado)">
+              {{ getEstadoText(pedido.estado) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-details">
+          <div class="order-items">
+            <h5>Productos:</h5>
+            <ul class="items-list">
+              <li *ngFor="let producto of pedido.productos">
+                {{ producto.cantidad }}x Producto ID: {{ producto.productoId }}
+                <span class="item-price">${{ (producto.cantidad * producto.precioUnitario) | number:'1.0-0' }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Método de pago:</span>
+              <span>{{ pedido.metodoPago }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Dirección:</span>
+              <span>{{ pedido.direccionEntrega }}</span>
+            </div>
+            <div class="summary-row total">
+              <span>Total:</span>
+              <span class="total-amount">${{ pedido.precioTotal | number:'1.0-0' }}</span>
+            </div>
+          </div>
+
+          <div class="order-observations" *ngIf="pedido.observaciones">
+            <h5>Observaciones:</h5>
+            <p>{{ pedido.observaciones }}</p>
+          </div>
+        </div>
+
+        <div class="order-actions">
+          <button class="btn-details" (click)="viewOrderDetails(pedido.id); $event.stopPropagation()">
+            <i class="fas fa-eye"></i>
+            Ver Detalles
+          </button>
+          
+          <button 
+            class="btn-reorder" 
+            *ngIf="pedido.estado === 'ENTREGADO'"
+            (click)="$event.stopPropagation()"
+          >
+            <i class="fas fa-redo"></i>
+            Pedir de Nuevo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

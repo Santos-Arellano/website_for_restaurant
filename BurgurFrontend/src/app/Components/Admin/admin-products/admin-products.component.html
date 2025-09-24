@@ -1,0 +1,290 @@
+<!-- Admin Products Section -->
+<section class="admin-products-section">
+  <div class="container">
+    <!-- Header -->
+    <div class="admin-header">
+      <h1 class="admin-title">Administración de Productos</h1>
+      <p class="admin-subtitle">Gestiona el catálogo de productos del restaurante</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ totalProductos }}</div>
+          <div class="stat-label">Total Productos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ productosActivos }}</div>
+          <div class="stat-label">Productos Activos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ totalCategorias }}</div>
+          <div class="stat-label">Categorías</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-number">{{ stockBajo }}</div>
+          <div class="stat-label">Stock Bajo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="search-bar">
+      <div class="search-controls">
+        <div class="search-input-group">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            class="search-input" 
+            [(ngModel)]="searchTerm"
+            (input)="filtrarProductos()"
+            placeholder="Buscar productos...">
+        </div>
+        <div class="filter-controls">
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedCategory"
+            (change)="filtrarProductos()">
+            <option value="">Todas las categorías</option>
+            <option value="HAMBURGUESAS">Hamburguesas</option>
+            <option value="BEBIDAS">Bebidas</option>
+            <option value="ACOMPAÑAMIENTOS">Acompañamientos</option>
+            <option value="POSTRES">Postres</option>
+          </select>
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedStatus"
+            (change)="filtrarProductos()">
+            <option value="">Todos los estados</option>
+            <option value="true">Activos</option>
+            <option value="false">Inactivos</option>
+          </select>
+          <button class="btn-add" (click)="abrirModalEdicion()">
+          <i class="fas fa-plus"></i>
+          Agregar Producto
+        </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" *ngIf="productosFiltrados.length > 0">
+      <div class="product-card" *ngFor="let producto of productosFiltrados">
+        <div class="product-image">
+          <img *ngIf="producto.imagen" [src]="producto.imagen" [alt]="producto.nombre" />
+          <i *ngIf="!producto.imagen" class="fas fa-hamburger"></i>
+        </div>
+        <div class="card-content">
+          <h3 class="product-name">{{ producto.nombre }}</h3>
+          <p class="product-category">{{ producto.categoria }}</p>
+          <div class="product-price">{{ formatearPrecio(producto.precio) }}</div>
+          
+          <div class="product-details">
+            <div class="detail-item">
+              <span>Estado:</span>
+              <span [class]="producto.disponible ? 'status-active' : 'status-inactive'">
+                {{ producto.disponible ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+            <div class="detail-item" *ngIf="producto.fechaCreacion">
+              <span>Creado:</span>
+              <span>{{ producto.fechaCreacion | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+          
+          <div class="product-badges">
+            <span class="product-badge badge-popular" *ngIf="producto.isPopular">Popular</span>
+            <span class="product-badge badge-activo" *ngIf="producto.disponible">Activo</span>
+            <span class="product-badge badge-inactivo" *ngIf="!producto.disponible">Inactivo</span>
+          </div>
+          
+          <div class="product-actions">
+            <button class="btn-action btn-edit" (click)="abrirModalEdicion(producto)">
+              <i class="fas fa-edit"></i>
+              Editar
+            </button>
+            <button class="btn-action btn-delete" (click)="eliminarProducto(producto.id)">
+              <i class="fas fa-trash"></i>
+              Eliminar
+            </button>
+            <button class="btn-action btn-details" (click)="verDetalles(producto)">
+              <i class="fas fa-info-circle"></i>
+              Detalles
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="productosFiltrados.length === 0">
+      <i class="fas fa-box-open"></i>
+      <h3>No hay productos</h3>
+      <p>No se encontraron productos que coincidan con los filtros seleccionados.</p>
+      <button class="btn-add-product" (click)="abrirModalAgregar()">
+        <i class="fas fa-plus"></i>
+        Agregar Primer Producto
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal de Detalles de Producto -->
+<div class="product-details-modal" [class.show]="mostrarModalDetalles" *ngIf="mostrarModalDetalles">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Detalles del Producto</h3>
+      <button class="modal-close" (click)="cerrarModalDetalles()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="productoSeleccionado">
+      <div class="product-detail-info">
+        <div class="product-detail-image">
+          <img [src]="productoSeleccionado.imagen || 'assets/Menu/default-product.png'" [alt]="productoSeleccionado.nombre">
+        </div>
+        <div class="product-detail-content">
+          <h4>{{ productoSeleccionado.nombre }}</h4>
+          <p class="detail-product-category">{{ productoSeleccionado.categoria }}</p>
+          <p class="detail-product-price">{{ formatearPrecio(productoSeleccionado.precio) }}</p>
+          <p class="detail-product-description">{{ productoSeleccionado.descripcion }}</p>
+          <div class="detail-product-status">
+            <span class="status-badge" [class]="productoSeleccionado.disponible ? 'available' : 'unavailable'">
+              {{ productoSeleccionado.disponible ? 'Disponible' : 'No Disponible' }}
+            </span>
+          </div>
+          <div class="detail-ingredients" *ngIf="productoSeleccionado.ingredientes && productoSeleccionado.ingredientes.length > 0">
+            <h5>Ingredientes:</h5>
+            <ul>
+              <li *ngFor="let ingrediente of productoSeleccionado.ingredientes">{{ ingrediente }}</li>
+            </ul>
+          </div>
+          <div class="detail-adicionales" *ngIf="productoSeleccionado.adicionales && productoSeleccionado.adicionales.length > 0">
+            <h5>Adicionales disponibles:</h5>
+            <ul>
+              <li *ngFor="let adicional of productoSeleccionado.adicionales">
+                {{ adicional.nombre }} - {{ formatearPrecio(adicional.precio) }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edición/Creación de Producto -->
+<div class="product-edit-modal" [class.show]="mostrarModalEdicion" *ngIf="mostrarModalEdicion">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ modoEdicion ? 'Editar Producto' : 'Agregar Producto' }}</h3>
+      <button class="modal-close" (click)="cerrarModalEdicion()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form class="product-form" (ngSubmit)="guardarProducto()">
+        <div class="form-group">
+          <label for="nombre">Nombre del Producto *</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="productoForm.nombre" 
+            name="nombre"
+            placeholder="Ej: Hamburguesa Clásica"
+            required>
+        </div>
+        
+        <div class="form-group">
+          <label for="descripcion">Descripción *</label>
+          <textarea 
+            id="descripcion" 
+            [(ngModel)]="productoForm.descripcion" 
+            name="descripcion"
+            placeholder="Describe el producto..."
+            rows="3"
+            required></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="precio">Precio *</label>
+            <input 
+              type="number" 
+              id="precio" 
+              [(ngModel)]="productoForm.precio" 
+              name="precio"
+              placeholder="0"
+              min="0"
+              step="100"
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label for="categoria">Categoría *</label>
+            <select 
+              id="categoria" 
+              [(ngModel)]="productoForm.categoria" 
+              name="categoria"
+              required>
+              <option *ngFor="let categoria of categorias" [value]="categoria">
+                {{ categoria }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="imagen">URL de Imagen</label>
+          <input 
+            type="url" 
+            id="imagen" 
+            [(ngModel)]="productoForm.imagen" 
+            name="imagen"
+            placeholder="https://ejemplo.com/imagen.jpg">
+        </div>
+        
+        <div class="form-checkboxes">
+          <div class="checkbox-group">
+            <input 
+              type="checkbox" 
+              id="disponible" 
+              [(ngModel)]="productoForm.disponible" 
+              name="disponible">
+            <label for="disponible">Producto disponible</label>
+          </div>
+          
+          <div class="checkbox-group">
+            <input 
+              type="checkbox" 
+              id="isPopular" 
+              [(ngModel)]="productoForm.isPopular" 
+              name="isPopular">
+            <label for="isPopular">Producto popular</label>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalEdicion()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-save" [disabled]="isLoading">
+            <i class="fas fa-save"></i>
+            {{ modoEdicion ? 'Actualizar' : 'Crear' }} Producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Cargando productos...</p>
+  </div>
+</div>

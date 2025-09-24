@@ -1,0 +1,88 @@
+<div class="cart-container">
+  <div class="cart-header">
+    <h2>Carrito de Compras</h2>
+    <button class="btn-close" (click)="continuarComprando()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="cart-content" *ngIf="carrito.length > 0; else emptyCart">
+    <div class="cart-items">
+      <div class="cart-item" *ngFor="let item of carrito">
+        <div class="item-image">
+          <img [src]="getImageUrl(item.productoId)" [alt]="getNombreProducto(item.productoId)" />
+        </div>
+        
+        <div class="item-details">
+          <h4>{{ getNombreProducto(item.productoId) }}</h4>
+          <p class="item-price">${{ item.precioUnitario | number:'1.0-0' }}</p>
+          <p class="item-observations" *ngIf="item.observaciones">
+            {{ item.observaciones }}
+          </p>
+        </div>
+        
+        <div class="item-quantity">
+          <button class="quantity-btn" (click)="actualizarCantidad(item.productoId, item.cantidad - 1)">
+            <i class="fas fa-minus"></i>
+          </button>
+          <span class="quantity">{{ item.cantidad }}</span>
+          <button class="quantity-btn" (click)="actualizarCantidad(item.productoId, item.cantidad + 1)">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        
+        <div class="item-total">
+          <p>${{ (item.precioUnitario * item.cantidad) | number:'1.0-0' }}</p>
+        </div>
+        
+        <button class="btn-remove" (click)="eliminarDelCarrito(item.productoId)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>Subtotal:</span>
+        <span>${{ total | number:'1.0-0' }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Domicilio:</span>
+        <span>$3,000</span>
+      </div>
+      <div class="summary-row total-row">
+        <span>Total:</span>
+        <span>${{ (total + 3000) | number:'1.0-0' }}</span>
+      </div>
+      
+      <div class="cart-actions">
+        <button class="btn-clear" (click)="limpiarCarrito()">
+          Limpiar Carrito
+        </button>
+        <button 
+          class="btn-checkout" 
+          (click)="procederAlPago()"
+          [disabled]="isLoading"
+        >
+          <span *ngIf="!isLoading">Proceder al Pago</span>
+          <span *ngIf="isLoading">
+            <i class="fas fa-spinner fa-spin"></i> Procesando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #emptyCart>
+    <div class="empty-cart">
+      <div class="empty-cart-icon">
+        <i class="fas fa-shopping-cart"></i>
+      </div>
+      <h3>Tu carrito está vacío</h3>
+      <p>Agrega algunos productos deliciosos a tu carrito</p>
+      <button class="btn-continue" (click)="continuarComprando()">
+        Ver Menú
+      </button>
+    </div>
+  </ng-template>
+</div>

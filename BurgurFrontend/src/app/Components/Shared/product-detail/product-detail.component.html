@@ -1,0 +1,128 @@
+<!-- Modal Overlay -->
+<div class="product-detail-overlay" [class.active]="!isLoading && producto" (click)="onOverlayClick($event)">
+  <div class="product-detail-container" *ngIf="!isLoading && producto" (click)="$event.stopPropagation()">
+    <!-- Close Button -->
+    <button class="modal-close" (click)="volver()" aria-label="Cerrar modal">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="product-detail-content">
+      <!-- Header con botón de volver -->
+      <div class="detail-header">
+        <button class="btn-back" (click)="volver()">
+          <i class="fas fa-arrow-left"></i>
+          Volver al menú
+        </button>
+      </div>
+
+      <!-- Información principal del producto -->
+      <div class="product-main">
+        <div class="product-image">
+          <img [src]="producto.imagen" [alt]="producto.nombre" class="detail-image">
+          <div class="product-badges">
+            <span class="badge new" *ngIf="producto.isNew">Nuevo</span>
+            <span class="badge popular" *ngIf="producto.isPopular && !producto.isNew">Popular</span>
+          </div>
+        </div>
+
+        <div class="product-info">
+          <h1 class="product-title">{{ producto.nombre }}</h1>
+          <p class="product-description">{{ producto.descripcion }}</p>
+          
+          <!-- Ingredientes -->
+          <div class="ingredients-section" *ngIf="producto.ingredientes && producto.ingredientes.length > 0">
+            <h3>Ingredientes:</h3>
+            <div class="ingredients-list">
+              <span class="ingredient" *ngFor="let ingrediente of producto.ingredientes">
+                {{ ingrediente }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Precio base -->
+          <div class="price-section">
+            <span class="base-price">Precio base: {{ formatPrice(producto.precio) }}</span>
+          </div>
+        </div>
+      </div>
+
+    <!-- Adicionales -->
+    <div class="adicionales-section" *ngIf="producto.adicionales && producto.adicionales.length > 0">
+      <h3>Adicionales disponibles:</h3>
+      <div class="adicionales-grid">
+        <div class="adicional-item" 
+             *ngFor="let adicional of producto.adicionales"
+             [class.selected]="adicionalesSeleccionados[adicional.id]"
+             [class.disabled]="!adicional.disponible">
+          <label class="adicional-label">
+            <input type="checkbox" 
+                   [checked]="adicionalesSeleccionados[adicional.id]"
+                   [disabled]="!adicional.disponible"
+                   (change)="toggleAdicional(adicional.id)">
+            <div class="adicional-content">
+              <span class="adicional-name">{{ adicional.nombre }}</span>
+              <span class="adicional-price">+{{ formatPrice(adicional.precio) }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="observaciones-section">
+      <h3>Observaciones especiales:</h3>
+      <textarea class="observaciones-input" 
+                [(ngModel)]="observaciones"
+                placeholder="¿Alguna preferencia especial? (Ej: sin cebolla, extra salsa, etc.)"
+                rows="3"></textarea>
+    </div>
+
+    <!-- Cantidad y total -->
+    <div class="order-section">
+      <div class="quantity-controls">
+        <h3>Cantidad:</h3>
+        <div class="quantity-selector">
+          <button class="btn-quantity" (click)="decrementarCantidad()" [disabled]="cantidad <= 1">
+            <i class="fas fa-minus"></i>
+          </button>
+          <span class="quantity-display">{{ cantidad }}</span>
+          <button class="btn-quantity" (click)="incrementarCantidad()">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="total-section">
+        <div class="total-price">
+          <span class="total-label">Total:</span>
+          <span class="total-amount">{{ formatPrice(calcularPrecioTotal()) }}</span>
+        </div>
+        <button class="btn-add-to-cart" (click)="agregarAlCarrito()">
+          <i class="fas fa-shopping-cart"></i>
+          Agregar al carrito
+        </button>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading state -->
+<div class="loading-container" *ngIf="isLoading">
+  <div class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Cargando producto...</p>
+  </div>
+</div>
+
+<!-- Error state -->
+<div class="error-container" *ngIf="!isLoading && !producto">
+  <div class="error-content">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h2>Producto no encontrado</h2>
+    <p>El producto que buscas no está disponible.</p>
+    <button class="btn-back" (click)="volver()">
+      Volver al menú
+    </button>
+  </div>
+</div>

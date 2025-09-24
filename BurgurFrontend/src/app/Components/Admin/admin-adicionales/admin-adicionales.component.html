@@ -1,0 +1,221 @@
+<!-- Admin Adicionales Section -->
+<main class="admin-adicionales-section">
+  <div class="container">
+    <!-- Stats Cards -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <i class="fas fa-plus-circle"></i>
+        <div class="stat-info">
+          <span class="stat-number">{{ totalAdicionales }}</span>
+          <span class="stat-label">Total Adicionales</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-check-circle"></i>
+        <div class="stat-info">
+          <span class="stat-number">{{ adicionalesActivos }}</span>
+          <span class="stat-label">Adicionales Activos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="search-bar">
+      <div class="search-input-group">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Buscar adicionales..." 
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()">
+      </div>
+      <div class="filter-controls">
+        <button class="btn-add-adicional" (click)="openAddModal()">
+          <i class="fas fa-plus"></i>
+          Agregar Adicional
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ errorMessage }}
+      <button class="close-error" (click)="errorMessage = ''">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Cargando...</span>
+    </div>
+
+    <!-- Adicionales Table -->
+    <div class="adicionales-table" *ngIf="!isLoading">
+      <div class="table-header">
+        <span>NOMBRE</span>
+        <span>PRECIO</span>
+        <span>CATEGORÍAS</span>
+        <span>ESTADO</span>
+        <span>ACCIONES</span>
+      </div>
+
+      <!-- Adicionales Loop -->
+      <div class="table-row" 
+           *ngFor="let adicional of filteredAdicionales; trackBy: trackByAdicionalId"
+           [attr.data-adicional-id]="adicional.id">
+        <div class="cell">
+          <span class="adicional-name">{{ adicional.nombre }}</span>
+        </div>
+        <div class="cell">
+          <span class="adicional-price">{{ formatPrice(adicional.precio) }}</span>
+        </div>
+        <div class="cell">
+          <div class="categoria-badges">
+            <span class="categoria-badge" 
+                  *ngFor="let categoria of adicional.categorias">
+              {{ categoria | titlecase }}
+            </span>
+          </div>
+        </div>
+        <div class="cell">
+          <span class="status-badge" 
+                [class.active]="adicional.activo"
+                [class.inactive]="!adicional.activo">
+            {{ adicional.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="cell actions-cell">
+          <button class="btn-action btn-edit" 
+                  (click)="openEditModal(adicional)"
+                  title="Editar adicional">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-action btn-delete" 
+                  (click)="openDeleteModal(adicional)"
+                  title="Eliminar adicional">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredAdicionales.length === 0 && !isLoading">
+        <i class="fas fa-plus-circle"></i>
+        <h3>No hay adicionales</h3>
+        <p *ngIf="searchTerm">No se encontraron adicionales que coincidan con "{{ searchTerm }}"</p>
+        <p *ngIf="!searchTerm">Comienza agregando tu primer adicional</p>
+        <button class="btn-add-adicional" (click)="openAddModal()" *ngIf="!searchTerm">
+          <i class="fas fa-plus"></i>
+          Agregar Primer Adicional
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal de Agregar/Editar Adicional -->
+<div class="modal-overlay" *ngIf="showAddModal || showEditModal" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ showAddModal ? 'Agregar Nuevo Adicional' : 'Editar Adicional' }}</h2>
+      <button class="modal-close" (click)="closeModals()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form class="modal-form" (ngSubmit)="saveAdicional()">
+      <div class="form-group">
+        <label for="nombre">Nombre del Adicional *</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          [(ngModel)]="adicionalForm.nombre"
+          name="nombre"
+          placeholder="Ej: Queso Extra"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="precio">Precio *</label>
+        <input 
+          type="number" 
+          id="precio" 
+          [(ngModel)]="adicionalForm.precio"
+          name="precio"
+          placeholder="0"
+          min="0"
+          step="100"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label>Categorías</label>
+        <div class="categoria-checkboxes">
+          <label class="checkbox-label" *ngFor="let categoria of categoriasDisponibles">
+            <input 
+              type="checkbox" 
+              [checked]="isCategoriaSelected(categoria)"
+              (change)="toggleCategoria(categoria)">
+            <span class="checkbox-custom"></span>
+            {{ categoria | titlecase }}
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="adicionalForm.activo"
+            name="activo">
+          <span class="checkbox-custom"></span>
+          Adicional activo
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeModals()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-save" [disabled]="isLoading">
+          <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+          {{ showAddModal ? 'Agregar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeModals()">
+  <div class="modal-content modal-delete" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmar Eliminación</h2>
+      <button class="modal-close" (click)="closeModals()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="delete-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>¿Estás seguro de que deseas eliminar el adicional <strong>"{{ selectedAdicional?.nombre }}"</strong>?</p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closeModals()">
+        Cancelar
+      </button>
+      <button type="button" class="btn-delete-confirm" (click)="deleteAdicional()" [disabled]="isLoading">
+        <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>

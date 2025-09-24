@@ -1,0 +1,101 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content" *ngIf="product">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">{{ product.nombre }}</h2>
+      <button class="close-button" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Product Detail Grid -->
+      <div class="product-detail-grid">
+        <!-- Product Image Section -->
+        <div class="product-image-section">
+          <div class="product-image-container">
+            <img [src]="product.imagen" [alt]="product.nombre" class="product-image">
+            <!-- Product Badges -->
+            <div class="product-badges">
+              <span class="badge popular-badge" *ngIf="product.isPopular">Popular</span>
+              <span class="badge new-badge" *ngIf="product.isNew">Nuevo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Info Section -->
+        <div class="product-info-section">
+          <!-- Category -->
+          <div class="product-category">
+            <span class="category-tag">{{ product.categoria }}</span>
+          </div>
+
+          <!-- Description -->
+          <div class="product-description">
+            <h3>Descripción</h3>
+            <p>{{ product.descripcion }}</p>
+          </div>
+
+          <!-- Ingredients -->
+          <div class="product-ingredients" *ngIf="product && product.ingredientes && product.ingredientes.length > 0">
+            <h3>Ingredientes</h3>
+            <div class="ingredients-list">
+              <span class="ingredient-tag" *ngFor="let ingredient of product.ingredientes">
+                {{ ingredient }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Price Section -->
+          <div class="product-price-section">
+            <div class="price-container">
+              <span class="current-price">{{ formatPrice(product.precio) }}</span>
+            </div>
+          </div>
+
+          <!-- Adicionales Section -->
+          <div class="adicionales-section" *ngIf="adicionales && adicionales.length > 0">
+            <h3>Adicionales</h3>
+            <div class="adicionales-list">
+              <div class="adicional-item" *ngFor="let adicional of adicionales">
+                <label class="adicional-checkbox">
+                  <input 
+                    type="checkbox" 
+                    [checked]="selectedAdicionales[adicional.id]"
+                    (change)="toggleAdicional(adicional.id)">
+                  <span class="checkmark"></span>
+                  <span class="adicional-name">{{ adicional.nombre }}</span>
+                  <span class="adicional-price">{{ formatPrice(adicional.precio) }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <div class="quantity-controls">
+        <button class="quantity-btn" (click)="decreaseQuantity()" [disabled]="quantity <= 1">
+          <i class="fas fa-minus"></i>
+        </button>
+        <span class="quantity-display">{{ quantity }}</span>
+        <button class="quantity-btn" (click)="increaseQuantity()">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+
+      <div class="total-price">
+        <span class="total-label">Total:</span>
+        <span class="total-amount">{{ formatPrice(getTotalPrice()) }}</span>
+      </div>
+
+      <button class="add-to-cart-btn" (click)="addToCart()">
+        <i class="fas fa-shopping-cart"></i>
+        Agregar al Carrito
+      </button>
+    </div>
+  </div>
+</div>

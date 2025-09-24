@@ -1,26 +1,44 @@
-import { Cliente } from "../Cliente/cliente";
-import { Operador } from "../Operador/operador";
-import { Domiciliario } from "../Domiciliario/domiciliario";
-import { ProdyAdiPedido } from "../ProdyAdiPedido/prody-adi-pedido";
-export class Pedido {
-    id!: number;
-    fechaCreacion!: Date;
-    fechaEntrega!: Date;
-    estado: string;
+export interface Pedido {
+    id: number;
+    fechaCreacion: Date;
+    fechaEntrega?: Date;
+    estado: EstadoPedido;
     precioTotal: number;
-    cliente:Cliente;
-    operador:Operador;
-    domiciliario!: Domiciliario;
-    prodyAdiPedido: ProdyAdiPedido[] = [];
+    clienteId: number;
+    operadorId?: number;
+    domiciliarioId?: number;
+    productos: ProductoPedido[];
+    direccionEntrega: string;
+    metodoPago: MetodoPago;
+    observaciones?: string;
+}
 
-    constructor(fechaCreacion: Date, fechaEntrega: Date, estado: string, precioTotal: number, cliente: Cliente, operador: Operador, domiciliario: Domiciliario, prodyAdiPedido: ProdyAdiPedido[]) {
-        this.fechaCreacion = fechaCreacion;
-        this.fechaEntrega = fechaEntrega;
-        this.estado = estado;
-        this.precioTotal = precioTotal;
-        this.cliente = cliente;
-        this.operador = operador;
-        this.domiciliario = domiciliario;
-        this.prodyAdiPedido = prodyAdiPedido;
-    }
+export interface ProductoPedido {
+    productoId: number;
+    cantidad: number;
+    precioUnitario: number;
+    adicionales?: AdicionalPedido[];
+    observaciones?: string;
+}
+
+export interface AdicionalPedido {
+    adicionalId: number;
+    cantidad: number;
+    precioUnitario: number;
+}
+
+export enum EstadoPedido {
+    PENDIENTE = 'PENDIENTE',
+    CONFIRMADO = 'CONFIRMADO',
+    EN_PREPARACION = 'EN_PREPARACION',
+    LISTO = 'LISTO',
+    EN_CAMINO = 'EN_CAMINO',
+    ENTREGADO = 'ENTREGADO',
+    CANCELADO = 'CANCELADO'
+}
+
+export enum MetodoPago {
+    EFECTIVO = 'EFECTIVO',
+    TARJETA = 'TARJETA',
+    TRANSFERENCIA = 'TRANSFERENCIA'
 }

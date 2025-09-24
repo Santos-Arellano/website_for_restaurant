@@ -1,0 +1,155 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo -->
+    <div class="navbar-brand">
+      <a routerLink="/" class="brand-link" (click)="closeMenu()">
+        <i class="fas fa-hamburger"></i>
+        <span>BurgerApp</span>
+      </a>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <div class="navbar-menu desktop-menu">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+            <i class="fas fa-home"></i>
+            Inicio
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/menu" routerLinkActive="active" class="nav-link">
+            <i class="fas fa-utensils"></i>
+            Menú
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- User Actions -->
+    <div class="navbar-actions desktop-actions">
+      <!-- Carrito -->
+      <button class="cart-btn" (click)="onCart()" [class.has-items]="carritoCount > 0">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count" *ngIf="carritoCount > 0">{{ carritoCount }}</span>
+      </button>
+
+      <!-- Usuario no logueado -->
+      <div class="auth-buttons" *ngIf="!isLoggedIn">
+        <button class="btn btn-outline" (click)="onLogin()">
+          <i class="fas fa-sign-in-alt"></i>
+          Iniciar Sesión
+        </button>
+        <button class="btn btn-primary" (click)="onRegister()">
+          <i class="fas fa-user-plus"></i>
+          Registrarse
+        </button>
+      </div>
+
+      <!-- Usuario logueado -->
+      <div class="user-menu" *ngIf="isLoggedIn">
+        <div class="user-info">
+          <i class="fas fa-user-circle"></i>
+          <span class="user-name">{{ getUserDisplayName() }}</span>
+          <i class="fas fa-chevron-down dropdown-arrow"></i>
+        </div>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" (click)="onProfile()">
+            <i class="fas fa-user"></i>
+            Mi Perfil
+          </a>
+          <a class="dropdown-item" (click)="onOrderHistory()">
+            <i class="fas fa-history"></i>
+            Mis Pedidos
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item logout" (click)="onLogout()">
+            <i class="fas fa-sign-out-alt"></i>
+            Cerrar Sesión
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-toggle" (click)="toggleMenu()" [class.active]="isMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.active]="isMenuOpen">
+    <div class="mobile-menu-content">
+      <!-- Navigation Links -->
+      <ul class="mobile-nav">
+        <li class="mobile-nav-item">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-nav-link" (click)="closeMenu()">
+            <i class="fas fa-home"></i>
+            Inicio
+          </a>
+        </li>
+        <li class="mobile-nav-item">
+          <a routerLink="/menu" routerLinkActive="active" class="mobile-nav-link" (click)="closeMenu()">
+            <i class="fas fa-utensils"></i>
+            Menú
+          </a>
+        </li>
+        <li class="mobile-nav-item">
+          <a class="mobile-nav-link" (click)="onCart()">
+            <i class="fas fa-shopping-cart"></i>
+            Carrito
+            <span class="mobile-cart-count" *ngIf="carritoCount > 0">({{ carritoCount }})</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Mobile User Actions -->
+      <div class="mobile-user-actions">
+        <!-- Usuario no logueado -->
+        <div class="mobile-auth-buttons" *ngIf="!isLoggedIn">
+          <button class="mobile-btn btn-outline" (click)="onLogin()">
+            <i class="fas fa-sign-in-alt"></i>
+            Iniciar Sesión
+          </button>
+          <button class="mobile-btn btn-primary" (click)="onRegister()">
+            <i class="fas fa-user-plus"></i>
+            Registrarse
+          </button>
+        </div>
+
+        <!-- Usuario logueado -->
+        <div class="mobile-user-menu" *ngIf="isLoggedIn">
+          <div class="mobile-user-info">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ getUserDisplayName() }}</span>
+          </div>
+          <ul class="mobile-user-options">
+            <li>
+              <a class="mobile-nav-link" (click)="onProfile()">
+                <i class="fas fa-user"></i>
+                Mi Perfil
+              </a>
+            </li>
+            <li>
+              <a class="mobile-nav-link" (click)="onOrderHistory()">
+                <i class="fas fa-history"></i>
+                Mis Pedidos
+              </a>
+            </li>
+            <li>
+              <a class="mobile-nav-link logout" (click)="onLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Cerrar Sesión
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Overlay para cerrar el menú móvil -->
+<div class="mobile-overlay" [class.active]="isMenuOpen" (click)="closeMenu()"></div>

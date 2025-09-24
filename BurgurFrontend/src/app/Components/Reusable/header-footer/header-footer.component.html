@@ -1,1 +1,196 @@
-<p>header-footer works!</p>
+<!-- Header -->
+<header class="site-header" id="header">
+  <div class="container header-container">
+    <a routerLink="/" class="logo">
+      <div class="logo-icon-wrapper">
+        <img src="assets/images/Logo.png" alt="BurGur Logo" class="logo-icon">
+      </div>
+      <span class="logo-text">BURGUR</span>
+    </a>
+    <nav class="main-nav" id="mainNav">
+      <ul>
+        <li><a routerLink="/" class="nav-link">Inicio</a></li>
+        <li><a routerLink="/menu" class="nav-link">Menú</a></li>
+        <li *ngIf="!isLoggedIn"><a (click)="onLogin()" class="nav-link auth-link" id="loginLink">Iniciar Sesión</a></li>
+        <li *ngIf="!isLoggedIn"><a (click)="onRegister()" class="nav-link auth-link" id="registerLink">Registrarse</a></li>
+        <li *ngIf="isLoggedIn" class="user-menu">
+          <a class="nav-link user-link">
+            <i class="fas fa-user"></i>
+            <span>Mi Cuenta</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="user-dropdown">
+            <a routerLink="/profile" class="dropdown-item">
+              <i class="fas fa-user-circle"></i>
+              <span>Mi Perfil</span>
+            </a>
+            <a routerLink="/order-history" class="dropdown-item">
+              <i class="fas fa-history"></i>
+              <span>Mis Pedidos</span>
+            </a>
+            <a (click)="onLogout()" class="dropdown-item logout">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Cerrar Sesión</span>
+            </a>
+          </div>
+        </li>
+        <li>
+          <a (click)="onCartClick()" class="cart-link" id="cartBtn" style="cursor: pointer;">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Carrito</span>
+            <span class="cart-count" id="cartCount">{{ cartItemCount }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="location-info" id="locationBtn" (click)="onLocationClick()">
+      <i class="fas fa-map-marker-alt"></i>
+      <span>Encuéntranos acá</span>
+    </div>
+    <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Abrir menú de navegación móvil" aria-expanded="false">
+      <span class="hamburger-icon"></span>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<nav class="mobile-menu" id="mobileMenu">
+  <ul>
+    <li><a routerLink="/" class="mobile-nav-link">Inicio</a></li>
+    <li><a routerLink="/menu" class="mobile-nav-link">Menú</a></li>
+    <li *ngIf="!isLoggedIn"><a (click)="onLogin()" class="mobile-nav-link mobile-auth-link">Iniciar Sesión</a></li>
+    <li *ngIf="!isLoggedIn"><a (click)="onRegister()" class="mobile-nav-link mobile-auth-link">Registrarse</a></li>
+    <li *ngIf="isLoggedIn"><a routerLink="/profile" class="mobile-nav-link">Mi Perfil</a></li>
+    <li *ngIf="isLoggedIn"><a routerLink="/order-history" class="mobile-nav-link">Mis Pedidos</a></li>
+    <li *ngIf="isLoggedIn"><a (click)="onLogout()" class="mobile-nav-link logout-link">Cerrar Sesión</a></li>
+    <li><a (click)="onCartClick()" class="mobile-nav-link" id="mobileCartLink" style="cursor: pointer;">Carrito</a></li>
+    <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>
+  </ul>
+</nav>
+<div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+<!-- Auth Modal - Comentado temporalmente -->
+<!-- 
+<app-auth-modal 
+  [isVisible]="showAuthModal"
+  [mode]="authMode"
+  (closeModal)="onCloseAuthModal()"
+  (switchMode)="onSwitchAuthMode($event)"
+  (submitForm)="onAuthSubmit($event)">
+</app-auth-modal>
+-->
+
+<!-- Location Modal -->
+<div class="location-modal-overlay" [class.active]="showLocationModal" (click)="onCloseLocationModal()">
+  <div class="location-modal" (click)="$event.stopPropagation()">
+    <div class="location-modal-header">
+      <h3>BurGur</h3>
+      <button class="close-btn" (click)="onCloseLocationModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="location-modal-content">
+      <div class="location-info-section">
+        <div class="info-item">
+          <i class="fas fa-map-marker-alt"></i>
+          <div>
+            <h4>Dirección</h4>
+            <p>Carrera 13 #85-32<br>Bogotá, Colombia</p>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <i class="fas fa-phone"></i>
+          <div>
+            <h4>Teléfono</h4>
+            <p>+57 1 234 567 890</p>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <i class="fas fa-clock"></i>
+          <div>
+            <h4>Horarios</h4>
+            <p>Lunes a Domingo<br>11:00 AM - 10:00 PM</p>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <i class="fas fa-motorcycle"></i>
+          <div>
+            <h4>Domicilios</h4>
+            <p>Disponible en toda Bogotá<br>Tiempo estimado: 30-45 min</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="location-actions">
+        <button class="location-btn maps-btn" (click)="onOpenMaps()">
+          <i class="fas fa-map-marked-alt"></i>
+          Ver en Google Maps
+        </button>
+        
+        <button class="location-btn call-btn" (click)="onCallRestaurant()">
+          <i class="fas fa-phone"></i>
+          Llamar
+        </button>
+        
+        <button class="location-btn whatsapp-btn" (click)="onOpenWhatsApp()">
+          <i class="fab fa-whatsapp"></i>
+          WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div *ngIf="isCartModalOpen" class="cart-modal-overlay" (click)="closeCartModal()">
+  <div class="cart-modal-content" (click)="$event.stopPropagation()">
+    <div class="cart-modal-header">
+      <h3>Tu Carrito</h3>
+      <button class="close-btn" (click)="closeCartModal()">&times;</button>
+    </div>
+    <div class="cart-modal-body">
+      <div *ngIf="cartItemCount === 0" class="empty-cart">
+        <p>Tu carrito está vacío</p>
+      </div>
+      <div *ngIf="cartItemCount > 0" class="cart-items">
+        <div *ngFor="let item of carrito" class="cart-item">
+          <div class="item-image">
+            <img [src]="getImageUrl(item.productoId)" [alt]="getNombreProducto(item.productoId)" />
+          </div>
+          <div class="item-details">
+            <h4>{{ getNombreProducto(item.productoId) }}</h4>
+            <div *ngIf="getAdicionalesProducto(item)" class="item-adicionales">
+              <small>Con: {{ getAdicionalesProducto(item) }}</small>
+            </div>
+            <p class="item-price">${{ (productos[item.productoId]?.precio || 0) | number:'1.0-0' }}</p>
+            <div *ngIf="item.adicionales && item.adicionales.length > 0" class="adicionales-price">
+              <small>+ Adicionales: ${{ getAdicionalesTotal(item) | number:'1.0-0' }}</small>
+            </div>
+          </div>
+          <div class="item-quantity">
+            <button class="quantity-btn" (click)="actualizarCantidad(item.productoId, item.cantidad - 1)">-</button>
+            <span class="quantity">{{ item.cantidad }}</span>
+            <button class="quantity-btn" (click)="actualizarCantidad(item.productoId, item.cantidad + 1)">+</button>
+          </div>
+          <div class="item-total">
+              ${{ ((productos[item.productoId]?.precio || 0) * item.cantidad + getAdicionalesTotal(item)) | number:'1.0-0' }}
+            </div>
+          <button class="remove-btn" (click)="eliminarDelCarrito(item.productoId)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+        <div class="cart-total">
+                <h4>Total: ${{ calcularTotalCarrito() | number:'1.0-0' }}</h4>
+              </div>
+      </div>
+    </div>
+    <div class="cart-modal-footer">
+            <button class="btn btn-secondary" (click)="closeCartModal()">Seguir Comprando</button>
+            <button *ngIf="cartItemCount > 0" class="btn btn-primary" (click)="closeCartModal()">Proceder al Pago</button>
+          </div>
+  </div>
+</div>

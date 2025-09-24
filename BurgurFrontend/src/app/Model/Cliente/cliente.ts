@@ -1,23 +1,26 @@
-import { Pedido } from "../Pedido/pedido";
+export interface Cliente {
+    id: number;
+    nombre: string;
+    apellido: string;
+    correo: string;
+    contrasena?: string; // Opcional para no exponer en frontend
+    telefono: string;
+    direccion: string;
+    fechaRegistro: Date;
+    activo: boolean;
+    pedidos?: number[]; // Solo IDs de pedidos
+}
 
-export class Cliente {
-    id!: number;
-    nombre: string
+export interface ClienteRegistro {
+    nombre: string;
     apellido: string;
     correo: string;
     contrasena: string;
-    telefono: string
+    telefono: string;
     direccion: string;
-    pedidos: Pedido[] = [];
+}
 
-    // Constructor con Parámetros sin id
-    constructor(nombre: string, apellido: string, correo: string, contrasena: string, telefono: string, direccion: string, pedidos: Pedido[]){
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.correo = correo;
-        this.contrasena = contrasena;
-        this.telefono = telefono;
-        this.direccion = direccion;
-        this.pedidos = pedidos;
-    }
+export interface ClienteLogin {
+    correo: string;
+    contrasena: string;
 }

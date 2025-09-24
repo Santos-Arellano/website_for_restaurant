@@ -1,18 +1,43 @@
 import { Operador } from '../Operador/operador';
 import { Pedido } from '../Pedido/pedido';
+
 export class Domiciliario {
     id!: number;
-    nombre: string
-    cedula: string
+    nombre: string;
+    cedula?: string;
+    telefono: string;
+    vehiculo: string;
+    placa: string;
+    activo: boolean;
     disponible: boolean;
-    operador:Operador;
+    fechaIngreso: Date;
+    pedidosEntregados: number;
+    operador?: Operador;
     pedidos: Pedido[] = [];
 
     // Constructor con Parámetros sin id
-    constructor(nombre: string, cedula: string, disponible: boolean, pedidos: Pedido[], operador: Operador) {
+    constructor(
+        nombre: string, 
+        telefono: string, 
+        vehiculo: string, 
+        placa: string, 
+        activo: boolean = true, 
+        disponible: boolean = true,
+        fechaIngreso: Date = new Date(),
+        pedidosEntregados: number = 0,
+        cedula?: string, 
+        pedidos: Pedido[] = [], 
+        operador?: Operador
+    ) {
         this.nombre = nombre;
-        this.cedula = cedula;
+        this.telefono = telefono;
+        this.vehiculo = vehiculo;
+        this.placa = placa;
+        this.activo = activo;
         this.disponible = disponible;
+        this.fechaIngreso = fechaIngreso;
+        this.pedidosEntregados = pedidosEntregados;
+        this.cedula = cedula;
         this.pedidos = pedidos;
         this.operador = operador;
     }

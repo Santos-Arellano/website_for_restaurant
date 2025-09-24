@@ -1,0 +1,248 @@
+<!-- Admin Domiciliarios Section -->
+<section class="admin-domiciliarios-section">
+  <div class="container">
+    <!-- Admin Header -->
+    <div class="admin-header">
+      <h1 class="admin-title">Gestión de Domiciliarios</h1>
+      <p class="admin-subtitle">Administra los domiciliarios registrados en el sistema</p>
+      
+      <!-- Stats Cards -->
+      <div class="admin-stats">
+        <div class="stat-card">
+          <i class="fas fa-motorcycle"></i>
+          <div class="stat-info">
+            <span class="stat-number">{{ totalDomiciliarios }}</span>
+            <span class="stat-label">Total Domiciliarios</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-check-circle"></i>
+          <div class="stat-info">
+            <span class="stat-number">{{ domiciliariosActivos }}</span>
+            <span class="stat-label">Activos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-user-check"></i>
+          <div class="stat-info">
+            <span class="stat-number">{{ domiciliariosDisponibles }}</span>
+            <span class="stat-label">Disponibles</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-shipping-fast"></i>
+          <div class="stat-info">
+            <span class="stat-number">{{ totalEntregas }}</span>
+            <span class="stat-label">Total Entregas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="search-bar">
+      <div class="search-input-group">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Buscar domiciliarios..." 
+          [(ngModel)]="filtroTexto"
+          (input)="filtrarDomiciliarios()">
+      </div>
+      <div class="filter-controls">
+        <button class="btn-add-domiciliario" (click)="abrirModalAgregarDomiciliario()">
+          <i class="fas fa-plus"></i>
+          Agregar Domiciliario
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ errorMessage }}
+      <button class="close-error" (click)="errorMessage = ''">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="cargando">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Cargando...</span>
+    </div>
+
+    <!-- Domiciliarios Table -->
+    <div class="domiciliarios-table" *ngIf="!cargando">
+      <div class="table-header">
+        <span>NOMBRE</span>
+        <span>TELÉFONO</span>
+        <span>VEHÍCULO</span>
+        <span>PLACA</span>
+        <span>ESTADO</span>
+        <span>ENTREGAS</span>
+        <span>ACCIONES</span>
+      </div>
+
+      <!-- Domiciliarios Loop -->
+      <div class="table-row" 
+           *ngFor="let domiciliario of domiciliariosFiltrados; trackBy: trackByDomiciliarioId"
+           [attr.data-domiciliario-id]="domiciliario.id">
+        <div class="cell">
+          <span class="domiciliario-name">{{ domiciliario.nombre }}</span>
+        </div>
+        <div class="cell">
+          <span class="domiciliario-telefono">{{ domiciliario.telefono }}</span>
+        </div>
+        <div class="cell">
+          <span class="domiciliario-vehiculo">{{ domiciliario.vehiculo }}</span>
+        </div>
+        <div class="cell">
+          <span class="domiciliario-placa">{{ domiciliario.placa }}</span>
+        </div>
+        <div class="cell">
+          <span class="status-badge" 
+                [class.active]="domiciliario.activo && domiciliario.disponible"
+                [class.inactive]="!domiciliario.activo"
+                [class.busy]="domiciliario.activo && !domiciliario.disponible">
+            {{ domiciliario.activo ? (domiciliario.disponible ? 'Disponible' : 'Ocupado') : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="cell">
+          <span class="entregas-count">{{ domiciliario.pedidosEntregados || 0 }}</span>
+        </div>
+        <div class="cell actions-cell">
+          <button class="btn-action btn-edit" 
+                  (click)="editarDomiciliario(domiciliario)"
+                  title="Editar domiciliario">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-action btn-delete" 
+                  (click)="eliminarDomiciliario(domiciliario)"
+                  title="Eliminar domiciliario">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="btn-action btn-toggle" 
+                  (click)="toggleDisponibilidad(domiciliario)"
+                  [title]="domiciliario.activo ? 'Desactivar' : 'Activar'">
+            <i class="fas" [class.fa-toggle-on]="domiciliario.activo" [class.fa-toggle-off]="!domiciliario.activo"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="domiciliariosFiltrados.length === 0 && !cargando">
+        <i class="fas fa-motorcycle"></i>
+        <h3>No hay domiciliarios</h3>
+        <p *ngIf="filtroTexto">No se encontraron domiciliarios que coincidan con "{{ filtroTexto }}"</p>
+        <p *ngIf="!filtroTexto">Comienza agregando tu primer domiciliario</p>
+        <button class="btn-add-domiciliario" (click)="abrirModalAgregarDomiciliario()" *ngIf="!filtroTexto">
+          <i class="fas fa-plus"></i>
+          Agregar Primer Domiciliario
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal de Agregar/Editar Domiciliario -->
+<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ modoEdicion ? 'Editar Domiciliario' : 'Agregar Nuevo Domiciliario' }}</h2>
+      <button class="modal-close" (click)="cerrarModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form class="modal-form" (ngSubmit)="guardarDomiciliario()">
+      <div class="form-group">
+        <label for="nombre">Nombre Completo *</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          [(ngModel)]="domiciliarioSeleccionado.nombre"
+          name="nombre"
+          placeholder="Ej: Juan Pérez"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono *</label>
+        <input 
+          type="text" 
+          id="telefono" 
+          [(ngModel)]="domiciliarioSeleccionado.telefono"
+          name="telefono"
+          placeholder="Ej: 3001234567"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="vehiculo">Vehículo *</label>
+        <select 
+          id="vehiculo" 
+          [(ngModel)]="domiciliarioSeleccionado.vehiculo"
+          name="vehiculo"
+          required>
+          <option value="">Seleccionar vehículo</option>
+          <option value="Moto">Moto</option>
+          <option value="Bicicleta">Bicicleta</option>
+          <option value="Carro">Carro</option>
+          <option value="A pie">A pie</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="placa">Placa *</label>
+        <input 
+          type="text" 
+          id="placa" 
+          [(ngModel)]="domiciliarioSeleccionado.placa"
+          name="placa"
+          placeholder="Ej: ABC123"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="domiciliarioSeleccionado.activo"
+            name="activo">
+          <span class="checkbox-custom"></span>
+          Domiciliario activo
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="domiciliarioSeleccionado.disponible"
+            name="disponible">
+          <span class="checkbox-custom"></span>
+          Domiciliario disponible
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-save">
+          {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="cargando">
+  <div class="loading-content">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Procesando...</span>
+  </div>
+</div>

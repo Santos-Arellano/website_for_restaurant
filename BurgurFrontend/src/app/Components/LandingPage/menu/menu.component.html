@@ -1,0 +1,231 @@
+<!-- Menu Section -->
+<main id="menu" class="menu-section">
+  <div class="page-wrapper">
+    <!-- Background Decorations -->
+    <div class="background-decorations">
+      <div class="deco-item deco-1">🍔</div>
+      <div class="deco-item deco-2">🍟</div>
+      <div class="deco-item deco-3">🥤</div>
+      <div class="deco-item deco-4">🍰</div>
+      <div class="deco-item deco-5">✨</div>
+      <div class="deco-item deco-6">💫</div>
+    </div>
+
+    <div class="container">
+      <div class="menu-header">
+        <h1 class="menu-title">NUESTRO MENÚ</h1>
+        <p class="menu-subtitle">Descubre nuestros sabores únicos</p>
+      </div>
+
+      <!-- Barra de búsqueda -->
+      <div class="menu-search-container">
+        <form class="menu-search-form" role="search" aria-label="Buscar productos" (ngSubmit)="onSearch()">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search search-icon" aria-hidden="true"></i>
+            <input
+              type="text"
+              name="nombre"
+              class="menu-search-input"
+              placeholder="Buscar productos..."
+              [(ngModel)]="searchTerm"
+              autocomplete="off" />
+            <button class="search-submit" type="submit" aria-label="Buscar" style="display: none;">Buscar</button>
+            <!-- Botón limpiar búsqueda -->
+            <a class="search-clear" *ngIf="searchTerm" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+              <i class="fas fa-times" aria-hidden="true"></i>
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filtros de categoría -->
+      <div class="menu-filters">
+        <!-- Todos -->
+        <a class="filter-btn" 
+           [class.active]="selectedCategory === null"
+           (click)="filterByCategory(null)">
+          <i class="fas fa-th"></i><span>Todos</span>
+        </a>
+
+        <!-- Hamburguesas -->
+        <a class="filter-btn" 
+           [class.active]="selectedCategory === 'hamburguesa'"
+           (click)="filterByCategory('hamburguesa')">
+          <i class="fas fa-hamburger"></i><span>Hamburguesas</span>
+        </a>
+
+        <!-- Acompañamientos -->
+        <a class="filter-btn" 
+           [class.active]="selectedCategory === 'acompañamiento'"
+           (click)="filterByCategory('acompañamiento')">
+          <i class="fas fa-utensils"></i><span>Acompañamientos</span>
+        </a>
+
+        <!-- Perros Calientes -->
+        <a class="filter-btn" 
+           [class.active]="selectedCategory === 'perro caliente'"
+           (click)="filterByCategory('perro caliente')">
+          <i class="fas fa-hotdog"></i><span>Perros</span>
+        </a>
+
+        <!-- Bebidas -->
+        <a class="filter-btn" 
+           [class.active]="selectedCategory === 'bebida'"
+           (click)="filterByCategory('bebida')">
+          <i class="fas fa-glass-whiskey"></i><span>Bebidas</span>
+        </a>
+
+        <!-- Postres -->
+        <a class="filter-btn" 
+           [class.active]="selectedCategory === 'postre'"
+           (click)="filterByCategory('postre')">
+          <i class="fas fa-ice-cream"></i><span>Postres</span>
+        </a>
+      </div>
+      
+      <!-- Info de resultados de búsqueda -->
+      <div class="search-results-info" *ngIf="searchTerm">
+        <p>
+          <i class="fas fa-search"></i>
+          Mostrando <strong>{{ filteredProducts.length }}</strong>
+          resultado{{ filteredProducts.length === 1 ? '' : 's' }}
+          para "<strong>{{ searchTerm }}</strong>"
+          · <a (click)="clearSearch()">Limpiar búsqueda</a>
+        </p>
+      </div>
+
+      <!-- Info de resultados de categoría -->
+      <div class="search-results-info" *ngIf="selectedCategory">
+        <p>
+          <i class="fas fa-filter"></i>
+          Mostrando <strong>{{ filteredProducts.length }}</strong>
+          producto{{ filteredProducts.length === 1 ? '' : 's' }}
+          en la categoría "<strong>{{ selectedCategory | titlecase }}</strong>"
+          · <a (click)="filterByCategory(null)">Ver todos</a>
+        </p>
+      </div>
+
+      <!-- Menu Grid -->
+      <div class="menu-grid" id="menuGrid">
+        <!-- Mensaje si no hay productos -->
+        <div class="empty-state" *ngIf="filteredProducts.length === 0" style="grid-column: 1 / -1;">
+          <i class="fas fa-search"></i>
+          <h3>No se encontraron productos</h3>
+          
+          <p *ngIf="searchTerm">
+            No hay productos que coincidan con "<strong>{{ searchTerm }}</strong>".
+          </p>
+          
+          <p *ngIf="selectedCategory && !searchTerm">
+            No hay productos en la categoría "<strong>{{ selectedCategory | titlecase }}</strong>".
+          </p>
+          
+          <p *ngIf="!searchTerm && !selectedCategory">
+            Actualmente no hay productos disponibles.
+          </p>
+          
+          <a class="btn-load-more" (click)="resetFilters()" style="display: inline-flex;">
+            <span>Ver todos los productos</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+
+        <!-- Loop de productos -->
+        <article class="menu-card" 
+                 *ngFor="let producto of filteredProducts"
+                 [attr.data-id]="producto.id"
+                 [attr.data-category]="producto.categoria.toLowerCase()"
+                 [attr.data-price]="producto.precio"
+                 [attr.data-name]="producto.nombre"
+                 [attr.data-image]="producto.imagen"
+                 [attr.data-desc]="producto.descripcion"
+                 role="button" 
+                 tabindex="0"
+                 title="Click para ver detalles y adicionales disponibles"
+                 (click)="viewProductDetails(producto)">
+          
+          <!-- Badge de producto nuevo -->
+          <div class="menu-card-badge" *ngIf="producto.isNew">Nuevo</div>
+          
+          <!-- Badge de producto popular -->
+          <div class="menu-card-badge sale" *ngIf="producto.isPopular && !producto.isNew">Popular</div>
+
+          <div class="menu-card-image">
+            <img [src]="producto.imagen || 'assets/Menu/cheeseburger.png'" 
+                 [alt]="producto.nombre" 
+                 class="menu-card-img">
+            
+            <!-- Overlay con información adicional -->
+            <div class="card-overlay" (click)="openProductModal(producto)">
+              <div class="overlay-content">
+                <p class="overlay-text">Ver detalles y adicionales</p>
+                <i class="fas fa-eye overlay-icon"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="menu-card-content">
+            <h3 class="menu-card-name">{{ producto.nombre }}</h3>
+            <p class="menu-card-description">{{ producto.descripcion }}</p>
+            
+            <!-- Mostrar ingredientes simplificado -->
+            <div class="menu-card-ingredients" *ngIf="producto.ingredientes && producto.ingredientes.length > 0">
+              <small class="ingredients-label">Ingredientes:</small>
+              <small class="ingredients-text">
+                {{ producto.ingredientes.slice(0, 3).join(', ') }}
+                <span *ngIf="producto.ingredientes.length > 3">...</span>
+              </small>
+            </div>
+            
+            <div class="menu-card-footer">
+              <span class="menu-card-price">${{ producto.precio | number:'1.0-0' }}</span>
+              <button class="btn-add-cart"
+                      [attr.data-product]="producto.nombre"
+                      [attr.data-price]="producto.precio"
+                      [attr.data-image]="producto.imagen"
+                      title="Agregar al carrito"
+                      (click)="addToCart(producto, $event)">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Información adicional -->
+      <div class="menu-info" *ngIf="filteredProducts.length > 0">
+        <div class="products-count">
+          <p>
+            <i class="fas fa-utensils"></i>
+            Mostrando <strong>{{ filteredProducts.length }}</strong> 
+            producto{{ filteredProducts.length === 1 ? '' : 's' }}
+            <span *ngIf="selectedCategory">
+              en <strong>{{ selectedCategory | titlecase }}</strong>
+            </span>
+          </p>
+        </div>
+        
+        <!-- Call to action para usuarios no autenticados -->
+        <div class="auth-cta" id="authCta" style="display: none;">
+          <div class="cta-content">
+            <h3>¡Únete a BurGur!</h3>
+            <p>Crea tu cuenta para disfrutar de ofertas exclusivas y un mejor servicio</p>
+            <div class="cta-buttons">
+              <a routerLink="/auth/register" class="btn-cta primary">Registrarse</a>
+              <a routerLink="/auth/login" class="btn-cta secondary">Iniciar Sesión</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Product Detail Modal -->
+<app-product-detail-modal 
+  [product]="selectedProduct"
+  [adicionales]="adicionales"
+  [isVisible]="isModalVisible"
+  (closeModalEvent)="closeProductModal()"
+  (productAdded)="onProductAdded($event)">
+</app-product-detail-modal>

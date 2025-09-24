@@ -1,1 +1,198 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================
+   BURGER CLUB - GLOBAL STYLES
+   ========================================== */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap');
+
+/* CSS Variables - Paleta de colores original */
+:root {
+  /* Colors - Paleta original del proyecto */
+  --color-background: #12372a;
+  --color-text-primary: #fbfada;
+  --color-text-secondary: #adbc9f;
+  --color-white: #ffffff;
+  --color-cta-stroke: #fbb5b5;
+  --color-cta-text: #f7f6cc;
+  --color-card-bg: rgba(255, 255, 255, 0.1);
+  --color-card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+  --color-info: #2196F3;
+  
+  /* Fonts */
+  --font-primary: 'Sansita Swashed', cursive;
+  --font-secondary: 'Lexend Zetta', sans-serif;
+  
+  /* Transitions */
+  --transition-speed: 0.3s;
+  --transition-slow: 0.6s;
+  
+  /* Shadows */
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --box-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --box-shadow-light: 0 5px 15px rgba(0, 0, 0, 0.2);
+  
+  /* Border Radius */
+  --border-radius: 20px;
+  --border-radius-small: 10px;
+  --border-radius-large: 30px;
+  
+  /* Z-Index */
+  --z-index-header: 1000;
+  --z-index-modal: 2000;
+  --z-index-loader: 9999;
+  
+  /* Layout */
+  --container-max-width: 1440px;
+  --section-padding: 80px;
+  
+  /* Legacy variables for compatibility */
+  --bg-color: var(--color-background);
+  --text-white: var(--color-white);
+  --primary-color: var(--color-background);
+  --secondary-color: var(--color-text-secondary);
+  --accent-color: var(--color-cta-stroke);
+  --text-color: var(--color-text-primary);
+}
+
+/* Basic Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-primary);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Utility Classes */
+.container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.bg-primary {
+  background-color: var(--color-background);
+}
+
+/* Button Styles */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius-small);
+  font-family: var(--font-primary);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  box-shadow: var(--box-shadow-light);
+}
+
+.btn-primary {
+  background-color: var(--color-cta-stroke);
+  color: var(--color-background);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-cta-text);
+  box-shadow: var(--box-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-text-secondary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-text-secondary);
+  color: var(--color-background);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--color-text-secondary);
+  border-radius: var(--border-radius-small);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  transition: border-color var(--transition-speed) ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-cta-stroke);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.form-control::placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* Card Styles */
+.card {
+  background: var(--color-card-gradient);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--box-shadow);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn var(--transition-slow) ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
