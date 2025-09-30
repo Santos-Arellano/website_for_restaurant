@@ -1,6 +1,8 @@
 // burger-club/burgur/src/main/java/restaurante/example/burgur/Config/DataBaseInit.java
 package restaurante.example.burgur.Config;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,16 +11,17 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import restaurante.example.burgur.Model.Adicional;
+import restaurante.example.burgur.Model.Carrito;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Model.Domiciliario;
+import restaurante.example.burgur.Model.Pedido;
 import restaurante.example.burgur.Model.Producto;
-import restaurante.example.burgur.Service.AdicionalService;
-import restaurante.example.burgur.Service.ClienteService;
-import restaurante.example.burgur.Service.DomiciliarioService;
-import restaurante.example.burgur.Service.ProductoService;
+import restaurante.example.burgur.Repository.PedidoRepository;
+import restaurante.example.burgur.Service.*;
 
 @Component
 public class DataBaseInit implements CommandLineRunner {
+
 
     @Autowired
     private ProductoService productoService;
@@ -31,6 +34,12 @@ public class DataBaseInit implements CommandLineRunner {
     
     @Autowired
     private DomiciliarioService domiciliarioService;
+
+    @Autowired
+    private PedidoService pedidoService;
+
+    @Autowired
+    private CarritoService carritoService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -57,7 +66,10 @@ public class DataBaseInit implements CommandLineRunner {
             
             // Crear domiciliarios
             createDomiciliarios();
-            
+
+            //Crear CarritosYPedidos
+            createCarritosYPedidos();
+
             // Vincular adicionales con productos
             int relacionesCreadas = productoService.rebuildAdicionalesDeTodosLosProductos();
             
@@ -392,5 +404,86 @@ public class DataBaseInit implements CommandLineRunner {
         }
         
         System.out.println("   📈 Clientes creados: " + created + ", Errores: " + errors);
+    }
+
+    private void createCarritos(){
+        System.out.println("🛒 Creando carritos para cada cliente...");
+        
+        List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
+        int carritosCreados = 0;
+        int errores = 0;
+
+        List <Adicional> adicionales = new ArrayList<>();
+        Adicional adicional1 = adicionalService.findById(1L); // Bacon
+        adicionales.add(adicional1);
+        Adicional adicional2 = adicionalService.findById(2L); // Queso extra
+        adicionales.add(adicional2);
+
+        for (Cliente cliente : clientes) {
+            try {
+                    carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), adicionales, 1, null, cliente); // Añadir un producto inicial para activar el carrito
+                    carritoService.añadirProductoAlCarrito(productoService.findById(2L).get(), null, 1, null, cliente); // Añadir un producto inicial para activar el carrito
+                    carritosCreados++;
+                    System.out.println("   ✓ Carrito creado para: " + cliente.getNombre() + " " + cliente.getApellido());
+            } catch (Exception e) {
+                errores++;
+                System.err.println("   ✗ Error creando carrito para " + cliente.getNombre() + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("   📈 Carritos creados: " + carritosCreados + ", Errores: " + errores);
+    }
+
+    private void createCarritosYPedidos(){
+        List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
+        List <Adicional> adicionales = new ArrayList<>();
+        Adicional adicional1 = adicionalService.findById(1L); // Bacon
+        adicionales.add(adicional1);
+        Adicional adicional2 = adicionalService.findById(2L); // Queso extra
+        adicionales.add(adicional2);
+        
+        // Creamos 10 Carritos y 10 Pedidos asociados
+        Carrito carrito1 = carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), adicionales, 1, null, clienteService.obtenerClientePorId(1L));
+        carritoService.enviarCarritoAPedido(carrito1);
+        pedidoService.crearPedido(carrito1);
+
+        Carrito carrito2 = carritoService.añadirProductoAlCarrito(productoService.findById(2L).get(), adicionales, 1, null, clienteService.obtenerClientePorId(2L));
+        carritoService.enviarCarritoAPedido(carrito2);
+        pedidoService.crearPedido(carrito2);
+
+        Carrito carrito3 = carritoService.añadirProductoAlCarrito(productoService.findById(3L).get(), adicionales, 1, null, clienteService.obtenerClientePorId(3L));
+        carritoService.enviarCarritoAPedido(carrito3);
+        pedidoService.crearPedido(carrito3);
+
+        Carrito carrito4 = carritoService.añadirProductoAlCarrito(productoService.findById(4L).get(), null, 1, null, clienteService.obtenerClientePorId(4L));
+        carritoService.enviarCarritoAPedido(carrito4);
+        pedidoService.crearPedido(carrito4);
+
+        Carrito carrito5 = carritoService.añadirProductoAlCarrito(productoService.findById(5L).get(), null, 1, null, clienteService.obtenerClientePorId(5L));
+        carritoService.enviarCarritoAPedido(carrito5);
+        pedidoService.crearPedido(carrito5);
+
+        Carrito carrito6 = carritoService.añadirProductoAlCarrito(productoService.findById(6L).get(), null, 1, null, clienteService.obtenerClientePorId(6L));
+        carritoService.enviarCarritoAPedido(carrito6);
+        pedidoService.crearPedido(carrito6);
+
+        Carrito carrito7 = carritoService.añadirProductoAlCarrito(productoService.findById(7L).get(), null, 1, null, clienteService.obtenerClientePorId(7L));
+        carritoService.enviarCarritoAPedido(carrito7);
+        pedidoService.crearPedido(carrito7);
+
+        Carrito carrito8 = carritoService.añadirProductoAlCarrito(productoService.findById(8L).get(), null, 1, null, clienteService.obtenerClientePorId(8L));
+        carritoService.enviarCarritoAPedido(carrito8);
+        pedidoService.crearPedido(carrito8);
+
+        Carrito carrito9 = carritoService.añadirProductoAlCarrito(productoService.findById(9L).get(), null, 1, null, clienteService.obtenerClientePorId(9L));
+        carritoService.enviarCarritoAPedido(carrito9);
+        pedidoService.crearPedido(carrito9);
+
+        Carrito carrito10 = carritoService.añadirProductoAlCarrito(productoService.findById(10L).get(), null, 1, null, clienteService.obtenerClientePorId(10L));
+        carritoService.enviarCarritoAPedido(carrito10);
+        pedidoService.crearPedido(carrito10);
+
+        System.out.println("   📈 Carritos y Pedidos creados: 10");
+
     }
 }

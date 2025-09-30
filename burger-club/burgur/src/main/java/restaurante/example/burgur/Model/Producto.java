@@ -59,7 +59,7 @@ public class Producto {
         fetch = FetchType.LAZY
     )
     @JsonIgnore
-    private List<ProdYAdiPedido> productosYAdicionales = new ArrayList<>();
+    private List<CarritoItem> productosYAdicionales = new ArrayList<>();
 
     //Constructor sin id y sin relaciones BDD
     

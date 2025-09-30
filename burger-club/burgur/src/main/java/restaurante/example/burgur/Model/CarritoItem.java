@@ -2,6 +2,8 @@ package restaurante.example.burgur.Model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,31 +12,33 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
 @Entity
-public class ProdYAdiPedido {
+public class CarritoItem {
     @Id
     @GeneratedValue
     private Long id;
     private int cantidad;
-    private float precioUnitario;
+    private double precioUnitario;
 
     //Relaciones BDD
-    //1). Relación Pedido-ProdYAdiPedido (Uno a Muchos)
+    //1). Relación ProdYAdiPedido-Carrito (Muchos a Uno)
     @ManyToOne
-    private Pedido pedido;
+    @JsonIgnore
+    private Carrito carrito;
 
     //2). Relación ProdYAdiPedido- Producto (Muchos a Uno)
     @ManyToOne
+    @JsonIgnore
     private Producto producto;
 
-    //3). Relación ProdYAdiPedido- AdiXProdPedido (Uno a Muchos)
-    @OneToMany(mappedBy = "prodYAdiPedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AdiXProdPedido> adicionalesPorProducto;
+    //3). Relación CarritoItem- AdiXProdPedido (Uno a Muchos)
+    @OneToMany(mappedBy = "carritoItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AdiXItemCarrito> adicionalesPorProducto;
     
     // Constructor vacio
-    public ProdYAdiPedido() {
+    public CarritoItem() {
     }
     // Constructor con parametros sin id y sin relaciones BDD
-    public ProdYAdiPedido(int cantidad, float precioUnitario) {
+    public CarritoItem(int cantidad, float precioUnitario) {
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
     }
@@ -52,23 +56,31 @@ public class ProdYAdiPedido {
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
     }
-    public float getPrecioUnitario() {
+    public double getPrecioUnitario() {
         return precioUnitario;
     }
-    public void setPrecioUnitario(float precioUnitario) {
+    public void setPrecioUnitario(double precioUnitario) {
         this.precioUnitario = precioUnitario;
     }
-    public Pedido getPedido() {
-        return pedido;
+    public Carrito getCarrito() {
+        return carrito;
     }
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
+    public void setCarrito(Carrito carrito) {
+        this.carrito = carrito;
     }
     public Producto getProducto() {
         return producto;
     }
     public void setProducto(Producto producto) {
         this.producto = producto;
+    }
+
+    public List<AdiXItemCarrito> getAdicionalesPorProducto() {
+        return adicionalesPorProducto;
+    }
+
+    public void setAdicionalesPorProducto(List<AdiXItemCarrito> adicionalesPorProducto) {
+        this.adicionalesPorProducto = adicionalesPorProducto;
     }
 
 
