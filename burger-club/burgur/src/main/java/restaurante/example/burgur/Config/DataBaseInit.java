@@ -11,10 +11,12 @@ import org.springframework.stereotype.Component;
 import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Model.Domiciliario;
+import restaurante.example.burgur.Model.Operador;
 import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Service.AdicionalService;
 import restaurante.example.burgur.Service.ClienteService;
 import restaurante.example.burgur.Service.DomiciliarioService;
+import restaurante.example.burgur.Service.OperadorService;
 import restaurante.example.burgur.Service.ProductoService;
 
 @Component
@@ -31,6 +33,9 @@ public class DataBaseInit implements CommandLineRunner {
     
     @Autowired
     private DomiciliarioService domiciliarioService;
+    
+    @Autowired
+    private OperadorService operadorService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -58,6 +63,9 @@ public class DataBaseInit implements CommandLineRunner {
             // Crear domiciliarios
             createDomiciliarios();
             
+            // Crear operadores
+            createOperadores();
+            
             // Vincular adicionales con productos
             int relacionesCreadas = productoService.rebuildAdicionalesDeTodosLosProductos();
             
@@ -66,6 +74,8 @@ public class DataBaseInit implements CommandLineRunner {
             System.out.println("   - Productos: " + productoService.countTotal());
             System.out.println("   - Clientes: " + clienteService.obtenerTodosLosClientes().size());
             System.out.println("   - Adicionales: " + adicionalService.findAll().size());
+            System.out.println("   - Domiciliarios: " + domiciliarioService.obtenerTodosLosDomiciliarios().size());
+            System.out.println("   - Operadores: " + operadorService.obtenerTodosLosOperadores().size());
             System.out.println("   - Relaciones producto-adicional: " + relacionesCreadas);
             
         } catch (Exception e) {
@@ -324,7 +334,11 @@ public class DataBaseInit implements CommandLineRunner {
             new Domiciliario("Andrés Gómez", "1054321098", true),
             new Domiciliario("Juliana Vargas", "1032109876", true),
             new Domiciliario("Roberto Sánchez", "1010987654", false),
-            new Domiciliario("Camila Rodríguez", "1098765431", true)
+            new Domiciliario("Camila Rodríguez", "1098765431", true),
+            new Domiciliario("Miguel Ángel Torres", "1123456789", true),
+            new Domiciliario("Diana Carolina Pérez", "1087654321", true),
+            new Domiciliario("José Luis Morales", "1156789012", true),
+            new Domiciliario("Ana María Castillo", "1034567890", false)
         );
 
         int created = 0;
@@ -392,5 +406,38 @@ public class DataBaseInit implements CommandLineRunner {
         }
         
         System.out.println("   📈 Clientes creados: " + created + ", Errores: " + errors);
+    }
+    
+    private void createOperadores() {
+        System.out.println("👨‍💼 Creando operadores...");
+        
+        List<Operador> operadores = Arrays.asList(
+            new Operador("María Elena Rodríguez", "1012345678", true),
+            new Operador("Carlos Alberto Martínez", "1023456789", true),
+            new Operador("Ana Sofía González", "1034567890", true),
+            new Operador("Luis Fernando Pérez", "1045678901", true),
+            new Operador("Diana Patricia López", "1056789012", false),
+            new Operador("Jorge Andrés Herrera", "1067890123", true),
+            new Operador("Claudia Marcela Torres", "1078901234", true),
+            new Operador("Ricardo Javier Morales", "1089012345", true),
+            new Operador("Sandra Milena Castro", "1090123456", false),
+            new Operador("Alejandro David Vargas", "1101234567", true)
+        );
+
+        int created = 0;
+        int errors = 0;
+        
+        for (Operador operador : operadores) {
+            try {
+                operadorService.save(operador);
+                created++;
+                System.out.println("   ✓ Operador creado: " + operador.getNombre());
+            } catch (Exception e) {
+                errors++;
+                System.err.println("   ✗ Error creando operador " + operador.getNombre() + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("   📈 Operadores creados: " + created + ", Errores: " + errors);
     }
 }
