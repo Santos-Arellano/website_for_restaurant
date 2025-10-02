@@ -64,8 +64,8 @@ public class CarritoServiceImpl implements CarritoService {
             adicionales = new ArrayList<>(); // Lista vacía si es null
         }
 
-        // --- NUEVO: filtrar nulos en la lista de adicionales
-        adicionales.removeIf(a -> a == null || a.getId() == null);
+        // filtrar nulos en la lista de adicionales
+        //adicionales.removeIf(a -> a == null || a.getId() == null);
 
         // 2. Revisar si el producto existe
         if (!productoService.existsById(producto.getId())) {
@@ -96,6 +96,11 @@ public class CarritoServiceImpl implements CarritoService {
             throw new IllegalStateException("El carrito está cerrado y no se puede modificar.");
         }
 
+        // Revisar que el carrito pertenezca al cliente
+        if (carrito.getCliente() == null || !carrito.getCliente().getId().equals(cliente.getId())) {
+            throw new IllegalArgumentException("El carrito no pertenece al cliente especificado.");
+        }
+
         // 5. Calcular costo de todos los adicionales pedidos (double como pediste)
         double costoAdicionales = 0;
         for (Adicional adicional : adicionales) {
@@ -109,6 +114,7 @@ public class CarritoServiceImpl implements CarritoService {
         prodYAdiPedido.setPrecioUnitario(producto.getPrecio() + costoAdicionales);
         // Asociar el item al carrito
         prodYAdiPedido.setCarrito(carrito);
+        
         // Guardar costo en Carrito
         carrito.setPrecioTotal((carrito.getPrecioTotal() + prodYAdiPedido.getPrecioUnitario()) * cantidad);
 
@@ -140,7 +146,25 @@ public class CarritoServiceImpl implements CarritoService {
         items.add(savedCarritoItem);
         carrito.setCarritoItems(items);
 
+        carritoRepository.save(carrito);
+
         return carrito;
+    }
+
+    @Override
+    public Carrito carritoActivoCliente(Cliente cliente){
+        // 1. Validar que el cliente no sea null
+        if (cliente == null || cliente.getId() == null) {
+            throw new IllegalArgumentException("El cliente no puede ser null.");
+        }
+
+        // 2. Reviso si el cliente ya tiene un carrito activo
+        Carrito carritoActivo = carritoRepository.findByClienteIdAndEstadoTrue(cliente.getId());
+        if (carritoActivo == null) {
+            // No tiene un carrito activo - creo uno nuevo
+            carritoActivo = crearCarrito(cliente);
+        }
+        return carritoActivo;
     }
 
     // Borrar Producto del Carrito

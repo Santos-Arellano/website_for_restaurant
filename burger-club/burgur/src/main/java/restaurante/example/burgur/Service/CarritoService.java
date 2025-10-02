@@ -22,11 +22,15 @@ public interface CarritoService {
     //Añadir Producto al Carrito
     Carrito añadirProductoAlCarrito(Producto producto, List<Adicional> adicionales, int cantidad, Carrito carrito, Cliente cliente);
 
+    //Carrito Activo del cliente
+    public Carrito carritoActivoCliente(Cliente cliente);
+
     //Borrar Producto del Carrito
     Carrito borrarProductoDelCarrito(CarritoItem carritoItem, Carrito carrito);
 
     //Vaciar Carrito
     Carrito vaciarCarrito(Carrito carrito);
+    
 
     // ==========================================
     // Enviar Carrito a Pedido
