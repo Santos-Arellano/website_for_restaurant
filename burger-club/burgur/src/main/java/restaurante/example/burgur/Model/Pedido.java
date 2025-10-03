@@ -27,12 +27,12 @@ public class Pedido {
     @JoinColumn(name = "carrito_id", unique = true, nullable = true)
     private Carrito carrito;
 
-    //2). Relación Pedido - Domiciliario (1 a 1)
+    //2). Relación Pedido - Domiciliario (Muchos a 1)
     @ManyToOne
     @JsonIgnore
     private Domiciliario domiciliario;
 
-    //3). Relación Pedido - Operador (muchos a 1)
+    //3). Relación Pedido - Operador (Muchos a 1)
     @ManyToOne
     @JsonIgnore
     private Operador operador;

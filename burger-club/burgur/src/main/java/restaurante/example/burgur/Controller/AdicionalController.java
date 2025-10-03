@@ -140,6 +140,10 @@ public class AdicionalController {
     // ==========================================
     // MÉTODOS AUXILIARES
     // ==========================================
+
+    // ================================
+    // MÉTODOS VISTA ADMIN- ADICIONALES
+    // ================================
     // 1). Retona todos los adicionales activos
     @GetMapping("/activos")
     public ResponseEntity<Map<String, Object>> obtenerAdicionalesActivos() {

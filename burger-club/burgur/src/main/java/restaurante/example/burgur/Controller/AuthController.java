@@ -12,7 +12,7 @@ import restaurante.example.burgur.Service.ClienteService;
 import lombok.Data;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
     
     @Autowired

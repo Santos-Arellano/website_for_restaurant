@@ -3,6 +3,8 @@ package restaurante.example.burgur.Model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -21,6 +23,7 @@ public class Domiciliario {
     //Relaciones BDD
     //1). Relación Domiciliario - Operador (Muchos a 1)
     @ManyToOne
+    @JsonIgnore
     private Operador operador;
 
     //2). Relación Pedido - Domiciliario (Many a 1)
