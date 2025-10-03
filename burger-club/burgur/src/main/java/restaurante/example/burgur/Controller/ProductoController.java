@@ -8,8 +8,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import restaurante.example.burgur.Model.Adicional;
@@ -17,80 +15,24 @@ import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Service.ProductoService;
 import lombok.Data;
 
-@Controller
-@RequestMapping("/menu")
-public class ProductoController {
-    
+@RestController
+@RequestMapping("/productos")
+public class ProductoController {    
     @Autowired
     private ProductoService productoService;
-
+   
     // ==========================================
-    // VISTAS DE ADMINISTRACIÓN
+    // CRUD DE PRODUCTOS (API REST)
     // ==========================================
-    
-    @GetMapping("/admin")
-    public String administrarProductos(Model model) {
-        productoService.rebuildAdicionalesDeTodosLosProductos();
-        try {
-            List<Producto> productos = productoService.findAll();
-            addProductStatisticsToModel(model, productos);
-            return "admin/admin-products";
-        } catch (Exception e) {
-            handleAdminProductsError(model, e);
-            return "admin/admin-products";
-        }
-    }
 
-    private void addProductStatisticsToModel(Model model, List<Producto> productos) {
-        model.addAttribute("productos", productos);
-        model.addAttribute("totalProductos", calculateTotalProducts(productos));
-        model.addAttribute("productosNuevos", calculateNewProducts(productos));
-        model.addAttribute("productosActivos", calculateActiveProducts(productos));
-        model.addAttribute("stockBajo", calculateLowStockProducts(productos));
-    }
-
-    private long calculateTotalProducts(List<Producto> productos) {
-        return productos.size();
-    }
-
-    private long calculateNewProducts(List<Producto> productos) {
-        return productos.stream()
-            .filter(p -> p != null && p.isNuevo())
-            .count();
-    }
-
-    private long calculateActiveProducts(List<Producto> productos) {
-        return productos.stream()
-            .filter(p -> p != null && p.isActivo())
-            .count();
-    }
-
-    private long calculateLowStockProducts(List<Producto> productos) {
-        return productos.stream()
-            .filter(p -> p != null && p.isStockBajo())
-            .count();
-    }
-
-    private void handleAdminProductsError(Model model, Exception e) {
-        model.addAttribute("productos", List.of());
-        model.addAttribute("error", "Error al cargar productos: " + e.getMessage());
-    }
-    
-    
-    // ==========================================
-    // API REST PARA PRODUCTOS
-    // ==========================================
-    
-    @GetMapping("/productos/{id}")
+    @GetMapping("/{id}")
     // Retorna el producto junto con su lista de adicionales permitidos
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> obtenerProductoPorId(@PathVariable Long id) {
         try {
             Optional<Producto> productoOpt = productoService.findById(id);
             if (productoOpt.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
-            
             Producto producto = productoOpt.get();
             List<Adicional> adicionales = productoService.obtenerAdicionalesPermitidos(id);
             
@@ -104,8 +46,7 @@ public class ProductoController {
         }
     }
     
-    @GetMapping("/productos")
-    @ResponseBody
+    @GetMapping("")
     public ResponseEntity<List<Producto>> obtenerTodosLosProductos() {
         try {
             return ResponseEntity.ok(productoService.findAll());
@@ -113,9 +54,8 @@ public class ProductoController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
-    @PostMapping("/productos")
-    @ResponseBody
+
+    @PostMapping("")
     public ResponseEntity<Map<String, Object>> crearProducto(@RequestBody ProductoRequest request) {
         try {
             if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
@@ -144,7 +84,7 @@ public class ProductoController {
             producto.setActivo(request.getActivo() != null ? request.getActivo() : true);
             
             Producto savedProducto = productoService.save(producto);
-            
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Producto creado correctamente",
@@ -156,9 +96,8 @@ public class ProductoController {
             return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
         }
     }
-    
-    @PutMapping("/productos/{id}")
-    @ResponseBody
+
+    @PutMapping("/{id}")
     public ResponseEntity<Map<String, Object>> actualizarProducto(
             @PathVariable Long id, @RequestBody ProductoRequest request) {
         try {
@@ -191,7 +130,7 @@ public class ProductoController {
             producto.setActivo(request.getActivo() != null ? request.getActivo() : true);
             
             Producto updatedProducto = productoService.save(producto);
-            
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Producto actualizado correctamente",
@@ -204,14 +143,14 @@ public class ProductoController {
         }
     }
     
-    @DeleteMapping("/productos/{id}")
-    @ResponseBody
+    @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> eliminarProducto(@PathVariable Long id) {
         try {
             if (!productoService.existsById(id)) {
                 return ResponseEntity.notFound().build();
             }
             productoService.deleteById(id);
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             return ResponseEntity.ok(Map.of("success", true, "message", "Producto eliminado correctamente"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
@@ -219,7 +158,114 @@ public class ProductoController {
             return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error al eliminar el producto"));
         }
     }
-    
+
+    // ==========================================
+    // MÉTODOS AUXILIARES
+    // ==========================================
+
+    // ====================
+    // MÉTODOS VISTA MENU
+    // ====================
+    // Encontrar Productos por nombre (búsqueda parcial, case insensitive)
+    @GetMapping("/search")
+    public ResponseEntity<List<Producto>> buscarProductosPorNombre(@RequestParam String nombre) {
+        try {
+            productoService.rebuildAdicionalesDeTodosLosProductos();
+            List<Producto> productos = productoService.findByNombre(nombre);
+            return ResponseEntity.ok(productos);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // Encontrar Productos por categoría
+    @GetMapping("/categoria/{categoria}")
+    public ResponseEntity<List<Producto>> obtenerProductosPorCategoria(@PathVariable String categoria) {
+        try {
+            productoService.rebuildAdicionalesDeTodosLosProductos();
+            List<Producto> productos = productoService.findByCategoria(categoria);
+            return ResponseEntity.ok(productos);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // Calcular cantidad de productos por categoría
+    @GetMapping("/cantidadPorCategoria")
+    public Map<String, Long> calculateProductsByCategory() {
+        List<Producto> productos = productoService.findAll();
+        Map<String, Long> categoryCounts = new HashMap<>();
+        
+        for (Producto producto : productos) {
+            if (producto != null && producto.getCategoria() != null) {
+                String categoria = producto.getCategoria().toLowerCase();
+                categoryCounts.put(categoria, categoryCounts.getOrDefault(categoria, 0L) + 1);
+            }
+        }
+        return categoryCounts;
+    }
+
+    // ==============================
+    // MÉTODOS VISTA ADMIN- PRODUCTOS
+    // ==============================
+    @GetMapping("/cantidadTotal")
+    public long calculateTotalProducts() {
+        List<Producto> productos = productoService.findAll();
+        return productos.size();
+    }
+
+    @GetMapping("/cantidadNuevos")
+    public long calculateNewProducts() {
+        List<Producto> productos = productoService.findAll();
+        return productos.stream()
+            .filter(p -> p != null && p.isNuevo())
+            .count();
+    }
+
+    @GetMapping("/cantidadActivos")
+    public long calculateActiveProducts() {
+        List<Producto> productos = productoService.findAll();
+        return productos.stream()
+            .filter(p -> p != null && p.isActivo())
+            .count();
+    }
+
+    @GetMapping("/cantidadCategorias")
+    public long calculateTotalCategories() {
+        List<Producto> productos = productoService.findAll();
+        return productos.stream()
+            .filter(p -> p != null && p.getCategoria() != null)
+            .map(Producto::getCategoria)
+            .distinct()
+            .count();
+    }
+
+    @GetMapping("/cantidadStockBajo")
+    public long calculateLowStockProducts() {
+        List<Producto> productos = productoService.findAll();
+        return productos.stream()
+            .filter(p -> p != null && p.isStockBajo())
+            .count();
+    }
+
+    // ==============================
+    // MÉTODOS VISTA ADMIN- DASHBOARD
+    // ==============================
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Long>> stats() {
+        try {
+            List<Producto> productos = productoService.findAll();
+            Map<String, Long> stats = Map.of(
+                "total", (long) productos.size(),
+                "nuevos", productos.stream().filter(Producto::isNuevo).count(),
+                "activos", productos.stream().filter(Producto::isActivo).count(),
+                "stockBajo", productos.stream().filter(Producto::isStockBajo).count()
+            );
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
     // ==========================================
     // CLASES DE APOYO

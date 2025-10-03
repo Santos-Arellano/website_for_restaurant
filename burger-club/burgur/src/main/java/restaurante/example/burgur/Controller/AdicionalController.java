@@ -6,56 +6,28 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Service.AdicionalService;
+import restaurante.example.burgur.Service.ProductoService;
 import lombok.Data;
 
-@Controller
-@RequestMapping("/admin/adicionales")
+@RestController
+@RequestMapping("adicionales")
 public class AdicionalController {
-    
     @Autowired
     private AdicionalService adicionalService;
-    
+    @Autowired
+    private ProductoService productoService;
+
     // ==========================================
-    // VISTAS DE ADMINISTRACIÓN
+    // CRUD DE ADICIONALES (API REST)
     // ==========================================
     
     @GetMapping("")
-    public String administrarAdicionales(Model model) {
-        try {
-            List<Adicional> todosLosAdicionales = adicionalService.findAll();
-            List<Adicional> adicionalesActivos = adicionalService.findByActivoTrue();
-            
-            long totalAdicionales = todosLosAdicionales.size();
-            long cantidadActivos = adicionalesActivos.size();
-            
-            // Mostrar solo los adicionales activos en la vista
-            model.addAttribute("adicionales", adicionalesActivos);
-            model.addAttribute("totalAdicionales", totalAdicionales);
-            model.addAttribute("adicionalesActivos", cantidadActivos);
-            
-            return "admin/admin-adicionales";
-        } catch (Exception e) {
-            model.addAttribute("adicionales", List.of());
-            model.addAttribute("error", "Error al cargar adicionales: " + e.getMessage());
-            return "admin/admin-adicionales";
-        }
-    }
-    
-    // ==========================================
-    // API REST
-    // ==========================================
-    
-    @GetMapping("/list")
-    @ResponseBody
     public ResponseEntity<List<Adicional>> obtenerTodosLosAdicionales() {
         try {
-            // Devolver solo adicionales activos para el menú público
             return ResponseEntity.ok(adicionalService.findByActivoTrue());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -63,7 +35,6 @@ public class AdicionalController {
     }
 
     @GetMapping("/{id}")
-    @ResponseBody
     public ResponseEntity<Adicional> obtenerAdicionalPorId(@PathVariable Long id) {
         try {
             Adicional adicional = adicionalService.findById(id);
@@ -76,7 +47,6 @@ public class AdicionalController {
     }
     
     @PostMapping("")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> crearAdicional(@RequestBody AdicionalRequest request) {
         try {
             if (request.getNombre() == null || request.getNombre().trim().isEmpty()) {
@@ -96,6 +66,7 @@ public class AdicionalController {
             adicional.setCategoria(request.getCategoria());
             
             Adicional savedAdicional = adicionalService.save(adicional);
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -110,7 +81,6 @@ public class AdicionalController {
     }
     
     @PutMapping("/{id}")
-    @ResponseBody
     // Retorna el adicional actualizado con sus categorías
     public ResponseEntity<Map<String, Object>> actualizarAdicional(
             @PathVariable Long id, @RequestBody AdicionalRequest request) {
@@ -134,6 +104,7 @@ public class AdicionalController {
             }
             
             Adicional updatedAdicional = adicionalService.save(adicional);
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -148,7 +119,6 @@ public class AdicionalController {
     }
     
     @DeleteMapping("/{id}")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> eliminarAdicional(@PathVariable Long id) {
         try {
             if (!adicionalService.existsById(id)) {
@@ -158,6 +128,7 @@ public class AdicionalController {
                 ));
             }
             adicionalService.delete(id);
+            productoService.rebuildAdicionalesDeTodosLosProductos();
             return ResponseEntity.ok(Map.of("success", true, "message", "Adicional eliminado correctamente"));
         } catch (IllegalArgumentException e) {
             return handleBadRequest(e.getMessage());
@@ -165,7 +136,60 @@ public class AdicionalController {
             return handleInternalServerError("Error al eliminar el adicional");
         }
     }
-    
+
+    // ==========================================
+    // MÉTODOS AUXILIARES
+    // ==========================================
+    // 1). Retona todos los adicionales activos
+    @GetMapping("/activos")
+    public ResponseEntity<Map<String, Object>> obtenerAdicionalesActivos() {
+        try {
+            List<Adicional> adicionales = adicionalService.findByActivoTrue();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "adicionales", adicionales
+            ));
+        } catch (Exception e) {
+            return handleInternalServerError("Error al obtener los adicionales activos");
+        }
+    }
+
+    // 2). Retorna la cantidad de adicionales activos
+    @GetMapping("/cantidadActivos")
+    public ResponseEntity<Map<String, Object>> obtenerCantidadAdicionalesActivos() {
+        try {
+            List<Adicional> adicionales = adicionalService.findByActivoTrue();
+            long cantidad = adicionales.size();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "cantidad", cantidad
+            ));
+        } catch (Exception e) {
+            return handleInternalServerError("Error al obtener la cantidad de adicionales activos");
+        }
+    }
+
+    // ==============================
+    // MÉTODOS VISTA ADMIN- DASHBOARD
+    // ==============================
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Long>> stats() {
+        try {
+            var adicionales = adicionalService.findAll();
+
+            Map<String, Long> response = Map.of(
+                "total", (long) adicionales.size(),
+                "activos", adicionales.stream()
+                                     .filter(a -> a != null && a.isActivo())
+                                     .count()
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     // ==========================================
     // MÉTODOS HELPER PARA MANEJO DE ERRORES
     // ==========================================

@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -14,48 +12,18 @@ import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Service.ClienteService;
 import lombok.Data;
 
-@Controller
+@RestController
 @RequestMapping("/user")
 public class UserController {
     
     @Autowired
     private ClienteService clienteService;
-    
-    // ==========================================
-    // VISTAS DE USUARIO
-    // ==========================================
-    
-    @GetMapping("/profile")
-    public String showProfile(Model model, HttpSession session) {
-        Cliente cliente = (Cliente) session.getAttribute("cliente");
-        
-        if (cliente == null) {
-            return "redirect:/auth/login";
-        }
-        
-        // Obtener datos actualizados del cliente
-        try {
-            Cliente clienteActualizado = clienteService.obtenerClientePorId(cliente.getId());
-            if (clienteActualizado != null) {
-                model.addAttribute("cliente", clienteActualizado);
-                session.setAttribute("cliente", clienteActualizado); // Actualizar sesión
-            } else {
-                model.addAttribute("cliente", cliente);
-            }
-        } catch (Exception e) {
-            model.addAttribute("cliente", cliente);
-            model.addAttribute("error", "Error al cargar el perfil");
-        }
-        
-        return "user/profile";
-    }
-    
+
     // ==========================================
     // API DE USUARIO
     // ==========================================
     
     @PutMapping("/profile")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody ProfileUpdateRequest request, HttpSession session) {
         try {
             Cliente cliente = (Cliente) session.getAttribute("cliente");
@@ -149,7 +117,6 @@ public class UserController {
     }
     
     @PutMapping("/password")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody Map<String, String> passwordData, HttpSession session) {
         try {
             Cliente cliente = (Cliente) session.getAttribute("cliente");
@@ -201,7 +168,6 @@ public class UserController {
     }
     
     @DeleteMapping("/account")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> deleteAccount(@RequestBody AccountDeletionRequest request, HttpSession session) {
         try {
             Cliente cliente = (Cliente) session.getAttribute("cliente");

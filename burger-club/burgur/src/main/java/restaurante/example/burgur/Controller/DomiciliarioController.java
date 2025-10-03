@@ -94,6 +94,27 @@ public class DomiciliarioController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // ==========================================
+    // MÉTODOS AUXILIARES
+    // ==========================================
+    // ==================================
+    // MÉTODOS VISTA ADMIN- DOMICILIARIOS
+    // ==================================
+
+    // Obtener cantidad de domiciliarios en total
+    @GetMapping("/cantidadTotal")
+    public long calcularCantidadTotalDomiciliarios() {
+        List<Domiciliario> domiciliarios = domiciliarioService.obtenerTodosLosDomiciliarios();
+        return domiciliarios.size();
+    }
+
+    // Obtener cantidad de domiciliarios disponibles
+    @GetMapping("/cantidadDisponibles")
+    public long calcularCantidadDomiciliariosDisponibles() {
+        List<Domiciliario> domiciliarios = domiciliarioService.obtenerDomiciliariosDisponibles();
+        return domiciliarios.size();
+    }
     
     // ==========================================
     // CLASES DE APOYO

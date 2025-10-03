@@ -5,56 +5,23 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.servlet.http.HttpSession;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Service.ClienteService;
 import lombok.Data;
 
-@Controller
-@RequestMapping("/auth")
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
     
     @Autowired
-    private ClienteService clienteService;
-    
+    private ClienteService clienteService;     
     // ==========================================
-    // VISTAS DE AUTENTICACIÓN
-    // ==========================================
-    
-    @GetMapping("/login")
-    public String showLogin(Model model, HttpSession session) {
-        // Si ya está logueado, redirigir al menú
-        if (session.getAttribute("cliente") != null) {
-            return "redirect:/menu";
-        }
-        return "auth/login";
-    }
-    
-    @GetMapping("/register")
-    public String showRegister(Model model, HttpSession session) {
-        // Si ya está logueado, redirigir al menú
-        if (session.getAttribute("cliente") != null) {
-            return "redirect:/menu";
-        }
-        return "auth/register";
-    }
-    
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
-    }
-    
-    // ==========================================
-    // API DE AUTENTICACIÓN
+    // API REST DE AUTENTICACIÓN
     // ==========================================
     
     @PostMapping("/login")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request, HttpSession session) {
         try {
             if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
@@ -97,7 +64,6 @@ public class AuthController {
     }
     
     @PostMapping("/register")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest request, HttpSession session) {
         try {
             // Validaciones básicas
@@ -171,6 +137,15 @@ public class AuthController {
         }
     }
     
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Sesión cerrada correctamente"
+        ));
+    }
+    
     // ==========================================
     // MÉTODOS UTILITARIOS PARA MANEJO DE ERRORES
     // ==========================================
@@ -184,7 +159,6 @@ public class AuthController {
     }
     
     @GetMapping("/current")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
         Cliente cliente = (Cliente) session.getAttribute("cliente");
         

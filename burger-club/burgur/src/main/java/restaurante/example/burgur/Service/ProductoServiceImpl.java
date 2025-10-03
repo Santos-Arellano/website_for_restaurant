@@ -188,6 +188,7 @@ public class ProductoServiceImpl implements ProductoService {
     // Rebuild de los Adicionales Permitos para todos los productos
     @Transactional
     @Override
+    // Retorna la cantidad de nuevos vínculos creados
     public Integer rebuildAdicionalesDeTodosLosProductos() {
         List<Producto> productos = productoRepository.findAll();
         List<Adicional> adicionales = adicionalRepository.findByActivoTrue();

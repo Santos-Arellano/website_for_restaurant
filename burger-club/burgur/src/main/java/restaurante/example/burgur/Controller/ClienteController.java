@@ -14,41 +14,15 @@ import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Service.ClienteService;
 import lombok.Data;
 
-@Controller
-@RequestMapping("/admin/clientes")
+
+@RestController
+@RequestMapping("/clientes")
 public class ClienteController {
-    
     @Autowired
     private ClienteService clienteService;
     
     // ==========================================
-    // VISTAS DE ADMINISTRACIÓN
-    // ==========================================
-    
-    @GetMapping("")
-    public String administrarClientes(Model model) {
-        try {
-            List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
-            
-            long totalClientes = clientes.size();
-            long clientesActivos = clientes.stream()
-                .filter(c -> c != null && c.isActivo())
-                .count();
-            
-            model.addAttribute("clientes", clientes);
-            model.addAttribute("totalClientes", totalClientes);
-            model.addAttribute("clientesActivos", clientesActivos);
-            
-            return "admin/admin-clientes";
-        } catch (Exception e) {
-            model.addAttribute("clientes", List.of());
-            model.addAttribute("error", "Error al cargar clientes: " + e.getMessage());
-            return "admin/admin-clientes";
-        }
-    }
-    
-    // ==========================================
-    // API REST
+    // CRUD DE CLIENTES (API REST)
     // ==========================================
     
     @GetMapping("/list")
@@ -115,6 +89,27 @@ public class ClienteController {
             return handleInternalError("Error interno del servidor");
         }
     }
+
+    // ==========================================
+    // MÉTODOS AUXILIARES
+    // ==========================================
+
+    // 1). Retorna Clientes activos
+    @GetMapping("/activos")
+    public List<Cliente> obtenerClientesActivos() {
+        return clienteService.obtenerTodosLosClientes().stream()
+                .filter(Cliente::isActivo)
+                .toList();
+    }
+
+    // 2). Retorna la cantidad de Clientes activos
+    @GetMapping("/cantidadActivos")
+    public Long obtenerCantidadClientesActivos() {
+        return clienteService.obtenerTodosLosClientes().stream()
+                .filter(Cliente::isActivo)
+                .count();
+    }
+    
     
     // ==========================================
     // MÉTODOS UTILITARIOS PARA MANEJO DE ERRORES
@@ -208,6 +203,32 @@ public class ClienteController {
             return handleInternalError("Error al eliminar el cliente");
         }
     }
+
+    // ==========================================
+    // MÉTODOS AUXILIARES
+    // ==========================================
+
+    // ==============================
+    // MÉTODOS VISTA ADMIN- DASHBOARD
+    // ==============================
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Long>> stats() {
+        try {
+            var clientes = clienteService.obtenerTodosLosClientes();
+
+            Map<String, Long> response = Map.of(
+                "total",   (long) clientes.size(),
+                "activos", clientes.stream()
+                                .filter(c -> c != null && c.isActivo())
+                                .count()
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     
     // ==========================================
     // CLASES DE APOYO
