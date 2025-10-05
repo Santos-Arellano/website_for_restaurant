@@ -1,0 +1,57 @@
+# Angular
+/Burgur/.angular/
+/Burgur/dist/
+/BurgurFrontend/.angular/
+/BurgurFrontend/dist/
+.angular/cache/
+.sass-cache/
+node_modules/
+npm-debug.log
+yarn-error.log
+coverage/
+*.js.map
+
+# IDEs and editors
+/.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Java / Spring Boot
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# Database
+*.mv.db
+*.trace.db
+*.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directorios específicos del proyecto
+/Burgur/
+/BurgurFrontend/
