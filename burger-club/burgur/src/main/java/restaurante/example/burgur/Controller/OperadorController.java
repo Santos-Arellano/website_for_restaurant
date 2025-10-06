@@ -1,153 +1,72 @@
 package restaurante.example.burgur.Controller;
 
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import lombok.Data;
 import restaurante.example.burgur.Model.Operador;
 import restaurante.example.burgur.Service.OperadorService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
 
 @RestController
 @RequestMapping("/operadores")
 public class OperadorController {
+
     @Autowired
     private OperadorService operadorService;
 
     // ==========================================
-    // CRUD DE OPERADORES (API REST)
+    // ENDPOINTS BÁSICOS CRUD
     // ==========================================
 
-    // Obtener todos los operadores
-    @GetMapping("/list")
-    public ResponseEntity<List<Operador>> obtenerTodosLosOperadores() {
-        try {
-            return ResponseEntity.ok(operadorService.obtenerTodosLosOperadores());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    @GetMapping("")
+    public ResponseEntity<List<Operador>> obtenerTodos() {
+        return ResponseEntity.ok(operadorService.obtenerTodosLosOperadores());
     }
 
-    // Obtener un operador por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Operador> obtenerOperadorPorId(@PathVariable Long id) {
-        try {
-            Operador operador = operadorService.obtenerOperadorPorId(id);
-            return ResponseEntity.ok(operador);
-        } catch (IllegalArgumentException e) {
+    public ResponseEntity<Operador> obtenerPorId(@PathVariable Long id) {
+        Operador operador = operadorService.obtenerOperadorPorId(id);
+        if (operador == null) {
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
         }
+        return ResponseEntity.ok(operador);
     }
 
-    // Crear un nuevo operador
     @PostMapping("")
-    public ResponseEntity<Map<String, Operador>> crearOperador(@RequestBody OperadorRequest request) {
-        try {
-            Operador operador = new Operador();
-            operador.setNombre(request.getNombre());
-            operador.setCedula(request.getCedula());
-            operador.setDisponible(request.isDisponible());
-
-            Operador savedOperador = operadorService.save(operador);
-            return ResponseEntity.ok(Map.of("operador", savedOperador));
-        } catch (Exception e) {
-         return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Operador> crear(@RequestBody Operador operador) {
+        Operador creado = operadorService.save(operador);
+        return ResponseEntity.ok(creado);
     }
 
-    // Actualizar un operador
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Operador>> actualizarOperador(@PathVariable Long id, @RequestBody OperadorRequest request) {
-        try {
-            Operador existingOperador = operadorService.obtenerOperadorPorId(id);
-            existingOperador.setNombre(request.getNombre());
-            existingOperador.setCedula(request.getCedula());
-            existingOperador.setDisponible(request.isDisponible());
-
-            Operador updatedOperador = operadorService.save(existingOperador);
-            return ResponseEntity.ok(Map.of("operador", updatedOperador));
-        } catch (IllegalArgumentException e) {
+    public ResponseEntity<Operador> actualizar(@PathVariable Long id, @RequestBody Operador operador) {
+        Operador existente = operadorService.obtenerOperadorPorId(id);
+        if (existente == null) {
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
         }
+        operador.setId(id);
+        Operador actualizado = operadorService.save(operador);
+        return ResponseEntity.ok(actualizado);
     }
 
-    //Eliminar un operador
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> eliminarOperador(@PathVariable Long id) {
-        try {
-            operadorService.eliminarOperador(id);
-            return ResponseEntity.ok(Map.of("deleted", true));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        operadorService.eliminarOperador(id);
+        return ResponseEntity.noContent().build();
     }
 
     // ==========================================
     // MÉTODOS ESPECÍFICOS DE NEGOCIO
     // ==========================================
+
     @GetMapping("/disponibles")
-    public ResponseEntity<List<Operador>> obtenerOperadoresDisponibles() {
-        try {
-            List<Operador> operadoresDisponibles = operadorService.obtenerOperadoresDisponibles();
-            return ResponseEntity.ok(operadoresDisponibles);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<List<Operador>> obtenerDisponibles() {
+        return ResponseEntity.ok(operadorService.obtenerOperadoresDisponibles());
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<Map<String, Long>> countTotalOperadores() {
-        try {
-            long total = operadorService.countTotal();
-            return ResponseEntity.ok(Map.of("total", total));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    @GetMapping("/stats")
+    public ResponseEntity<Long> countTotal() {
+        return ResponseEntity.ok(operadorService.countTotal());
     }
-
-    @PutMapping("/{id}/disponibilidad")
-    public ResponseEntity<Map<String, Operador>> cambiarDisponibilidad(@PathVariable Long id, @RequestBody Map<String, Boolean> request) {
-        try {
-            if (!request.containsKey("disponible")) {
-                return ResponseEntity.badRequest().build();
-            }
-            boolean disponible = request.get("disponible");
-            operadorService.cambiarDisponibilidad(id, disponible);
-            Operador updatedOperador = operadorService.obtenerOperadorPorId(id);
-            return ResponseEntity.ok(Map.of("operador", updatedOperador));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    // ==========================================
-    // CLASES DE APOYO
-    // ==========================================
-    @Data
-    static class OperadorRequest {
-        private String nombre;
-        private String cedula;
-        private boolean disponible;
-    }
-
-    
 }
