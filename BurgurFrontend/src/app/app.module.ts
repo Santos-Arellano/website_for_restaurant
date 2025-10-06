@@ -22,6 +22,8 @@ import { DashboardComponent } from './Components/Admin/dashboard/dashboard.compo
 import { AdminProductsComponent } from './Components/Admin/admin-products/admin-products.component';
 import { AdminClientesComponent } from './Components/Admin/admin-clientes/admin-clientes.component';
 import { AdminDomiciliariosComponent } from './Components/Admin/admin-domiciliarios/admin-domiciliarios.component';
+import { AdminOperadoresComponent } from './Components/Admin/admin-operadores/admin-operadores.component';
+import { AdminHeaderComponent } from './Components/Shared/admin-header/admin-header.component';
 
 @NgModule({
   declarations: [
@@ -41,14 +43,16 @@ import { AdminDomiciliariosComponent } from './Components/Admin/admin-domiciliar
     DashboardComponent,
     AdminProductsComponent,
     AdminClientesComponent,
-    AdminDomiciliariosComponent
+    AdminDomiciliariosComponent,
+    AdminOperadoresComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
-    HeaderFooterComponent
+    HeaderFooterComponent,
+    AdminHeaderComponent
   ],
   exports: [
     CartModalComponent

@@ -12,6 +12,7 @@ import { AdminProductsComponent } from './Components/Admin/admin-products/admin-
 import { AdminClientesComponent } from './Components/Admin/admin-clientes/admin-clientes.component';
 import { AdminAdicionalesComponent } from './Components/Admin/admin-adicionales/admin-adicionales.component';
 import { AdminDomiciliariosComponent } from './Components/Admin/admin-domiciliarios/admin-domiciliarios.component';
+import { AdminOperadoresComponent } from './Components/Admin/admin-operadores/admin-operadores.component';
 
 const routes: Routes = [
   { path: '', component: HeroComponent },
@@ -29,6 +30,7 @@ const routes: Routes = [
   { path: 'admin/clientes', component: AdminClientesComponent },
   { path: 'admin/adicionales', component: AdminAdicionalesComponent },
   { path: 'admin/domiciliarios', component: AdminDomiciliariosComponent },
+  { path: 'admin/operadores', component: AdminOperadoresComponent },
   { path: '**', redirectTo: '' }
 ];
 

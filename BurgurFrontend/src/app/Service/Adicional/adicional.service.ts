@@ -7,7 +7,7 @@ import { Adicional } from '../../Model/Adicional/adicional';
   providedIn: 'root'
 })
 export class AdicionalService {
-  private apiUrl = 'http://localhost:8080/api/adicionales';
+  private apiUrl = '/api/adicionales';
   private adicionalesSubject = new BehaviorSubject<Adicional[]>([]);
   public adicionales$ = this.adicionalesSubject.asObservable();
 

@@ -7,7 +7,7 @@ import { Pedido, ProductoPedido, EstadoPedido, MetodoPago } from '../../Model/Pe
   providedIn: 'root'
 })
 export class PedidoService {
-  private apiUrl = 'http://localhost:8080/api/pedidos';
+  private apiUrl = '/api/pedidos';
   private carritoSubject = new BehaviorSubject<ProductoPedido[]>([]);
   public carrito$ = this.carritoSubject.asObservable();
   private pedidosSubject = new BehaviorSubject<Pedido[]>([]);

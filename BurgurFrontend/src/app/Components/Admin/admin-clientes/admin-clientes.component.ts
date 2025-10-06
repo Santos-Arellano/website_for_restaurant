@@ -146,15 +146,15 @@ export class AdminClientesComponent implements OnInit {
     if (confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
       this.cargando = true;
       
-      this.clienteService.toggleClienteStatus(clienteId).subscribe({
-        next: (clienteActualizado) => {
-          this.cargarClientes(); // Recargar la lista desde el servicio
+      this.clienteService.deleteCliente(clienteId).subscribe({
+        next: (res) => {
+          this.cargarClientes();
           this.cargando = false;
-          console.log('Estado del cliente cambiado:', clienteActualizado);
+          console.log('Cliente eliminado:', res);
         },
         error: (error) => {
-          console.error('Error al cambiar estado del cliente:', error);
-          alert('Error al cambiar estado del cliente: ' + error);
+          console.error('Error al eliminar cliente:', error);
+          alert('Error al eliminar cliente: ' + (error?.message || error));
           this.cargando = false;
         }
       });

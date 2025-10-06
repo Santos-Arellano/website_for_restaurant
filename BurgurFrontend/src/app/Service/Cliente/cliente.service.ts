@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { Cliente, ClienteRegistro, ClienteLogin } from '../../Model/Cliente/cliente';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClienteService {
-  private apiUrl = 'http://localhost:8080/api/clientes';
+  private apiUrl = '/api/clientes';
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   public clientes$ = this.clientesSubject.asObservable();
   
@@ -29,10 +31,22 @@ export class ClienteService {
 
   // Cargar clientes desde localStorage o usar mock data
   private loadClientes(): void {
-    // Forzar recarga de datos mock para incluir el usuario admin
-    const mockClientes = this.getMockClientes();
-    this.saveClientesToStorage(mockClientes);
-    this.clientesSubject.next(mockClientes);
+    const stored = localStorage.getItem('clientes');
+    if (stored) {
+      try {
+        const clientes = JSON.parse(stored);
+        // Si hay datos almacenados, usarlos para inicializar el subject
+        this.clientesSubject.next(clientes);
+      } catch (e) {
+        // Si falla el parseo, inicializar con mock por seguridad
+        const mockClientes = this.getMockClientes();
+        this.saveClientesToStorage(mockClientes);
+      }
+    } else {
+      // Si no hay datos en storage, inicializar con mock (incluye usuario admin)
+      const mockClientes = this.getMockClientes();
+      this.saveClientesToStorage(mockClientes);
+    }
   }
 
   // Guardar clientes en localStorage
@@ -41,51 +55,46 @@ export class ClienteService {
     this.clientesSubject.next(clientes);
   }
 
-  // Registrar nuevo cliente
+  // Registrar nuevo cliente (backend)
   registrarCliente(clienteData: ClienteRegistro): Observable<Cliente> {
-    return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+    const payload = {
+      nombre: clienteData.nombre,
+      apellido: clienteData.apellido,
+      correo: clienteData.correo,
+      contrasena: clienteData.contrasena,
+      telefono: clienteData.telefono,
+      direccion: clienteData.direccion
+    };
+    return this.http.post<any>(`${this.apiUrl}`, payload).pipe(
+      // El backend devuelve { success, message, cliente }
+      // Mapear para retornar el objeto cliente
+      // y completar campos opcionales del modelo frontend
+      // que el backend no provee (fechaRegistro, pedidos)
       
-      // Verificar si el correo ya existe
-      const correoExiste = clientes.some((c: Cliente) => c.correo === clienteData.correo);
-      if (correoExiste) {
-        observer.error('El correo ya está registrado');
-        return;
-      }
-
-      const nuevoCliente: Cliente = {
-        id: Date.now(),
-        nombre: clienteData.nombre,
-        apellido: clienteData.apellido,
-        correo: clienteData.correo,
-        contrasena: clienteData.contrasena,
-        telefono: clienteData.telefono,
-        direccion: clienteData.direccion,
-        fechaRegistro: new Date(),
-        activo: true,
-        pedidos: []
-      };
+      // Nota: si el backend cambia el contrato, ajustar aquí
       
-      clientes.push(nuevoCliente);
-      this.saveClientesToStorage(clientes);
+      // Aseguramos que siempre devolvemos un Cliente
       
-      // Guardar información de sesión automáticamente después del registro
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: nuevoCliente.id,
-        nombre: nuevoCliente.nombre,
-        correo: nuevoCliente.correo,
-        tipo: 'cliente'
-      }));
-      
-      // Actualizar el BehaviorSubject con el nuevo cliente
-      this.currentClienteSubject.next(nuevoCliente);
-      
-      observer.next(nuevoCliente);
-      observer.complete();
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map((res: any) => {
+        const cli = res?.cliente ?? res;
+        const mapped: Cliente = {
+          id: cli.id,
+          nombre: cli.nombre,
+          apellido: cli.apellido,
+          correo: cli.correo,
+          telefono: cli.telefono,
+          direccion: cli.direccion,
+          fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+          activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          pedidos: cli.pedidos ?? []
+        };
+        return mapped;
+      })
+    );
   }
 
-  // Login de cliente
+  // Login de cliente (mantiene localStorage por ahora)
   loginCliente(loginData: ClienteLogin): Observable<Cliente | null> {
     return new Observable(observer => {
       const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
@@ -116,51 +125,81 @@ export class ClienteService {
     });
   }
 
-  // Obtener todos los clientes
+  // Obtener todos los clientes (backend)
   getAllClientes(): Observable<Cliente[]> {
-    return this.clientes$;
+    return this.http.get<Cliente[]>(`${this.apiUrl}/list`).pipe(
+      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((cli: any) => ({
+        id: cli.id,
+        nombre: cli.nombre,
+        apellido: cli.apellido,
+        correo: cli.correo,
+        telefono: cli.telefono,
+        direccion: cli.direccion,
+        fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+        activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+        pedidos: cli.pedidos ?? []
+      } as Cliente)))
+      ,
+      catchError((err) => {
+        console.error('Error en getAllClientes:', err);
+        return of([] as Cliente[]);
+      })
+    );
   }
 
-  // Obtener cliente por ID
+  // Obtener cliente por ID (backend)
   getClienteById(id: number): Observable<Cliente | undefined> {
-    return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-      const cliente = clientes.find((c: Cliente) => c.id === id);
-      observer.next(cliente);
-      observer.complete();
-    });
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map(cli => {
+        if (!cli) return undefined;
+        const mapped: Cliente = {
+          id: cli.id,
+          nombre: cli.nombre,
+          apellido: cli.apellido,
+          correo: cli.correo,
+          telefono: cli.telefono,
+          direccion: cli.direccion,
+          fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+          activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          pedidos: cli.pedidos ?? []
+        };
+        return mapped;
+      })
+    );
   }
 
-  // Actualizar cliente
+  // Actualizar cliente (backend)
   updateCliente(id: number, cliente: Partial<Cliente>): Observable<Cliente> {
-    return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-      const index = clientes.findIndex((c: Cliente) => c.id === id);
-      if (index !== -1) {
-        clientes[index] = { ...clientes[index], ...cliente };
-        this.saveClientesToStorage(clientes);
-        observer.next(clientes[index]);
-      } else {
-        observer.error('Cliente no encontrado');
-      }
-      observer.complete();
-    });
+    const payload = {
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      correo: cliente.correo,
+      telefono: cliente.telefono,
+      direccion: cliente.direccion,
+      contrasena: (cliente as any)?.contrasena // opcional
+    };
+    return this.http.put<any>(`${this.apiUrl}/${id}`, payload).pipe(
+      map((res: any) => {
+        const cli = res?.cliente ?? res;
+        const mapped: Cliente = {
+          id: cli.id,
+          nombre: cli.nombre,
+          apellido: cli.apellido,
+          correo: cli.correo,
+          telefono: cli.telefono,
+          direccion: cli.direccion,
+          fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+          activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          pedidos: cli.pedidos ?? []
+        };
+        return mapped;
+      })
+    );
   }
 
-  // Alternar estado activo del cliente
-  toggleClienteStatus(id: number): Observable<Cliente> {
-    return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-      const index = clientes.findIndex((c: Cliente) => c.id === id);
-      if (index !== -1) {
-        clientes[index].activo = !clientes[index].activo;
-        this.saveClientesToStorage(clientes);
-        observer.next(clientes[index]);
-      } else {
-        observer.error('Cliente no encontrado');
-      }
-      observer.complete();
-    });
+  // Eliminar cliente (backend)
+  deleteCliente(id: number): Observable<{ success?: boolean; message?: string }> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
 
   // Buscar clientes por término
@@ -177,18 +216,19 @@ export class ClienteService {
     });
   }
 
-  // Obtener estadísticas de clientes
+  // Obtener estadísticas de clientes (backend)
   getEstadisticas(): Observable<{totalClientes: number, clientesActivos: number, clientesInactivos: number}> {
-    return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-      const stats = {
-        totalClientes: clientes.length,
-        clientesActivos: clientes.filter((c: Cliente) => c.activo).length,
-        clientesInactivos: clientes.filter((c: Cliente) => !c.activo).length
-      };
-      observer.next(stats);
-      observer.complete();
-    });
+    return this.http.get<any>(`${this.apiUrl}/stats`).pipe(
+      map((res: any) => {
+        const total = typeof res?.total === 'number' ? res.total : 0;
+        const activos = typeof res?.activos === 'number' ? res.activos : 0;
+        return {
+          totalClientes: total,
+          clientesActivos: activos,
+          clientesInactivos: Math.max(0, total - activos)
+        };
+      })
+    );
   }
 
   // Métodos de autenticación adicionales

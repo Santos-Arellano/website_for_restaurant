@@ -7,7 +7,7 @@ import { Producto, CategoriaProducto } from '../../Model/Producto/producto';
   providedIn: 'root'
 })
 export class ProductoService {
-  private apiUrl = 'http://localhost:8080/api/productos'; // URL del backend
+  private apiUrl = '/api/productos'; // URL del backend via proxy
   private productosSubject = new BehaviorSubject<Producto[]>([]);
   public productos$ = this.productosSubject.asObservable();
 

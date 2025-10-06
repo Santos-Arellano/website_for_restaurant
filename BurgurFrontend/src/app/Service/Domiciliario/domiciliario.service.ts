@@ -7,7 +7,7 @@ import { Domiciliario } from '../../Model/Domiciliario/domiciliario';
   providedIn: 'root'
 })
 export class DomiciliarioService {
-  private apiUrl = 'http://localhost:8080/api/domiciliarios';
+  private apiUrl = '/api/domiciliarios';
   private domiciliariosSubject = new BehaviorSubject<Domiciliario[]>([]);
   public domiciliarios$ = this.domiciliariosSubject.asObservable();
 

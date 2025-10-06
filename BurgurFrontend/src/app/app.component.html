@@ -1,7 +1,8 @@
 <!-- Main App Layout -->
 <div class="app-container">
-  <!-- Header with original design -->
-  <app-header-footer></app-header-footer>
+  <!-- Header condicional: admin vs público -->
+  <app-admin-header *ngIf="isAdminRoute"></app-admin-header>
+  <app-header-footer *ngIf="!isAdminRoute"></app-header-footer>
   
   <!-- Main Content -->
   <main class="main-content">
