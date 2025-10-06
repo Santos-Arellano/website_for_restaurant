@@ -1,0 +1,35 @@
+<section class="testimonials-section">
+  <div class="testimonials-container">
+    <div class="testimonials-header">
+      <h2>Reseñas</h2>
+      <p>Comentarios reales de nuestros clientes.</p>
+    </div>
+
+    <div class="testimonials-carousel">
+      <div class="testimonials-track">
+        <div class="testimonial-card" *ngFor="let r of resenas; let i = index" [class.active]="isActive(i)">
+          <div class="testimonial-content">
+            <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+            <p class="testimonial-text">{{ r.texto }}</p>
+            <div class="author-info">
+              <h4>{{ r.autor }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonials-nav">
+      <button class="nav-btn" (click)="prev()" aria-label="Anterior">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="nav-btn" (click)="next()" aria-label="Siguiente">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="testimonials-indicators">
+      <button class="indicator" *ngFor="let r of resenas; let i = index" [class.active]="i === currentIndex" (click)="goTo(i)"></button>
+    </div>
+  </div>
+</section>
