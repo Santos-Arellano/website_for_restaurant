@@ -51,6 +51,22 @@ export class AdminOperadoresComponent implements OnInit {
     });
   }
 
+  // Reset de datos a mock
+  resetOperadores(): void {
+    this.cargando = true;
+    this.operadorService.resetOperadores().subscribe({
+      next: (ops: Operador[]) => {
+        this.operadores = ops;
+        this.operadoresFiltrados = [...ops];
+        this.calcularEstadisticas();
+        this.cargando = false;
+      },
+      error: () => {
+        this.cargando = false;
+      }
+    });
+  }
+
   // Cargar estadísticas
   cargarEstadisticas(): void {
     this.operadorService.obtenerEstadisticas().subscribe({
@@ -117,7 +133,7 @@ export class AdminOperadoresComponent implements OnInit {
           this.cerrarModal();
           this.cargando = false;
         },
-        error: (err) => {
+        error: (err: unknown) => {
           console.error('Error al actualizar operador:', err);
           this.cargando = false;
         }
@@ -137,7 +153,7 @@ export class AdminOperadoresComponent implements OnInit {
           this.cerrarModal();
           this.cargando = false;
         },
-        error: (err) => {
+        error: (err: unknown) => {
           console.error('Error al crear operador:', err);
           this.cargando = false;
         }
@@ -153,7 +169,7 @@ export class AdminOperadoresComponent implements OnInit {
         this.cerrarDeleteModal();
         this.cargando = false;
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error al eliminar operador:', err);
         this.cargando = false;
       }
@@ -167,7 +183,7 @@ export class AdminOperadoresComponent implements OnInit {
         this.cargarOperadores();
         this.cargando = false;
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error al cambiar disponibilidad:', err);
         this.cargando = false;
       }

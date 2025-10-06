@@ -24,9 +24,18 @@
               "src/favicon.ico",
               "src/assets"
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+        "styles": [
+          "src/assets/css/base/variables.css",
+          "src/assets/css/base/reset.css",
+          "src/assets/css/base/typography.css",
+          "src/assets/css/components/about.css",
+          "src/assets/css/components/admin-clientes.css",
+          "src/assets/css/components/admin-dashboards.css",
+          "src/assets/css/components/admin-domiciliarios.css",
+          "src/assets/css/components/admin-modal-managers.css",
+          "src/assets/css/components/admin-products-page.css",
+          "src/styles.css"
+        ],
             "scripts": []
           },
           "configurations": {
@@ -89,9 +98,18 @@
               "src/favicon.ico",
               "src/assets"
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+        "styles": [
+          "src/assets/css/base/variables.css",
+          "src/assets/css/base/reset.css",
+          "src/assets/css/base/typography.css",
+          "src/assets/css/components/about.css",
+          "src/assets/css/components/admin-clientes.css",
+          "src/assets/css/components/admin-dashboards.css",
+          "src/assets/css/components/admin-domiciliarios.css",
+          "src/assets/css/components/admin-modal-managers.css",
+          "src/assets/css/components/admin-products-page.css",
+          "src/styles.css"
+        ],
             "scripts": []
           }
         }

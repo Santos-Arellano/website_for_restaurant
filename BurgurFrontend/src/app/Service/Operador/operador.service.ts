@@ -12,12 +12,27 @@ export class OperadorService {
     this.loadOperadores();
   }
 
+  // Lectura segura desde localStorage con fallback a mock
+  private readOperadoresFromStorage(): Operador[] {
+    const raw = localStorage.getItem(this.storageKey);
+    if (!raw) {
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      const mock = this.getMockOperadores();
+      this.saveOperadoresToStorage(mock);
+      return mock;
+    }
+  }
+
   // Cargar operadores desde localStorage o usar datos mock
   private loadOperadores(): void {
-    const guardados = localStorage.getItem(this.storageKey);
-    if (guardados) {
-      const operadores = JSON.parse(guardados);
-      this.operadoresSubject.next(operadores);
+    const existentes = this.readOperadoresFromStorage();
+    if (existentes && existentes.length > 0) {
+      this.operadoresSubject.next(existentes);
     } else {
       const mock = this.getMockOperadores();
       this.saveOperadoresToStorage(mock);
@@ -35,10 +50,17 @@ export class OperadorService {
     return this.operadores$;
   }
 
+  // Restablecer operadores a datos mock
+  resetOperadores(): Observable<Operador[]> {
+    const mock = this.getMockOperadores();
+    this.saveOperadoresToStorage(mock);
+    return this.operadores$;
+  }
+
   // Obtener operador por ID
   obtenerOperadorPorId(id: number): Observable<Operador | undefined> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const encontrado = operadores.find(o => o.id === id);
       observer.next(encontrado);
       observer.complete();
@@ -48,7 +70,7 @@ export class OperadorService {
   // Crear operador
   crearOperador(data: Omit<Operador, 'id'>): Observable<Operador> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const nuevo: Operador = {
         ...data,
         id: Date.now()
@@ -63,7 +85,7 @@ export class OperadorService {
   // Actualizar operador
   actualizarOperador(id: number, cambios: Partial<Operador>): Observable<Operador> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const idx = operadores.findIndex(o => o.id === id);
       if (idx !== -1) {
         operadores[idx] = { ...operadores[idx], ...cambios };
@@ -79,7 +101,7 @@ export class OperadorService {
   // Eliminar operador
   eliminarOperador(id: number): Observable<boolean> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const idx = operadores.findIndex(o => o.id === id);
       if (idx !== -1) {
         operadores.splice(idx, 1);
@@ -95,7 +117,7 @@ export class OperadorService {
   // Alternar disponibilidad
   alternarDisponibilidad(id: number): Observable<Operador> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const idx = operadores.findIndex(o => o.id === id);
       if (idx !== -1) {
         operadores[idx].disponible = !operadores[idx].disponible;
@@ -111,7 +133,7 @@ export class OperadorService {
   // Buscar operadores
   buscarOperadores(termino: string): Observable<Operador[]> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const t = termino.toLowerCase();
       const filtrados = operadores.filter(o =>
         (o.nombre || '').toLowerCase().includes(t) ||
@@ -125,7 +147,7 @@ export class OperadorService {
   // Estadísticas básicas
   obtenerEstadisticas(): Observable<{ totalOperadores: number; operadoresDisponibles: number; operadoresNoDisponibles: number }> {
     return new Observable(observer => {
-      const operadores: Operador[] = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const operadores: Operador[] = this.readOperadoresFromStorage();
       const stats = {
         totalOperadores: operadores.length,
         operadoresDisponibles: operadores.filter(o => o.disponible).length,

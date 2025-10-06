@@ -90,6 +90,37 @@ export class ClienteService {
           pedidos: cli.pedidos ?? []
         };
         return mapped;
+      }),
+      catchError((err) => {
+        console.error('Error en registrarCliente, usando fallback local:', err);
+        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const nextId = clientes.length ? Math.max(...clientes.map((c: any) => c.id)) + 1 : 1;
+        const nuevo = {
+          id: nextId,
+          nombre: payload.nombre,
+          apellido: payload.apellido,
+          correo: payload.correo,
+          contrasena: payload.contrasena,
+          telefono: payload.telefono,
+          direccion: payload.direccion,
+          fechaRegistro: new Date(),
+          activo: true,
+          pedidos: []
+        };
+        clientes.push(nuevo);
+        this.saveClientesToStorage(clientes);
+        const mapped: Cliente = {
+          id: nuevo.id,
+          nombre: nuevo.nombre,
+          apellido: nuevo.apellido,
+          correo: nuevo.correo,
+          telefono: nuevo.telefono,
+          direccion: nuevo.direccion,
+          fechaRegistro: new Date(nuevo.fechaRegistro),
+          activo: true,
+          pedidos: []
+        };
+        return of(mapped);
       })
     );
   }
@@ -141,8 +172,34 @@ export class ClienteService {
       } as Cliente)))
       ,
       catchError((err) => {
-        console.error('Error en getAllClientes:', err);
-        return of([] as Cliente[]);
+        // Evitar ruido en consola: usar aviso en vez de error y hacer fallback silencioso
+        console.warn('Backend no disponible en getAllClientes, usando datos de localStorage.');
+        const storedRaw = localStorage.getItem('clientes');
+        let stored: Cliente[] = [];
+        if (storedRaw) {
+          try {
+            const parsed = JSON.parse(storedRaw);
+            stored = (Array.isArray(parsed) ? parsed : []).map((cli: any) => ({
+              id: cli.id,
+              nombre: cli.nombre,
+              apellido: cli.apellido,
+              correo: cli.correo,
+              telefono: cli.telefono,
+              direccion: cli.direccion,
+              fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+              activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+              pedidos: cli.pedidos ?? []
+            } as Cliente));
+          } catch {
+            stored = this.getMockClientes();
+            this.saveClientesToStorage(stored);
+          }
+        } else {
+          stored = this.getMockClientes();
+          this.saveClientesToStorage(stored);
+        }
+        this.clientesSubject.next(stored);
+        return of(stored);
       })
     );
   }
@@ -193,13 +250,61 @@ export class ClienteService {
           pedidos: cli.pedidos ?? []
         };
         return mapped;
+      }),
+      catchError((err) => {
+        console.error('Error en updateCliente, usando fallback local:', err);
+        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const idx = clientes.findIndex((c: any) => c.id === id);
+        if (idx !== -1) {
+          const updated = {
+            ...clientes[idx],
+            nombre: payload.nombre,
+            apellido: payload.apellido,
+            correo: payload.correo,
+            telefono: payload.telefono,
+            direccion: payload.direccion
+          };
+          clientes[idx] = updated;
+          this.saveClientesToStorage(clientes);
+          const mapped: Cliente = {
+            id: updated.id,
+            nombre: updated.nombre,
+            apellido: updated.apellido,
+            correo: updated.correo,
+            telefono: updated.telefono,
+            direccion: updated.direccion,
+            fechaRegistro: updated.fechaRegistro ? new Date(updated.fechaRegistro) : new Date(),
+            activo: typeof updated.activo === 'boolean' ? updated.activo : true,
+            pedidos: updated.pedidos ?? []
+          };
+          return of(mapped);
+        }
+        return of({
+          id,
+          nombre: payload.nombre || '',
+          apellido: payload.apellido || '',
+          correo: payload.correo || '',
+          telefono: payload.telefono || '',
+          direccion: payload.direccion || '',
+          fechaRegistro: new Date(),
+          activo: true,
+          pedidos: []
+        } as Cliente);
       })
     );
   }
 
   // Eliminar cliente (backend)
   deleteCliente(id: number): Observable<{ success?: boolean; message?: string }> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
+      catchError((err) => {
+        console.error('Error en deleteCliente, usando fallback local:', err);
+        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const filtrados = clientes.filter((c: any) => c.id !== id);
+        this.saveClientesToStorage(filtrados);
+        return of({ success: true, message: 'Eliminado localmente' });
+      })
+    );
   }
 
   // Buscar clientes por término
@@ -227,6 +332,16 @@ export class ClienteService {
           clientesActivos: activos,
           clientesInactivos: Math.max(0, total - activos)
         };
+      }),
+      catchError(() => {
+        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const total = clientes.length;
+        const activos = clientes.filter((c: any) => c.activo).length;
+        return of({
+          totalClientes: total,
+          clientesActivos: activos,
+          clientesInactivos: Math.max(0, total - activos)
+        });
       })
     );
   }
