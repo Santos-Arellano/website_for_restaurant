@@ -255,4 +255,18 @@ public class CarritoServiceImpl implements CarritoService {
         // 3. Guardar los cambios en el carrito
         return carritoRepository.save(carrito);
     }
+
+    @Override
+    public Carrito ultimoCarritoCerradoSinPedido(Cliente cliente) {
+        // 1. Validar parámetro de entrada
+        if (cliente == null || cliente.getId() == null) {
+            throw new IllegalArgumentException("El cliente no puede ser null.");
+        }
+        // 2. Buscar el último carrito cerrado sin pedido
+        Carrito ultimo = carritoRepository.findTopByClienteIdAndEstadoFalseAndPedidoIsNullOrderByIdDesc(cliente.getId());
+        if (ultimo == null) {
+            throw new IllegalArgumentException("No hay carritos cerrados pendientes de pedido para el cliente.");
+        }
+        return ultimo;
+    }
 }

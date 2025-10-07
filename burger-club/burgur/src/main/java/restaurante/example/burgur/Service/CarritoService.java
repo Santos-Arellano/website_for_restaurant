@@ -37,4 +37,7 @@ public interface CarritoService {
     // ==========================================
     Carrito enviarCarritoAPedido(Carrito carrito);
     
+    // Último carrito cerrado sin pedido del cliente
+    Carrito ultimoCarritoCerradoSinPedido(Cliente cliente);
+    
 }
