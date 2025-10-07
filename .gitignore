@@ -53,5 +53,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # Directorios específicos del proyecto
-/Burgur/
-/BurgurFrontend/
+# No ignorar directorios completos; se ignoran outputs de build arriba
