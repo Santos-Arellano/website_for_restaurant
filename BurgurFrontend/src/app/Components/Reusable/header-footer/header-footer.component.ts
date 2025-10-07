@@ -9,6 +9,7 @@ import { AuthModalComponent } from '../../Shared/auth-modal/auth-modal.component
 import { ProductoPedido } from '../../../Model/Pedido/pedido';
 import { Producto } from '../../../Model/Producto/producto';
 import { Adicional } from '../../../Model/Adicional/adicional';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-header-footer',
@@ -39,7 +40,8 @@ export class HeaderFooterComponent implements OnInit {
     private clienteService: ClienteService,
     private productoService: ProductoService,
     private adicionalService: AdicionalService,
-    public router: Router
+    public router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -165,8 +167,15 @@ export class HeaderFooterComponent implements OnInit {
   }
 
   onCartClick() {
-    console.log('Abrir carrito');
-    this.isCartModalOpen = true;
+    console.log('Intento de abrir carrito (Angular modal)');
+    // Exigir sesión antes de abrir el carrito
+    if (!this.isLoggedIn) {
+      this.toast.warning('Inicia sesión para usar el carrito', 4000);
+      this.router.navigate(['/login']);
+      return;
+    }
+    // Dispara el evento global para abrir el CartModal Angular controlado por AppComponent
+    document.dispatchEvent(new Event('openCartModal'));
   }
 
   closeCartModal() {

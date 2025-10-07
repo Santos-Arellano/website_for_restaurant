@@ -10,6 +10,7 @@
   --color-white: #ffffff;
   --color-cta-stroke: #fbb5b5;
   --color-cta-text: #f7f6cc;
+  --color-border: rgba(255, 255, 255, 0.2);
   --color-card-bg: rgba(255, 255, 255, 0.1);
   --color-success: #4caf50;
   --color-warning: #ff9800;
@@ -30,20 +31,24 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 2000;
   display: flex;
   justify-content: center;
   align-items: center;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  will-change: opacity;
+  pointer-events: none;
 }
 
 .product-detail-overlay.active {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 /* Modal Content - Ventana centrada */
@@ -55,15 +60,36 @@
   max-width: 800px;
   max-height: 85vh;
   overflow-y: auto;
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
+  -webkit-overflow-scrolling: touch;
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  transition: transform 0.3s ease, opacity 0.3s ease;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   position: relative;
   padding: 20px;
+  will-change: transform, opacity;
 }
 
 .product-detail-overlay.active .product-detail-container {
-  transform: scale(1);
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Bloquear scroll del fondo cuando el overlay está activo */
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .product-detail-container {
+    width: 95%;
+    max-height: 90vh;
+    padding: 16px;
+  }
+  .product-main {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Header */
@@ -160,6 +186,13 @@
 .detail-image:hover {
   transform: scale(1.02);
   filter: brightness(1.1) contrast(1.15) saturate(1.3);
+}
+
+/* Imagen clonada para animación fly-to-cart */
+.flying-image {
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  will-change: transform, opacity;
 }
 
 /* Product Badges */
@@ -606,22 +639,22 @@
 
 .adicional-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--color-text-primary);
 }
 
 .adicional-price {
   font-weight: 600;
-  color: #ff6b35;
+  color: var(--color-cta-stroke);
 }
 
 /* Observaciones */
 .observaciones-section {
   padding: 2rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
 }
 
 .observaciones-section h3 {
-  color: #2c3e50;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
@@ -629,24 +662,27 @@
 .observaciones-input {
   width: 100%;
   padding: 1rem;
-  border: 2px solid #ecf0f1;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
 }
 
 .observaciones-input:focus {
   outline: none;
-  border-color: #ff6b35;
+  border-color: var(--color-cta-stroke);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* Sección de pedido */
 .order-section {
   padding: 2rem;
-  background: #f8f9fa;
-  border-top: 1px solid #eee;
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-border);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
@@ -654,7 +690,7 @@
 }
 
 .quantity-controls h3 {
-  color: #2c3e50;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
@@ -692,7 +728,7 @@
 .quantity-display {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--color-text-primary);
   min-width: 2rem;
   text-align: center;
 }
@@ -707,7 +743,7 @@
 
 .total-label {
   font-size: 1.125rem;
-  color: #7f8c8d;
+  color: var(--color-text-secondary);
 }
 
 .total-amount {
@@ -955,4 +991,56 @@
     padding: 0.75rem;
     font-size: 0.9rem;
   }
+}
+/* Botón volver y botón cerrar del modal (estilos oscuros) */
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  transition: all var(--transition-speed);
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.btn-back i {
+  color: var(--color-cta-stroke);
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-primary);
+  transition: all var(--transition-speed);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-cta-stroke);
+  transform: scale(1.05);
+  box-shadow: var(--box-shadow-light);
 }

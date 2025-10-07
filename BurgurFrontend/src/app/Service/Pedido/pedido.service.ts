@@ -90,6 +90,10 @@ export class PedidoService {
 
   // Gestión del carrito
   agregarAlCarrito(producto: ProductoPedido): void {
+    // Bloquear si no hay usuario logueado
+    if (!this.isUserLoggedIn()) {
+      return;
+    }
     const carritoActual = this.carritoSubject.value;
     
     // Buscar si existe un producto con el mismo ID y los mismos adicionales
@@ -120,12 +124,18 @@ export class PedidoService {
   }
 
   eliminarDelCarrito(productoId: number): void {
+    if (!this.isUserLoggedIn()) {
+      return;
+    }
     const carritoActual = this.carritoSubject.value;
     const carritoFiltrado = carritoActual.filter(p => p.productoId !== productoId);
     this.actualizarCarrito(carritoFiltrado);
   }
 
   actualizarCantidad(productoId: number, cantidad: number): void {
+    if (!this.isUserLoggedIn()) {
+      return;
+    }
     const carritoActual = this.carritoSubject.value;
     const producto = carritoActual.find(p => p.productoId === productoId);
     
@@ -140,6 +150,9 @@ export class PedidoService {
   }
 
   limpiarCarrito(): void {
+    if (!this.isUserLoggedIn()) {
+      return;
+    }
     this.actualizarCarrito([]);
   }
 
@@ -177,6 +190,11 @@ export class PedidoService {
     }, 0);
   }
 
+  // Verificar sesión actual
+  private isUserLoggedIn(): boolean {
+    return !!localStorage.getItem('currentUser');
+  }
+
   // Crear pedido
   crearPedido(pedidoData: Omit<Pedido, 'id' | 'fechaCreacion' | 'estado' | 'productos' | 'precioTotal'>): Observable<Pedido> {
     const nuevoPedido: Pedido = {
@@ -187,10 +205,15 @@ export class PedidoService {
       precioTotal: this.calcularTotal(),
       ...pedidoData
     };
-    
+
+    // Persistir el pedido en localStorage y actualizar el BehaviorSubject
+    const pedidosPrevios: Pedido[] = JSON.parse(localStorage.getItem('pedidos') || '[]');
+    const pedidosActualizados = [...pedidosPrevios, nuevoPedido];
+    this.savePedidosToStorage(pedidosActualizados);
+
     // Limpiar carrito después de crear el pedido
     this.limpiarCarrito();
-    
+
     return of(nuevoPedido);
   }
 

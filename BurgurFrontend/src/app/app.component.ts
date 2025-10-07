@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { ClienteService } from './Service/Cliente/cliente.service';
+import { ToastService } from './Components/Shared/toast/toast.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -14,11 +16,18 @@ export class AppComponent implements OnInit, OnDestroy {
   private cartModalSubscription?: Subscription;
   isAdminRoute = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private clienteService: ClienteService, private toast: ToastService) {}
 
   ngOnInit(): void {
     // Escuchar eventos globales para abrir el modal del carrito
     document.addEventListener('openCartModal', () => {
+      const isLogged = !!localStorage.getItem('currentUser');
+      if (!isLogged) {
+        this.toast.warning('Debes iniciar sesión para abrir el carrito', 4000);
+        this.showCartModal = false;
+        this.router.navigate(['/login']);
+        return;
+      }
       this.showCartModal = true;
     });
 

@@ -82,7 +82,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   calcularTotal(): void {
     this.total = this.carrito.reduce((sum, item) => {
-      return sum + (item.precioUnitario * item.cantidad);
+      return sum + this.getSubtotalItem(item) * 1; // subtotal ya contempla cantidad
     }, 0);
   }
 
@@ -156,6 +156,24 @@ export class CartModalComponent implements OnInit, OnDestroy {
   getNombreProducto(productoId: number): string {
     const producto = this.getProducto(productoId);
     return producto?.nombre || 'Producto';
+  }
+
+  getNombreAdicional(adicionalId: number, productoId?: number): string {
+    if (!adicionalId) return 'Adicional';
+    const producto = productoId ? this.getProducto(productoId) : null;
+    const lista = producto?.adicionales || [];
+    const encontrado = lista.find(a => a.id === adicionalId);
+    return encontrado?.nombre || 'Adicional';
+  }
+
+  // Calcula subtotal del item incluyendo adicionales seleccionados
+  getSubtotalItem(item: ProductoPedido): number {
+    const base = (item.precioUnitario || 0) * (item.cantidad || 1);
+    const extras = (item.adicionales || []).reduce((acc, adi) => {
+      const precioAdi = (adi.precioUnitario || 0) * (adi.cantidad || item.cantidad || 1);
+      return acc + precioAdi;
+    }, 0);
+    return base + extras;
   }
 
   trackByProductId(index: number, item: ProductoPedido): number {

@@ -1,15 +1,15 @@
 <!-- Modal Overlay -->
-<div class="product-detail-overlay" [class.active]="!isLoading && producto" (click)="onOverlayClick($event)">
+<div class="product-detail-overlay" [class.active]="!isLoading && producto" (click)="onOverlayClick($event)" role="dialog" aria-modal="true">
   <div class="product-detail-container" *ngIf="!isLoading && producto" (click)="$event.stopPropagation()">
     <!-- Close Button -->
-    <button class="modal-close" (click)="volver()" aria-label="Cerrar modal">
+    <button class="modal-close" (click)="volver()" aria-label="Cerrar modal" type="button">
       <i class="fas fa-times"></i>
     </button>
 
     <div class="product-detail-content">
       <!-- Header con botón de volver -->
       <div class="detail-header">
-        <button class="btn-back" (click)="volver()">
+        <button class="btn-back" (click)="volver()" type="button">
           <i class="fas fa-arrow-left"></i>
           Volver al menú
         </button>
@@ -47,9 +47,9 @@
       </div>
 
     <!-- Adicionales -->
-    <div class="adicionales-section" *ngIf="producto.adicionales && producto.adicionales.length > 0">
+    <div class="adicionales-section" *ngIf="producto.adicionales">
       <h3>Adicionales disponibles:</h3>
-      <div class="adicionales-grid">
+      <div class="adicionales-grid" *ngIf="producto.adicionales.length > 0; else noAdicionales">
         <div class="adicional-item" 
              *ngFor="let adicional of producto.adicionales"
              [class.selected]="adicionalesSeleccionados[adicional.id]"
@@ -58,7 +58,7 @@
             <input type="checkbox" 
                    [checked]="adicionalesSeleccionados[adicional.id]"
                    [disabled]="!adicional.disponible"
-                   (change)="toggleAdicional(adicional.id)">
+                   (change)="toggleAdicional(adicional.id)" type="checkbox">
             <div class="adicional-content">
               <span class="adicional-name">{{ adicional.nombre }}</span>
               <span class="adicional-price">+{{ formatPrice(adicional.precio) }}</span>
@@ -66,6 +66,12 @@
           </label>
         </div>
       </div>
+      <ng-template #noAdicionales>
+        <div class="no-adicionales">
+          <i class="fas fa-info-circle"></i>
+          <p>No hay adicionales disponibles para este producto</p>
+        </div>
+      </ng-template>
     </div>
 
     <!-- Observaciones -->
@@ -82,11 +88,11 @@
       <div class="quantity-controls">
         <h3>Cantidad:</h3>
         <div class="quantity-selector">
-          <button class="btn-quantity" (click)="decrementarCantidad()" [disabled]="cantidad <= 1">
+          <button class="btn-quantity" (click)="decrementarCantidad()" [disabled]="cantidad <= 1" type="button">
             <i class="fas fa-minus"></i>
           </button>
           <span class="quantity-display">{{ cantidad }}</span>
-          <button class="btn-quantity" (click)="incrementarCantidad()">
+          <button class="btn-quantity" (click)="incrementarCantidad()" type="button">
             <i class="fas fa-plus"></i>
           </button>
         </div>
@@ -97,7 +103,7 @@
           <span class="total-label">Total:</span>
           <span class="total-amount">{{ formatPrice(calcularPrecioTotal()) }}</span>
         </div>
-        <button class="btn-add-to-cart" (click)="agregarAlCarrito()">
+        <button class="btn-add-to-cart" (click)="agregarAlCarrito()" type="button">
           <i class="fas fa-shopping-cart"></i>
           Agregar al carrito
         </button>

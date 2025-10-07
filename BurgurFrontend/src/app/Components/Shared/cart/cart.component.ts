@@ -68,7 +68,15 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   calcularTotal(): void {
-    this.total = this.carrito.reduce((sum, item) => sum + (item.precioUnitario * item.cantidad), 0);
+    this.total = this.carrito.reduce((sum, item) => {
+      const base = (item.precioUnitario || 0) * (item.cantidad || 0);
+      const adicionalesTotal = (item.adicionales || []).reduce((acc, ad) => {
+        const precio = ad.precioUnitario || 0;
+        const cantidad = ad.cantidad || 0;
+        return acc + precio * cantidad;
+      }, 0);
+      return sum + base + adicionalesTotal;
+    }, 0);
   }
 
   actualizarCantidad(productoId: number, nuevaCantidad: number): void {
@@ -103,7 +111,7 @@ export class CartComponent implements OnInit, OnDestroy {
     // Crear el pedido
     const pedidoData = {
       clienteId: this.currentCliente?.id || 0,
-      metodoPago: 'EFECTIVO' as any, // Se puede cambiar por un selector
+      metodoPago: 'EFECTIVO' as any,
       direccionEntrega: this.currentCliente?.direccion || '',
       observaciones: ''
     };

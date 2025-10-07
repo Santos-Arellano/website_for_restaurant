@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, tap, switchMap } from 'rxjs/operators';
 import { Producto, CategoriaProducto } from '../../Model/Producto/producto';
 
 @Injectable({
@@ -11,192 +12,138 @@ export class ProductoService {
   private productosSubject = new BehaviorSubject<Producto[]>([]);
   public productos$ = this.productosSubject.asObservable();
 
-  constructor(private http: HttpClient) { 
-    this.loadProductos();
-  }
+  constructor(private http: HttpClient) { }
 
-  // Cargar productos desde localStorage o usar mock data
-  private loadProductos(): void {
-    const productosGuardados = localStorage.getItem('productos');
-    if (productosGuardados) {
-      const productos = JSON.parse(productosGuardados);
-      this.productosSubject.next(productos);
-    } else {
-      const mockProductos = this.getMockProductos();
-      this.saveProductosToStorage(mockProductos);
-      this.productosSubject.next(mockProductos);
-    }
-  }
-
-  // Guardar productos en localStorage
-  private saveProductosToStorage(productos: Producto[]): void {
-    localStorage.setItem('productos', JSON.stringify(productos));
-    this.productosSubject.next(productos);
+  // Mapeo de producto del backend al modelo frontend
+  private mapProducto(apiProducto: any): Producto {
+    return {
+      id: apiProducto.id,
+      nombre: apiProducto.nombre,
+      descripcion: apiProducto.descripcion || '',
+      precio: apiProducto.precio,
+      categoria: (apiProducto.categoria as CategoriaProducto),
+      imagen: apiProducto.imgURL || 'assets/Menu/cheeseburger.png',
+      disponible: apiProducto.activo !== undefined ? apiProducto.activo : true,
+      fechaCreacion: apiProducto.fechaCreacion ? new Date(apiProducto.fechaCreacion) : new Date(),
+      ingredientes: apiProducto.ingredientes || [],
+      isNew: apiProducto.nuevo || false,
+      isPopular: apiProducto.popular || false,
+      adicionales: (apiProducto.adicionales || []).map((a: any) => ({
+        id: a.id,
+        nombre: a.nombre,
+        precio: a.precio,
+        disponible: a.activo !== undefined ? a.activo : true
+      }))
+    };
   }
 
   // Obtener todos los productos
   getProductos(): Observable<Producto[]> {
-    return this.productos$;
+    return this.http.get<any[]>(`${this.apiUrl}`).pipe(
+      map((items) => items.map((p: any) => this.mapProducto(p))),
+      tap((productos) => this.productosSubject.next(productos))
+    );
   }
 
   // Obtener producto por ID
   getProductoById(id: number): Observable<Producto | undefined> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const producto = productos.find((p: Producto) => p.id === id);
-      observer.next(producto);
-      observer.complete();
-    });
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map((resp) => {
+        if (!resp) return undefined;
+        // El backend retorna { producto, adicionalesPermitidos }
+        const apiProducto = resp.producto ?? resp;
+        const adicionalesApi = resp.adicionalesPermitidos ?? apiProducto.adicionales ?? [];
+        const producto = this.mapProducto(apiProducto);
+        // Sobrescribir adicionales con los proporcionados por el backend para este producto
+        producto.adicionales = (adicionalesApi || []).map((a: any) => ({
+          id: a.id,
+          nombre: a.nombre,
+          precio: a.precio,
+          disponible: a.activo !== undefined ? a.activo : true
+        }));
+        return producto;
+      })
+    );
   }
 
   // Obtener productos por categoría
   getProductosByCategoria(categoria: CategoriaProducto): Observable<Producto[]> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const productosFiltrados = productos.filter((p: Producto) => p.categoria === categoria);
-      observer.next(productosFiltrados);
-      observer.complete();
-    });
+    return this.http.get<any[]>(`${this.apiUrl}/categoria/${categoria}`).pipe(
+      map((items) => items.map((p: any) => this.mapProducto(p)))
+    );
   }
 
   // Buscar productos
   buscarProductos(termino: string): Observable<Producto[]> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const productosFiltrados = productos.filter((p: Producto) => 
-        p.nombre.toLowerCase().includes(termino.toLowerCase()) ||
-        p.descripcion.toLowerCase().includes(termino.toLowerCase())
-      );
-      observer.next(productosFiltrados);
-      observer.complete();
-    });
+    const params = new HttpParams().set('nombre', termino);
+    return this.http.get<any[]>(`${this.apiUrl}/search`, { params }).pipe(
+      map((items) => items.map((p: any) => this.mapProducto(p)))
+    );
   }
 
   // Crear nuevo producto (para administración)
   createProducto(producto: Omit<Producto, 'id' | 'fechaCreacion'>): Observable<Producto> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const nuevoProducto: Producto = {
-        ...producto,
-        id: Date.now(),
-        fechaCreacion: new Date()
-      };
-      productos.push(nuevoProducto);
-      this.saveProductosToStorage(productos);
-      observer.next(nuevoProducto);
-      observer.complete();
-    });
+    const payload = {
+      nombre: producto.nombre,
+      descripcion: producto.descripcion,
+      precio: producto.precio,
+      categoria: producto.categoria,
+      imgURL: producto.imagen,
+      activo: producto.disponible,
+      ingredientes: producto.ingredientes || [],
+      nuevo: producto.isNew || false,
+      popular: producto.isPopular || false
+    };
+    return this.http.post<any>(`${this.apiUrl}`, payload).pipe(
+      map((p) => this.mapProducto(p))
+    );
   }
 
   // Actualizar producto (para administración)
   updateProducto(id: number, producto: Partial<Producto>): Observable<Producto> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const index = productos.findIndex((p: Producto) => p.id === id);
-      if (index !== -1) {
-        productos[index] = { ...productos[index], ...producto };
-        this.saveProductosToStorage(productos);
-        observer.next(productos[index]);
-      } else {
-        observer.error('Producto no encontrado');
-      }
-      observer.complete();
-    });
+    const payload: any = {
+      ...producto,
+      imgURL: producto.imagen,
+      activo: producto.disponible,
+      nuevo: producto.isNew,
+      popular: producto.isPopular
+    };
+    return this.http.put<any>(`${this.apiUrl}/${id}`, payload).pipe(
+      map((p) => this.mapProducto(p))
+    );
   }
 
   // Eliminar producto (para administración)
   deleteProducto(id: number): Observable<boolean> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const index = productos.findIndex((p: Producto) => p.id === id);
-      if (index !== -1) {
-        productos.splice(index, 1);
-        this.saveProductosToStorage(productos);
-        observer.next(true);
-      } else {
-        observer.error('Producto no encontrado');
-      }
-      observer.complete();
-    });
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      map(() => true)
+    );
   }
 
   // Cambiar disponibilidad del producto (para administración)
   toggleDisponibilidad(id: number): Observable<Producto> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const index = productos.findIndex((p: Producto) => p.id === id);
-      if (index !== -1) {
-        productos[index].disponible = !productos[index].disponible;
-        this.saveProductosToStorage(productos);
-        observer.next(productos[index]);
-      } else {
-        observer.error('Producto no encontrado');
-      }
-      observer.complete();
-    });
+    return this.getProductoById(id).pipe(
+      switchMap((p) => {
+        const payload: any = {
+          activo: !(p?.disponible ?? true),
+          nombre: p?.nombre,
+          descripcion: p?.descripcion,
+          precio: p?.precio,
+          categoria: p?.categoria,
+          imgURL: p?.imagen,
+          ingredientes: p?.ingredientes,
+          nuevo: p?.isNew,
+          popular: p?.isPopular
+        };
+        return this.http.put<any>(`${this.apiUrl}/${id}`, payload);
+      }),
+      map((resp) => this.mapProducto(resp))
+    );
   }
 
   // Obtener estadísticas de productos (para administración)
   getEstadisticas(): Observable<any> {
-    return new Observable(observer => {
-      const productos = JSON.parse(localStorage.getItem('productos') || '[]');
-      const stats = {
-        total: productos.length,
-        activos: productos.filter((p: Producto) => p.disponible).length,
-        categorias: [...new Set(productos.map((p: Producto) => p.categoria))].length,
-        stockBajo: productos.filter((p: Producto) => !p.disponible).length
-      };
-      observer.next(stats);
-      observer.complete();
-    });
+    return this.http.get<any>(`${this.apiUrl}/stats`);
   }
-
-  // Datos mock para desarrollo
-  private getMockProductos(): Producto[] {
-    return [
-      {
-        id: 1,
-        nombre: 'Hamburguesa Clásica',
-        descripcion: 'Hamburguesa con carne, lechuga, tomate y queso',
-        precio: 15000,
-        categoria: CategoriaProducto.HAMBURGUESAS,
-        imagen: 'assets/Menu/cheeseburger.png',
-        disponible: true,
-        fechaCreacion: new Date(),
-        isPopular: true,
-        ingredientes: ['Carne', 'Lechuga', 'Tomate', 'Queso', 'Pan'],
-        adicionales: [
-          { id: 1, nombre: 'Queso extra', precio: 2000, disponible: true },
-          { id: 2, nombre: 'Tocineta', precio: 3000, disponible: true },
-          { id: 3, nombre: 'Cebolla caramelizada', precio: 1500, disponible: true }
-        ]
-      },
-      {
-        id: 2,
-        nombre: 'Papas Fritas',
-        descripcion: 'Papas fritas crujientes',
-        precio: 8000,
-        categoria: CategoriaProducto.ACOMPAÑAMIENTOS,
-        imagen: 'assets/Menu/Fries.png',
-        disponible: true,
-        fechaCreacion: new Date(),
-        ingredientes: ['Papas', 'Sal'],
-        adicionales: [
-          { id: 4, nombre: 'Salsa de ajo', precio: 1000, disponible: true },
-          { id: 5, nombre: 'Queso cheddar', precio: 2500, disponible: true }
-        ]
-      },
-      {
-        id: 3,
-        nombre: 'Coca Cola',
-        descripcion: 'Bebida gaseosa 350ml',
-        precio: 3000,
-        categoria: CategoriaProducto.BEBIDAS,
-        imagen: 'assets/Menu/Coke.png',
-        disponible: true,
-        fechaCreacion: new Date(),
-        adicionales: []
-      }
-    ];
-  }
+  
 }

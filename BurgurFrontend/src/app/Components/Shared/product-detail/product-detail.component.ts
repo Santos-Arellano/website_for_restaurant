@@ -1,9 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../Shared/toast/toast.service';
 import { Subscription } from 'rxjs';
 import { Producto, Adicional } from '../../../Model/Producto/producto';
 import { ProductoService } from '../../../Service/Producto/producto.service';
 import { PedidoService } from '../../../Service/Pedido/pedido.service';
+import { ClienteService } from '../../../Service/Cliente/cliente.service';
 import { ProductoPedido } from '../../../Model/Pedido/pedido';
 
 @Component({
@@ -23,7 +25,9 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private productoService: ProductoService,
-    private pedidoService: PedidoService
+    private pedidoService: PedidoService,
+    private toast: ToastService,
+    private clienteService: ClienteService
   ) {}
 
   ngOnInit(): void {
@@ -31,20 +35,21 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       const productId = +params['id'];
       if (productId) {
         this.cargarProducto(productId);
+        document.body.classList.add('no-scroll');
       }
     });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    document.body.classList.remove('no-scroll');
   }
 
   cargarProducto(id: number): void {
     this.isLoading = true;
-    this.productoService.getProductos().subscribe(productos => {
-      this.producto = productos.find(p => p.id === id) || null;
+    this.productoService.getProductoById(id).subscribe(prod => {
+      this.producto = prod || null;
       this.isLoading = false;
-      
       if (!this.producto) {
         this.router.navigate(['/menu']);
       }
@@ -84,6 +89,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   agregarAlCarrito(): void {
     if (!this.producto) return;
+    // Gate de autenticación
+    const isLogged = !!localStorage.getItem('currentUser');
+    if (!isLogged) {
+      this.toast.warning('Inicia sesión para agregar productos al carrito', 4000);
+      this.router.navigate(['/login']);
+      return;
+    }
     
     // Crear array de adicionales seleccionados
     const adicionalesSeleccionados = this.producto.adicionales?.filter(adicional => 
@@ -103,15 +115,21 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     };
     
     this.pedidoService.agregarAlCarrito(productoPedido);
+
+    // Animación: volar imagen al botón del carrito
+    this.animateFlyToCart();
     
-    // Mostrar mensaje de confirmación
-    alert(`${this.producto.nombre} agregado al carrito`);
+    // Notificación moderna
+    this.toast.success(`${this.producto.nombre} agregado al carrito`, 2500);
     
-    // Volver al menú
-    this.router.navigate(['/menu']);
+    // Navegar de vuelta tras breve retraso para permitir la animación
+    setTimeout(() => {
+      this.router.navigate(['/menu']);
+    }, 400);
   }
 
   volver(): void {
+    document.body.classList.remove('no-scroll');
     this.router.navigate(['/menu']);
   }
 
@@ -128,5 +146,54 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       currency: 'COP',
       minimumFractionDigits: 0
     }).format(price);
+  }
+
+  // Animación de vuelo de la imagen al carrito en el header
+  private animateFlyToCart(): void {
+    try {
+      const sourceImg = document.querySelector('.detail-image') as HTMLImageElement | null;
+      const cartBtn = document.getElementById('cartBtn');
+      if (!sourceImg || !cartBtn) {
+        return; // Si no hay elementos, salimos sin animar
+      }
+
+      const imgRect = sourceImg.getBoundingClientRect();
+      const cartRect = cartBtn.getBoundingClientRect();
+
+      const clone = sourceImg.cloneNode(true) as HTMLImageElement;
+      clone.classList.add('flying-image');
+      clone.style.position = 'fixed';
+      clone.style.left = `${imgRect.left}px`;
+      clone.style.top = `${imgRect.top}px`;
+      clone.style.width = `${imgRect.width}px`;
+      clone.style.height = `${imgRect.height}px`;
+      clone.style.zIndex = '9999';
+      clone.style.pointerEvents = 'none';
+      clone.style.transition = 'transform 0.55s ease-in-out, opacity 0.55s ease-in-out';
+      clone.style.transform = 'translate(0, 0) scale(1)';
+      clone.style.opacity = '1';
+
+      document.body.appendChild(clone);
+
+      const deltaX = cartRect.left + cartRect.width / 2 - (imgRect.left + imgRect.width / 2);
+      const deltaY = cartRect.top + cartRect.height / 2 - (imgRect.top + imgRect.height / 2);
+
+      requestAnimationFrame(() => {
+        clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.2)`;
+        clone.style.opacity = '0.2';
+      });
+
+      const cleanup = () => {
+        clone.removeEventListener('transitionend', cleanup);
+        if (clone && clone.parentElement) {
+          clone.parentElement.removeChild(clone);
+        }
+      };
+
+      clone.addEventListener('transitionend', cleanup);
+    } catch (e) {
+      // Silenciar errores de animación para no afectar el flujo
+      console.warn('Fly-to-cart animation skipped:', e);
+    }
   }
 }

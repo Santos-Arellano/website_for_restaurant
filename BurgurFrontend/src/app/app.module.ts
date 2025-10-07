@@ -26,6 +26,7 @@ import { AdminOperadoresComponent } from './Components/Admin/admin-operadores/ad
 import { NuestraHistoriaComponent } from './Components/LandingPage/nuestra-historia/nuestra-historia.component';
 import { ResenasComponent } from './Components/LandingPage/resenas/resenas.component';
 import { AdminHeaderComponent } from './Components/Shared/admin-header/admin-header.component';
+import { ToastComponent } from './Components/Shared/toast/toast.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { AdminHeaderComponent } from './Components/Shared/admin-header/admin-hea
     FormsModule,
     HttpClientModule,
     HeaderFooterComponent,
-    AdminHeaderComponent
+    AdminHeaderComponent,
+    ToastComponent
   ],
   exports: [
     CartModalComponent
