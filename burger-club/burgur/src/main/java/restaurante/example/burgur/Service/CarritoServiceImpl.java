@@ -181,24 +181,27 @@ public class CarritoServiceImpl implements CarritoService {
         if (carrito.getEstado() == false) {
             throw new IllegalStateException("El carrito está cerrado y no se puede modificar.");
         }
-
-        // 2. Verificar que el CarritoItem pertenezca al Carrito
-        if (!carrito.getCarritoItems().contains(carritoItem)) {
+        // 2. Cargar el CarritoItem desde la base de datos y verificar pertenencia al carrito
+        CarritoItem persistedItem = carritoItemRepository.findById(carritoItem.getId())
+            .orElseThrow(() -> new IllegalArgumentException("CarritoItem no encontrado."));
+        if (persistedItem.getCarrito() == null || !persistedItem.getCarrito().getId().equals(carrito.getId())) {
             throw new IllegalArgumentException("El CarritoItem no pertenece al Carrito especificado.");
         }
 
         // 3. Eliminar los AdiXItemCarrito asociados al CarritoItem
-        List<AdiXItemCarrito> adicionalesRelacion = carritoItem.getAdicionalesPorProducto();
+        List<AdiXItemCarrito> adicionalesRelacion = persistedItem.getAdicionalesPorProducto();
         if (adicionalesRelacion != null && !adicionalesRelacion.isEmpty()) {
             adiXItemCarritoRepository.deleteAll(adicionalesRelacion);
         }
 
         // 4. Eliminar el CarritoItem
-        carritoItemRepository.delete(carritoItem);
+        carritoItemRepository.delete(persistedItem);
 
         // 5. Actualizar la lista de CarritoItems en el Carrito
         List<CarritoItem> items = carrito.getCarritoItems();
-        items.remove(carritoItem);
+        if (items != null && !items.isEmpty()) {
+            items.removeIf(ci -> ci != null && ci.getId() != null && ci.getId().equals(persistedItem.getId()));
+        }
         carrito.setCarritoItems(items);
 
         return carrito;

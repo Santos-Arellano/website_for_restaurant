@@ -147,16 +147,23 @@ public class ClienteServiceImpl implements ClienteService {
     }
     
     private void validateContrasenaCliente(Cliente c) {
-        if (c.getContrasena() == null || c.getContrasena().isBlank()) {
-            throw new IllegalArgumentException("La contraseña es requerida");
+        // Para creación: contraseña es obligatoria
+        if (c.getId() == null) {
+            if (c.getContrasena() == null || c.getContrasena().isBlank()) {
+                throw new IllegalArgumentException("La contraseña es requerida");
+            }
         }
-        if (c.getContrasena().length() < 8 || c.getContrasena().length() > 64) {
-            throw new IllegalArgumentException("La contraseña debe tener entre 8 y 64 caracteres");
-        }
-        
-        String PWD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d).{8,64}$";
-        if (!c.getContrasena().matches(PWD_REGEX)) {
-            throw new IllegalArgumentException("La contraseña debe contener al menos una letra y un número");
+
+        // Para actualización: si se proporciona una contraseña nueva, validar; si no, permitir conservar la existente
+        if (c.getContrasena() != null && !c.getContrasena().isBlank()) {
+            if (c.getContrasena().length() < 8 || c.getContrasena().length() > 64) {
+                throw new IllegalArgumentException("La contraseña debe tener entre 8 y 64 caracteres");
+            }
+
+            String PWD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d).{8,64}$";
+            if (!c.getContrasena().matches(PWD_REGEX)) {
+                throw new IllegalArgumentException("La contraseña debe contener al menos una letra y un número");
+            }
         }
     }
     

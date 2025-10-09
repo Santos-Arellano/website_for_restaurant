@@ -441,16 +441,16 @@ class UniversalAdminManager {
     getApiUrl(itemId = null) {
         const baseUrls = {
             productos: '/menu/productos',
-            adicionales: '/admin/adicionales',
-            clientes: '/admin/clientes'
+            adicionales: '/adicionales',
+            clientes: '/clientes'
         };
         
         const baseUrl = baseUrls[this.currentSection];
         if (itemId) {
             return `${baseUrl}/${itemId}`;
         } else {
-            // Para adicionales y clientes, usar /list para obtener todos los elementos
-            return (this.currentSection === 'adicionales' || this.currentSection === 'clientes') ? `${baseUrl}/list` : baseUrl;
+            // Clientes usa /list; Adicionales usa baseUrl directamente
+            return this.currentSection === 'clientes' ? `${baseUrl}/list` : baseUrl;
         }
     }
     

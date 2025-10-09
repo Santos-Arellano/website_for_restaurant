@@ -310,7 +310,7 @@ class AdminModalManager {
         if (isEdit && adicionalData && typeof adicionalData === 'number') {
             this.showLoading(true, 'Cargando datos del adicional...');
             try {
-                const response = await fetch(`/admin/adicionales/${adicionalData}`);
+                const response = await fetch(`/adicionales/${adicionalData}`);
                 if (response.ok) {
                     const data = await response.json();
                     adicionalData = data.adicional || data;
@@ -715,8 +715,8 @@ class AdminModalManager {
     getApiUrl(isEdit, itemId) {
         const baseUrls = {
             productos: '/menu/productos',
-            clientes: '/admin/clientes',
-            adicionales: '/admin/adicionales'
+            clientes: '/clientes',
+            adicionales: '/adicionales'
         };
         
         const baseUrl = baseUrls[this.currentSection];

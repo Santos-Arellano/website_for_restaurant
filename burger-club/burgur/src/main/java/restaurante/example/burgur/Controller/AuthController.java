@@ -172,7 +172,9 @@ public class AuthController {
                 "id", cliente.getId(),
                 "nombre", cliente.getNombre(),
                 "apellido", cliente.getApellido(),
-                "correo", cliente.getCorreo()
+                "correo", cliente.getCorreo(),
+                "telefono", cliente.getTelefono(),
+                "direccion", cliente.getDireccion()
             )
         ));
     }
