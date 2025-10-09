@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AdicionalService } from '../../../Service/Adicional/adicional.service';
+import { ProductoService } from '../../../Service/Producto/producto.service';
 import { Adicional } from '../../../Model/Adicional/adicional';
 
 @Component({
@@ -35,18 +36,16 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
   
   // Categorías disponibles
   categoriasDisponibles: string[] = [
-    'hamburguesas',
-    'hot-dogs', 
-    'ensaladas',
-    'papas',
-    'nachos',
-    'bebidas',
-    'postres'
+    'hamburguesa',
+    'perro caliente',
+    'acompañamiento',
+    'bebida',
+    'postre'
   ];
   
   private subscriptions: Subscription = new Subscription();
 
-  constructor(private adicionalService: AdicionalService) { }
+  constructor(private adicionalService: AdicionalService, private productoService: ProductoService) { }
 
   ngOnInit(): void {
     this.loadAdicionales();
@@ -164,6 +163,8 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         next: () => {
           this.loadAdicionales();
           this.loadEstadisticas();
+          // Refrescar productos para reflejar cambios en adicionales permitidos
+          this.productoService?.getProductos()?.subscribe();
           this.closeModals();
           this.isLoading = false;
         },
@@ -182,6 +183,8 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         next: () => {
           this.loadAdicionales();
           this.loadEstadisticas();
+          // Refrescar productos para reflejar cambios en adicionales permitidos
+          this.productoService?.getProductos()?.subscribe();
           this.closeModals();
           this.isLoading = false;
         },
@@ -204,6 +207,8 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
       next: () => {
         this.loadAdicionales();
         this.loadEstadisticas();
+        // Refrescar productos para reflejar cambios en adicionales permitidos
+        this.productoService?.getProductos()?.subscribe();
         this.closeModals();
         this.isLoading = false;
       },

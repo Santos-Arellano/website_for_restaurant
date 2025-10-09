@@ -10,6 +10,7 @@ export interface Producto {
     ingredientes?: string[];
     isNew?: boolean;
     isPopular?: boolean;
+    stock?: number;
     adicionales?: Adicional[];
 }
 
@@ -25,5 +26,5 @@ export enum CategoriaProducto {
     BEBIDAS = 'BEBIDAS',
     ACOMPAÑAMIENTOS = 'ACOMPAÑAMIENTOS',
     POSTRES = 'POSTRES',
-    COMBOS = 'COMBOS'
+    PERROS_CALIENTES = 'PERROS CALIENTES'
 }

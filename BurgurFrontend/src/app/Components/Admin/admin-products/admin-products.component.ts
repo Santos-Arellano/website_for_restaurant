@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Producto, CategoriaProducto } from '../../../Model/Producto/producto';
 import { ProductoService } from '../../../Service/Producto/producto.service';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-admin-products',
@@ -43,25 +44,37 @@ export class AdminProductsComponent implements OnInit {
   // Categorías disponibles
   categorias = Object.values(CategoriaProducto);
   
-  constructor(private productoService: ProductoService) {}
+  constructor(private productoService: ProductoService, private toast: ToastService) {}
   
   ngOnInit(): void {
-    this.cargarProductos();
-  }
-  
-  cargarProductos(): void {
+    // Suscribirse al stream reactivo de productos para refresco automático
     this.isLoading = true;
-    this.productoService.getProductos().subscribe({
-      next: (productos: Producto[]) => {
+    this.productoService.productos$.subscribe({
+      next: (productos) => {
         this.productos = productos;
-        this.productosFiltrados = productos;
+        this.productosFiltrados = this.aplicarFiltros(productos);
         this.calcularEstadisticas();
         this.isLoading = false;
       },
-      error: (error: any) => {
-        console.error('Error al cargar productos:', error);
+      error: (err) => {
+        console.error('Error en productos$:', err);
         this.isLoading = false;
       }
+    });
+    // Disparar carga inicial
+    this.productoService.getProductos().subscribe();
+  }
+
+  private aplicarFiltros(productos: Producto[]): Producto[] {
+    return productos.filter(producto => {
+      const matchesSearch = !this.searchTerm || 
+        producto.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        producto.descripcion.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesCategory = !this.selectedCategory || 
+        producto.categoria === this.selectedCategory;
+      const matchesStatus = !this.selectedStatus || 
+        producto.disponible.toString() === this.selectedStatus;
+      return matchesSearch && matchesCategory && matchesStatus;
     });
   }
   
@@ -73,19 +86,7 @@ export class AdminProductsComponent implements OnInit {
   }
   
   filtrarProductos(): void {
-    this.productosFiltrados = this.productos.filter(producto => {
-      const matchesSearch = !this.searchTerm || 
-        producto.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
-      const matchesCategory = !this.selectedCategory || 
-        producto.categoria === this.selectedCategory;
-      
-      const matchesStatus = !this.selectedStatus || 
-        producto.disponible.toString() === this.selectedStatus;
-      
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
+    this.productosFiltrados = this.aplicarFiltros(this.productos);
   }
   
   abrirModalAgregar(): void {
@@ -146,7 +147,7 @@ export class AdminProductsComponent implements OnInit {
 
   guardarProducto(): void {
     if (!this.productoForm.nombre || !this.productoForm.descripcion || (this.productoForm.precio ?? 0) <= 0) {
-      alert('Por favor, completa todos los campos obligatorios');
+      this.toast.warning('Por favor, completa todos los campos obligatorios', 4000);
       return;
     }
 
@@ -156,19 +157,16 @@ export class AdminProductsComponent implements OnInit {
       // Actualizar producto existente
       this.productoService.updateProducto(this.productoForm.id, this.productoForm as Producto).subscribe({
         next: (productoActualizado) => {
-          const index = this.productos.findIndex(p => p.id === productoActualizado.id);
-          if (index !== -1) {
-            this.productos[index] = productoActualizado;
-            this.filtrarProductos();
-          }
+          // productos$ ya emite el cambio; solo refrescar filtros
+          this.filtrarProductos();
           this.cerrarModalEdicion();
           this.isLoading = false;
-          alert('Producto actualizado exitosamente');
+          this.toast.success('Producto actualizado exitosamente', 2500);
         },
         error: (error) => {
           console.error('Error al actualizar producto:', error);
           this.isLoading = false;
-          alert('Error al actualizar el producto');
+          this.toast.error('Error al actualizar el producto', 5000);
         }
       });
     } else {
@@ -187,16 +185,16 @@ export class AdminProductsComponent implements OnInit {
 
       this.productoService.createProducto(nuevoProducto).subscribe({
         next: (productoCreado) => {
-          this.productos.push(productoCreado);
+          // productos$ ya emite el cambio; solo refrescar filtros
           this.filtrarProductos();
           this.cerrarModalEdicion();
           this.isLoading = false;
-          alert('Producto creado exitosamente');
+          this.toast.success('Producto creado exitosamente', 2500);
         },
         error: (error) => {
           console.error('Error al crear producto:', error);
           this.isLoading = false;
-          alert('Error al crear el producto');
+          this.toast.error('Error al crear el producto', 5000);
         }
       });
     }
@@ -207,15 +205,16 @@ export class AdminProductsComponent implements OnInit {
       this.isLoading = true;
       this.productoService.deleteProducto(id).subscribe({
         next: () => {
-          this.productos = this.productos.filter(p => p.id !== id);
+          // productos$ ya emite el cambio; solo refrescar filtros
           this.filtrarProductos();
           this.calcularEstadisticas();
           this.isLoading = false;
-          console.log('Producto eliminado exitosamente');
+          this.toast.success('Producto eliminado exitosamente', 2500);
         },
         error: (error) => {
           console.error('Error al eliminar producto:', error);
           this.isLoading = false;
+          this.toast.error('Error al eliminar el producto', 5000);
         }
       });
     }

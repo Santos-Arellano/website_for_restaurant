@@ -25,6 +25,9 @@ export class AuthComponent implements OnInit {
     apellido: '',
     correo: '',
     contrasena: '',
+    // Campo adicional para confirmar contraseña
+    // (opcional en el modelo, requerido en el formulario)
+    confirmPassword: '',
     telefono: '',
     direccion: ''
   };
@@ -49,12 +52,20 @@ export class AuthComponent implements OnInit {
     this.resetForms();
     
     // Actualizar la URL
-    const newPath = this.isLoginMode ? '/auth/login' : '/auth/register';
+    const newPath = this.isLoginMode ? '/login' : '/register';
     this.router.navigate([newPath]);
   }
 
   onLogin(): void {
+    // Evitar doble envío si ya estamos procesando
+    if (this.isLoading) return;
     if (!this.validateLoginForm()) return;
+
+    // Sanitizar entradas
+    this.loginForm = {
+      correo: (this.loginForm.correo || '').trim(),
+      contrasena: (this.loginForm.contrasena || '').trim()
+    };
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -65,27 +76,37 @@ export class AuthComponent implements OnInit {
         if (cliente) {
           console.log('Login exitoso:', cliente);
           
-          // Verificar si es admin y redirigir apropiadamente
-          const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-          if (currentUser.tipo === 'admin') {
-            this.router.navigate(['/admin']);
-          } else {
-            this.router.navigate(['/']);
-          }
+          // Redirección: si es admin por correo, ir a /admin
+          // Caso contrario, ir a la página principal
+          const isAdmin = cliente.correo?.toLowerCase() === 'admin@burgerclub.com';
+          this.router.navigate([isAdmin ? '/admin' : '/']);
         } else {
           this.errorMessage = 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.';
         }
       },
       error: (error: any) => {
         this.isLoading = false;
-        this.errorMessage = 'Error en el sistema. Por favor, intenta de nuevo.';
+        this.errorMessage = error?.error?.message || 'Error en el sistema. Por favor, intenta de nuevo.';
         console.error('Error en login:', error);
       }
     });
   }
 
   onRegister(): void {
+    // Evitar doble envío si ya estamos procesando
+    if (this.isLoading) return;
     if (!this.validateRegistroForm()) return;
+
+    // Sanitizar entradas de registro
+    this.registroForm = {
+      nombre: (this.registroForm.nombre || '').trim(),
+      apellido: (this.registroForm.apellido || '').trim(),
+      correo: (this.registroForm.correo || '').trim(),
+      contrasena: (this.registroForm.contrasena || '').trim(),
+      confirmPassword: (this.registroForm.confirmPassword || '').trim(),
+      telefono: (this.registroForm.telefono || '').trim(),
+      direccion: (this.registroForm.direccion || '').trim()
+    };
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -94,11 +115,12 @@ export class AuthComponent implements OnInit {
       next: (cliente: Cliente) => {
         this.isLoading = false;
         console.log('Registro exitoso:', cliente);
-        this.router.navigate(['/']);
+        const isAdmin = cliente.correo?.toLowerCase() === 'admin@burgerclub.com';
+        this.router.navigate([isAdmin ? '/admin' : '/']);
       },
       error: (error: any) => {
         this.isLoading = false;
-        this.errorMessage = 'Error al registrar. Por favor, intenta de nuevo.';
+        this.errorMessage = error?.error?.message || 'Error al registrar. Por favor, intenta de nuevo.';
         console.error('Error en registro:', error);
       }
     });
@@ -119,7 +141,7 @@ export class AuthComponent implements OnInit {
   }
 
   private validateRegistroForm(): boolean {
-    const { nombre, apellido, correo, contrasena, telefono, direccion } = this.registroForm;
+    const { nombre, apellido, correo, contrasena, confirmPassword, telefono, direccion } = this.registroForm as any;
 
     if (!nombre || !apellido || !correo || !contrasena || !telefono || !direccion) {
       this.errorMessage = 'Por favor, completa todos los campos.';
@@ -133,6 +155,16 @@ export class AuthComponent implements OnInit {
 
     if (contrasena.length < 6) {
       this.errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+      return false;
+    }
+
+    if (confirmPassword === undefined || confirmPassword === null || String(confirmPassword).trim() === '') {
+      this.errorMessage = 'Por favor, confirma tu contraseña.';
+      return false;
+    }
+
+    if (contrasena !== confirmPassword) {
+      this.errorMessage = 'Las contraseñas no coinciden.';
       return false;
     }
 
@@ -151,6 +183,7 @@ export class AuthComponent implements OnInit {
       apellido: '',
       correo: '',
       contrasena: '',
+      confirmPassword: '',
       telefono: '',
       direccion: ''
     };

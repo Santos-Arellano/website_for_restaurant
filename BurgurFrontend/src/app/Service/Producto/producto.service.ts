@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap, switchMap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { map, tap, switchMap, catchError } from 'rxjs/operators';
 import { Producto, CategoriaProducto } from '../../Model/Producto/producto';
 
 @Injectable({
@@ -14,6 +14,32 @@ export class ProductoService {
 
   constructor(private http: HttpClient) { }
 
+  // Conversión de categorías entre backend (strings) y frontend (enum)
+  private toFrontendCategoria(apiCategoria: any): CategoriaProducto {
+    const raw = (apiCategoria ?? '').toString().trim().toLowerCase();
+    const map: Record<string, CategoriaProducto> = {
+      'hamburguesa': CategoriaProducto.HAMBURGUESAS,
+      'bebida': CategoriaProducto.BEBIDAS,
+      'acompañamiento': CategoriaProducto.ACOMPAÑAMIENTOS,
+      'postre': CategoriaProducto.POSTRES,
+      'perro caliente': CategoriaProducto.PERROS_CALIENTES
+    };
+    return map[raw] ?? CategoriaProducto.HAMBURGUESAS;
+  }
+
+  private toBackendCategoria(cat: CategoriaProducto | string): string {
+    const val = (cat as string) ?? '';
+    const map: Record<string, string> = {
+      [CategoriaProducto.HAMBURGUESAS]: 'hamburguesa',
+      [CategoriaProducto.BEBIDAS]: 'bebida',
+      [CategoriaProducto.ACOMPAÑAMIENTOS]: 'acompañamiento',
+      [CategoriaProducto.POSTRES]: 'postre',
+      [CategoriaProducto.PERROS_CALIENTES]: 'perro caliente'
+    };
+    // Si llega directamente el string del enum, usar el mapeo; si es ya backend compatible, devolverlo
+    return map[val] ?? val.toString().trim().toLowerCase();
+  }
+
   // Mapeo de producto del backend al modelo frontend
   private mapProducto(apiProducto: any): Producto {
     return {
@@ -21,13 +47,14 @@ export class ProductoService {
       nombre: apiProducto.nombre,
       descripcion: apiProducto.descripcion || '',
       precio: apiProducto.precio,
-      categoria: (apiProducto.categoria as CategoriaProducto),
+      categoria: this.toFrontendCategoria(apiProducto.categoria),
       imagen: apiProducto.imgURL || 'assets/Menu/cheeseburger.png',
       disponible: apiProducto.activo !== undefined ? apiProducto.activo : true,
       fechaCreacion: apiProducto.fechaCreacion ? new Date(apiProducto.fechaCreacion) : new Date(),
       ingredientes: apiProducto.ingredientes || [],
       isNew: apiProducto.nuevo || false,
       isPopular: apiProducto.popular || false,
+      stock: apiProducto.stock,
       adicionales: (apiProducto.adicionales || []).map((a: any) => ({
         id: a.id,
         nombre: a.nombre,
@@ -41,7 +68,13 @@ export class ProductoService {
   getProductos(): Observable<Producto[]> {
     return this.http.get<any[]>(`${this.apiUrl}`).pipe(
       map((items) => items.map((p: any) => this.mapProducto(p))),
-      tap((productos) => this.productosSubject.next(productos))
+      tap((productos) => this.productosSubject.next(productos)),
+      catchError((error) => {
+        console.warn('getProductos failed, returning empty list:', error);
+        const fallback: Producto[] = [];
+        this.productosSubject.next(fallback);
+        return of(fallback);
+      })
     );
   }
 
@@ -62,14 +95,23 @@ export class ProductoService {
           disponible: a.activo !== undefined ? a.activo : true
         }));
         return producto;
+      }),
+      catchError((error) => {
+        console.warn(`getProductoById(${id}) failed, returning undefined:`, error);
+        return of(undefined);
       })
     );
   }
 
   // Obtener productos por categoría
   getProductosByCategoria(categoria: CategoriaProducto): Observable<Producto[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/categoria/${categoria}`).pipe(
-      map((items) => items.map((p: any) => this.mapProducto(p)))
+    const backendCat = this.toBackendCategoria(categoria);
+    return this.http.get<any[]>(`${this.apiUrl}/categoria/${backendCat}`).pipe(
+      map((items) => items.map((p: any) => this.mapProducto(p))),
+      catchError((error) => {
+        console.warn(`getProductosByCategoria(${categoria}) failed, returning empty list:`, error);
+        return of([] as Producto[]);
+      })
     );
   }
 
@@ -77,7 +119,11 @@ export class ProductoService {
   buscarProductos(termino: string): Observable<Producto[]> {
     const params = new HttpParams().set('nombre', termino);
     return this.http.get<any[]>(`${this.apiUrl}/search`, { params }).pipe(
-      map((items) => items.map((p: any) => this.mapProducto(p)))
+      map((items) => items.map((p: any) => this.mapProducto(p))),
+      catchError((error) => {
+        console.warn(`buscarProductos('${termino}') failed, returning empty list:`, error);
+        return of([] as Producto[]);
+      })
     );
   }
 
@@ -87,36 +133,75 @@ export class ProductoService {
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       precio: producto.precio,
-      categoria: producto.categoria,
+      categoria: this.toBackendCategoria(producto.categoria),
       imgURL: producto.imagen,
       activo: producto.disponible,
+      stock: Math.max(0, Number(producto.stock ?? 0)),
       ingredientes: producto.ingredientes || [],
       nuevo: producto.isNew || false,
       popular: producto.isPopular || false
     };
     return this.http.post<any>(`${this.apiUrl}`, payload).pipe(
-      map((p) => this.mapProducto(p))
+      // El backend retorna { success, message, producto }
+      map((resp) => this.mapProducto(resp?.producto ?? resp)),
+      tap((created) => {
+        const current = this.productosSubject.value || [];
+        this.productosSubject.next([...current, created]);
+      }),
+      catchError((error) => {
+        console.error('createProducto failed:', error);
+        throw error;
+      })
     );
   }
 
   // Actualizar producto (para administración)
   updateProducto(id: number, producto: Partial<Producto>): Observable<Producto> {
     const payload: any = {
-      ...producto,
+      nombre: producto.nombre,
+      descripcion: producto.descripcion,
+      precio: producto.precio,
+      categoria: producto.categoria !== undefined ? this.toBackendCategoria(producto.categoria as CategoriaProducto) : undefined,
       imgURL: producto.imagen,
       activo: producto.disponible,
+      ingredientes: producto.ingredientes,
       nuevo: producto.isNew,
-      popular: producto.isPopular
+      popular: producto.isPopular,
+      stock: Math.max(0, Number(producto.stock ?? 0))
     };
     return this.http.put<any>(`${this.apiUrl}/${id}`, payload).pipe(
-      map((p) => this.mapProducto(p))
+      // El backend retorna { success, message, producto }
+      map((resp) => this.mapProducto(resp?.producto ?? resp)),
+      tap((updated) => {
+        const current = this.productosSubject.value || [];
+        const idx = current.findIndex((x) => x.id === updated.id);
+        if (idx !== -1) {
+          const next = current.slice();
+          next[idx] = updated;
+          this.productosSubject.next(next);
+        } else {
+          this.productosSubject.next([...current, updated]);
+        }
+      }),
+      catchError((error) => {
+        console.error(`updateProducto(${id}) failed:`, error);
+        throw error;
+      })
     );
   }
 
   // Eliminar producto (para administración)
   deleteProducto(id: number): Observable<boolean> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      map(() => true)
+      map(() => true),
+      tap(() => {
+        const current = this.productosSubject.value || [];
+        this.productosSubject.next(current.filter((p) => p.id !== id));
+      }),
+      catchError((error) => {
+        console.error(`deleteProducto(${id}) failed:`, error);
+        return of(false);
+      })
     );
   }
 
@@ -129,21 +214,43 @@ export class ProductoService {
           nombre: p?.nombre,
           descripcion: p?.descripcion,
           precio: p?.precio,
-          categoria: p?.categoria,
+          categoria: p?.categoria !== undefined ? this.toBackendCategoria(p?.categoria as CategoriaProducto) : undefined,
           imgURL: p?.imagen,
           ingredientes: p?.ingredientes,
           nuevo: p?.isNew,
-          popular: p?.isPopular
+          popular: p?.isPopular,
+          stock: Math.max(0, Number(p?.stock ?? 0))
         };
         return this.http.put<any>(`${this.apiUrl}/${id}`, payload);
       }),
-      map((resp) => this.mapProducto(resp))
+      // El backend retorna { success, message, producto }
+      map((resp) => this.mapProducto(resp?.producto ?? resp)),
+      tap((updated) => {
+        const current = this.productosSubject.value || [];
+        const idx = current.findIndex((x) => x.id === updated.id);
+        if (idx !== -1) {
+          const next = current.slice();
+          next[idx] = updated;
+          this.productosSubject.next(next);
+        } else {
+          this.productosSubject.next([...current, updated]);
+        }
+      }),
+      catchError((error) => {
+        console.error(`toggleDisponibilidad(${id}) failed:`, error);
+        throw error;
+      })
     );
   }
 
   // Obtener estadísticas de productos (para administración)
   getEstadisticas(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/stats`);
+    return this.http.get<any>(`${this.apiUrl}/stats`).pipe(
+      catchError((error) => {
+        console.warn('getEstadisticas failed, returning empty object:', error);
+        return of({});
+      })
+    );
   }
   
 }

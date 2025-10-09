@@ -16,6 +16,7 @@ export interface ClienteRegistro {
     apellido: string;
     correo: string;
     contrasena: string;
+    confirmPassword?: string;
     telefono: string;
     direccion: string;
 }

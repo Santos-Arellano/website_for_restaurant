@@ -14,13 +14,14 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'BurgurFrontend';
   showCartModal = false;
   private cartModalSubscription?: Subscription;
+  private openCartHandler?: (ev: Event) => void;
   isAdminRoute = false;
 
   constructor(private router: Router, private clienteService: ClienteService, private toast: ToastService) {}
 
   ngOnInit(): void {
     // Escuchar eventos globales para abrir el modal del carrito
-    document.addEventListener('openCartModal', () => {
+    this.openCartHandler = () => {
       const isLogged = !!localStorage.getItem('currentUser');
       if (!isLogged) {
         this.toast.warning('Debes iniciar sesión para abrir el carrito', 4000);
@@ -29,7 +30,8 @@ export class AppComponent implements OnInit, OnDestroy {
         return;
       }
       this.showCartModal = true;
-    });
+    };
+    document.addEventListener('openCartModal', this.openCartHandler);
 
     // Detectar rutas admin para mostrar header correcto
     this.router.events
@@ -43,6 +45,9 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.cartModalSubscription) {
       this.cartModalSubscription.unsubscribe();
+    }
+    if (this.openCartHandler) {
+      document.removeEventListener('openCartModal', this.openCartHandler);
     }
   }
 

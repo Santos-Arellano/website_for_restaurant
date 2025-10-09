@@ -61,11 +61,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   onLogin(): void {
-    this.navigateTo('/auth/login');
+    this.navigateTo('/login');
   }
 
   onRegister(): void {
-    this.navigateTo('/auth/register');
+    this.navigateTo('/register');
   }
 
   onLogout(): void {

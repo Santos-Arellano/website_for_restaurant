@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PedidoService } from '../../../Service/Pedido/pedido.service';
@@ -10,6 +10,7 @@ import { ProductoPedido } from '../../../Model/Pedido/pedido';
 import { Producto } from '../../../Model/Producto/producto';
 import { Adicional } from '../../../Model/Adicional/adicional';
 import { ToastService } from '../../Shared/toast/toast.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header-footer',
@@ -18,7 +19,7 @@ import { ToastService } from '../../Shared/toast/toast.service';
   templateUrl: './header-footer.component.html',
   styleUrls: ['./header-footer.component.css']
 })
-export class HeaderFooterComponent implements OnInit {
+export class HeaderFooterComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   currentUser: any = null;
   isAuthModalOpen = false;
@@ -51,9 +52,16 @@ export class HeaderFooterComponent implements OnInit {
     this.cargarAdicionales();
   }
 
+  ngOnDestroy(): void {
+    // Limpiar suscripciones para evitar fugas de memoria
+    this.subs?.unsubscribe();
+  }
+
+  private subs = new Subscription();
+
   private checkAuthStatus() {
     // Suscribirse al observable del cliente actual
-    this.clienteService.currentCliente$.subscribe(cliente => {
+    const s1 = this.clienteService.currentCliente$.subscribe(cliente => {
       this.isLoggedIn = !!cliente;
       if (cliente) {
         this.currentUser = {
@@ -64,30 +72,38 @@ export class HeaderFooterComponent implements OnInit {
         this.currentUser = null;
       }
     });
+    this.subs.add(s1);
   }
 
   private updateCartCount() {
     // Suscribirse al carrito para actualizar el contador en tiempo real
-    this.pedidoService.carrito$.subscribe(carrito => {
+    const s2 = this.pedidoService.carrito$.subscribe(carrito => {
       this.carrito = carrito;
       this.cartItemCount = carrito.reduce((total, item) => total + item.cantidad, 0);
     });
+    this.subs.add(s2);
   }
 
   private cargarProductos(): void {
-    this.productoService.getProductos().subscribe(productos => {
+    // Disparar carga inicial y mantener suscripción reactiva a cambios
+    const s3 = this.productoService.productos$.subscribe(productos => {
+      this.productos = {};
       productos.forEach(producto => {
         this.productos[producto.id] = producto;
       });
     });
+    this.subs.add(s3);
+    this.productoService.getProductos().subscribe();
   }
 
   private cargarAdicionales(): void {
-    this.adicionalService.getAdicionales().subscribe(adicionales => {
+    const s4 = this.adicionalService.getAdicionales().subscribe(adicionales => {
+      this.adicionales = {};
       adicionales.forEach(adicional => {
         this.adicionales[adicional.id] = adicional;
       });
     });
+    this.subs.add(s4);
   }
 
   getNombreProducto(productoId: number): string {
@@ -98,16 +114,16 @@ export class HeaderFooterComponent implements OnInit {
     return this.productos[productoId]?.imagen || 'assets/images/default-product.jpg';
   }
 
-  actualizarCantidad(productoId: number, nuevaCantidad: number): void {
+  actualizarCantidad(itemId: number, nuevaCantidad: number): void {
     if (nuevaCantidad <= 0) {
-      this.eliminarDelCarrito(productoId);
+      this.eliminarDelCarrito(itemId);
     } else {
-      this.pedidoService.actualizarCantidad(productoId, nuevaCantidad);
+      this.pedidoService.actualizarCantidad(itemId, nuevaCantidad);
     }
   }
 
-  eliminarDelCarrito(productoId: number): void {
-    this.pedidoService.eliminarDelCarrito(productoId);
+  eliminarDelCarrito(itemId: number): void {
+    this.pedidoService.eliminarDelCarritoPorItemId(itemId);
   }
 
   calcularTotalCarrito(): number {
@@ -162,6 +178,7 @@ export class HeaderFooterComponent implements OnInit {
     this.clienteService.logout().subscribe(() => {
       this.isLoggedIn = false;
       this.currentUser = null;
+      this.pedidoService.resetCarrito();
       this.router.navigate(['/']);
     });
   }

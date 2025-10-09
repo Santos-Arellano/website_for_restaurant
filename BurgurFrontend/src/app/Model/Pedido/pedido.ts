@@ -14,11 +14,13 @@ export interface Pedido {
 }
 
 export interface ProductoPedido {
-    productoId: number;
-    cantidad: number;
-    precioUnitario: number;
-    adicionales?: AdicionalPedido[];
-    observaciones?: string;
+  // Optional backend cart item identifier, used for updates/removals
+  itemId?: number;
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+  adicionales?: AdicionalPedido[];
+  observaciones?: string;
 }
 
 export interface AdicionalPedido {

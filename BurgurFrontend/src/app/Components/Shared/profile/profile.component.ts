@@ -66,7 +66,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.clienteService.isLoggedIn().subscribe(loggedIn => {
         if (!loggedIn) {
-          this.router.navigate(['/auth/login']);
+        this.router.navigate(['/login']);
         }
       })
     );

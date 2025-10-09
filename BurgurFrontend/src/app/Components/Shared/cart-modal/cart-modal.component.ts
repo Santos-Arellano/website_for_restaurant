@@ -86,17 +86,17 @@ export class CartModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  actualizarCantidad(productoId: number, nuevaCantidad: number): void {
+  actualizarCantidad(itemId: number, nuevaCantidad: number): void {
     if (nuevaCantidad <= 0) {
-      this.eliminarDelCarrito(productoId);
+      this.eliminarDelCarrito(itemId);
       return;
     }
 
-    this.pedidoService.actualizarCantidad(productoId, nuevaCantidad);
+    this.pedidoService.actualizarCantidad(itemId, nuevaCantidad);
   }
 
-  eliminarDelCarrito(productoId: number): void {
-    this.pedidoService.eliminarDelCarrito(productoId);
+  eliminarDelCarrito(itemId: number): void {
+    this.pedidoService.eliminarDelCarritoPorItemId(itemId);
   }
 
   limpiarCarrito(): void {
@@ -116,13 +116,21 @@ export class CartModalComponent implements OnInit, OnDestroy {
     }
 
     this.isLoading = true;
-    
-    // Simular proceso de checkout
-    setTimeout(() => {
-      this.isLoading = false;
-      this.router.navigate(['/orders']);
-      this.onCloseModal();
-    }, 2000);
+
+    const clienteId = this.currentCliente?.id || 0;
+    this.pedidoService.crearPedido(clienteId).subscribe({
+      next: (resp) => {
+        this.isLoading = false;
+        this.pedidoService.limpiarCarrito();
+        // Navigate to menu or orders; backend returns success message string
+        this.router.navigate(['/menu']);
+        this.onCloseModal();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error al crear el pedido:', error);
+      }
+    });
   }
 
   onCloseModal(): void {
@@ -177,6 +185,6 @@ export class CartModalComponent implements OnInit, OnDestroy {
   }
 
   trackByProductId(index: number, item: ProductoPedido): number {
-    return item.productoId;
+    return (item as any).itemId || item.productoId;
   }
 }

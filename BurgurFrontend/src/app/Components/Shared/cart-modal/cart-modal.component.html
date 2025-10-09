@@ -36,7 +36,7 @@
           <div class="cart-item-controls">
             <button 
               class="quantity-btn" 
-              (click)="actualizarCantidad(item.productoId, item.cantidad - 1)"
+              (click)="actualizarCantidad(item.itemId || item.productoId, item.cantidad - 1)"
               [disabled]="item.cantidad <= 1"
               aria-label="Disminuir cantidad">
               <i class="fas fa-minus"></i>
@@ -44,7 +44,7 @@
             <span class="quantity-display">{{ item.cantidad }}</span>
             <button 
               class="quantity-btn" 
-              (click)="actualizarCantidad(item.productoId, item.cantidad + 1)"
+              (click)="actualizarCantidad(item.itemId || item.productoId, item.cantidad + 1)"
               aria-label="Aumentar cantidad">
               <i class="fas fa-plus"></i>
             </button>
@@ -52,7 +52,7 @@
 
           <button 
             class="remove-item-btn" 
-            (click)="eliminarDelCarrito(item.productoId)"
+            (click)="eliminarDelCarrito(item.itemId || item.productoId)"
             title="Eliminar producto"
             aria-label="Eliminar producto del carrito">
             <i class="fas fa-trash"></i>

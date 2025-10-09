@@ -1,24 +1,22 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { Pedido, ProductoPedido, EstadoPedido, MetodoPago } from '../../Model/Pedido/pedido';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PedidoService {
-  private apiUrl = '/api/pedidos';
+  private pedidosApiUrl = '/api/pedidos';
+  private carritoApiUrl = '/api/carrito';
   private carritoSubject = new BehaviorSubject<ProductoPedido[]>([]);
   public carrito$ = this.carritoSubject.asObservable();
   private pedidosSubject = new BehaviorSubject<Pedido[]>([]);
   public pedidos$ = this.pedidosSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Cargar carrito desde localStorage
-    const carritoGuardado = localStorage.getItem('carrito');
-    if (carritoGuardado) {
-      this.carritoSubject.next(JSON.parse(carritoGuardado));
-    }
+    this.syncCarritoDesdeBackend();
     this.loadPedidos();
   }
 
@@ -26,8 +24,16 @@ export class PedidoService {
   private loadPedidos(): void {
     const pedidosGuardados = localStorage.getItem('pedidos');
     if (pedidosGuardados) {
-      const pedidos = JSON.parse(pedidosGuardados);
-      this.pedidosSubject.next(pedidos);
+      try {
+        const parsed = JSON.parse(pedidosGuardados);
+        const pedidos = Array.isArray(parsed) ? parsed : [];
+        this.pedidosSubject.next(pedidos);
+      } catch (e) {
+        console.warn('Error al parsear pedidos en localStorage. Usando mock.', e);
+        const mockPedidos = this.getMockPedidos();
+        this.savePedidosToStorage(mockPedidos);
+        this.pedidosSubject.next(mockPedidos);
+      }
     } else {
       const mockPedidos = this.getMockPedidos();
       this.savePedidosToStorage(mockPedidos);
@@ -88,27 +94,30 @@ export class PedidoService {
     ];
   }
 
-  // Gestión del carrito
-  agregarAlCarrito(producto: ProductoPedido): void {
-    // Bloquear si no hay usuario logueado
-    if (!this.isUserLoggedIn()) {
-      return;
-    }
-    const carritoActual = this.carritoSubject.value;
-    
-    // Buscar si existe un producto con el mismo ID y los mismos adicionales
-    const productoExistente = carritoActual.find(p => 
-      p.productoId === producto.productoId && 
-      this.sonAdicionalesIguales(p.adicionales, producto.adicionales)
-    );
-    
-    if (productoExistente) {
-      productoExistente.cantidad += producto.cantidad;
-    } else {
-      carritoActual.push(producto);
-    }
-    
-    this.actualizarCarrito(carritoActual);
+  // Gestión del carrito (backend)
+  agregarAlCarrito(producto: ProductoPedido, clienteId?: number, carritoId?: number): void {
+    if (!this.isUserLoggedIn()) return;
+    const currentClienteId = clienteId ?? this.getCurrentClienteIdFromStorage();
+    if (!currentClienteId) return;
+
+    const adicionalesIds = (producto.adicionales || []).map(a => a.adicionalId);
+    const params = new HttpParams()
+      .set('clienteId', String(currentClienteId))
+      .set('productoId', String(producto.productoId))
+      .set('cantidad', String(producto.cantidad))
+      .set('adicionalesIds', adicionalesIds.join(','));
+    const url = `${this.carritoApiUrl}/agregar` + (carritoId ? `?carritoId=${carritoId}` : '');
+
+    this.http.post<any>(url, null, { params }).pipe(
+      map((carrito) => this.mapCarritoToFrontend(carrito)),
+      catchError((error) => {
+        console.warn('agregarAlCarrito failed, keeping local state:', error);
+        return of(this.carritoSubject.value);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
+    });
   }
 
   // Método auxiliar para comparar adicionales
@@ -123,42 +132,69 @@ export class PedidoService {
     return ids1.every((id, index) => id === ids2[index]);
   }
 
-  eliminarDelCarrito(productoId: number): void {
-    if (!this.isUserLoggedIn()) {
-      return;
-    }
-    const carritoActual = this.carritoSubject.value;
-    const carritoFiltrado = carritoActual.filter(p => p.productoId !== productoId);
-    this.actualizarCarrito(carritoFiltrado);
+  eliminarDelCarritoPorItemId(itemId: number): void {
+    if (!this.isUserLoggedIn()) return;
+    const clienteId = this.getCurrentClienteIdFromStorage();
+    if (!clienteId) return;
+    const params = new HttpParams().set('clienteId', String(clienteId));
+    this.http.delete<any>(`${this.carritoApiUrl}/item/${itemId}`, { params }).pipe(
+      map((carrito) => this.mapCarritoToFrontend(carrito)),
+      catchError((error) => {
+        console.warn('eliminarDelCarritoPorItemId failed:', error);
+        return of(this.carritoSubject.value);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
+    });
   }
 
-  actualizarCantidad(productoId: number, cantidad: number): void {
-    if (!this.isUserLoggedIn()) {
+  actualizarCantidad(itemId: number, cantidad: number): void {
+    // Backend lacks explicit update endpoint; strategy: delete and re-add with new cantidad
+    if (!this.isUserLoggedIn()) return;
+    const carritoActual = this.carritoSubject.value;
+    const item = carritoActual.find((p: any) => (p as any).itemId === itemId);
+    if (!item) return;
+    if (cantidad <= 0) {
+      this.eliminarDelCarritoPorItemId(itemId);
       return;
     }
-    const carritoActual = this.carritoSubject.value;
-    const producto = carritoActual.find(p => p.productoId === productoId);
-    
-    if (producto) {
-      if (cantidad <= 0) {
-        this.eliminarDelCarrito(productoId);
-      } else {
-        producto.cantidad = cantidad;
-        this.actualizarCarrito(carritoActual);
-      }
-    }
+    // Remove old then re-add
+    this.eliminarDelCarritoPorItemId(itemId);
+    this.agregarAlCarrito({
+      productoId: item.productoId,
+      cantidad: cantidad,
+      precioUnitario: item.precioUnitario,
+      adicionales: item.adicionales
+    });
   }
 
   limpiarCarrito(): void {
-    if (!this.isUserLoggedIn()) {
-      return;
-    }
-    this.actualizarCarrito([]);
+    if (!this.isUserLoggedIn()) return;
+    const clienteId = this.getCurrentClienteIdFromStorage();
+    if (!clienteId) return;
+    const params = new HttpParams().set('clienteId', String(clienteId));
+    this.http.post<any>(`${this.carritoApiUrl}/vaciar`, null, { params }).pipe(
+      map((carrito) => this.mapCarritoToFrontend(carrito)),
+      catchError((error) => {
+        console.warn('limpiarCarrito failed:', error);
+        return of([] as ProductoPedido[]);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
+    });
   }
 
   private actualizarCarrito(carrito: ProductoPedido[]): void {
     this.carritoSubject.next(carrito);
     localStorage.setItem('carrito', JSON.stringify(carrito));
+  }
+
+  // Resetear carrito local sin llamadas al backend (para logout)
+  resetCarrito(): void {
+    this.carritoSubject.next([]);
+    localStorage.removeItem('carrito');
   }
 
   // Obtener carrito actual
@@ -178,14 +214,12 @@ export class PedidoService {
   // Calcular total del carrito
   calcularTotal(): number {
     return this.carritoSubject.value.reduce((total, producto) => {
-      let subtotal = producto.cantidad * producto.precioUnitario;
-      
+      let subtotal = (producto.cantidad || 0) * (producto.precioUnitario || 0);
       if (producto.adicionales) {
-        const totalAdicionales = producto.adicionales.reduce((sum, adicional) => 
-          sum + (adicional.cantidad * adicional.precioUnitario), 0);
+        const totalAdicionales = producto.adicionales.reduce((sum, adicional) =>
+          sum + ((adicional.cantidad || 0) * (adicional.precioUnitario || 0)), 0);
         subtotal += totalAdicionales;
       }
-      
       return total + subtotal;
     }, 0);
   }
@@ -195,58 +229,71 @@ export class PedidoService {
     return !!localStorage.getItem('currentUser');
   }
 
+  private getCurrentClienteIdFromStorage(): number | null {
+    try {
+      const current = localStorage.getItem('currentUser');
+      if (!current) return null;
+      const parsed = JSON.parse(current);
+      // Assume parsed has `id`
+      return parsed.id || parsed.clienteId || null;
+    } catch {
+      return null;
+    }
+  }
+
   // Crear pedido
-  crearPedido(pedidoData: Omit<Pedido, 'id' | 'fechaCreacion' | 'estado' | 'productos' | 'precioTotal'>): Observable<Pedido> {
-    const nuevoPedido: Pedido = {
-      id: Date.now(),
-      fechaCreacion: new Date(),
-      estado: EstadoPedido.PENDIENTE,
-      productos: this.getCarrito(),
-      precioTotal: this.calcularTotal(),
-      ...pedidoData
-    };
-
-    // Persistir el pedido en localStorage y actualizar el BehaviorSubject
-    const pedidosPrevios: Pedido[] = JSON.parse(localStorage.getItem('pedidos') || '[]');
-    const pedidosActualizados = [...pedidosPrevios, nuevoPedido];
-    this.savePedidosToStorage(pedidosActualizados);
-
-    // Limpiar carrito después de crear el pedido
-    this.limpiarCarrito();
-
-    return of(nuevoPedido);
+  crearPedido(clienteId?: number): Observable<string> {
+    const currentClienteId = clienteId ?? this.getCurrentClienteIdFromStorage();
+    if (!currentClienteId) return of('ERROR: cliente no autenticado');
+    const params = new HttpParams().set('clienteId', String(currentClienteId));
+    return this.http.post(`${this.pedidosApiUrl}/crear`, null, { params, responseType: 'text' }).pipe(
+      catchError((error) => {
+        console.error('crearPedido failed:', error);
+        return of('ERROR: crearPedido');
+      })
+    );
   }
 
   // Obtener pedidos del cliente
   getPedidosCliente(clienteId: number): Observable<Pedido[]> {
-    return new Observable(observer => {
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      const pedidosCliente = pedidos.filter((p: Pedido) => p.clienteId === clienteId);
-      observer.next(pedidosCliente);
-      observer.complete();
-    });
+    // Backend listing
+    return this.http.get<Pedido[]>(`${this.pedidosApiUrl}`).pipe(
+      catchError((error) => {
+        console.warn('getPedidosCliente failed, returning empty list:', error);
+        return of([] as Pedido[]);
+      })
+    );
   }
 
   // Obtener pedido por ID
   getPedidoById(id: number): Observable<Pedido> {
-    // Mock para desarrollo
-    const pedidoMock: Pedido = {
-      id: id,
-      fechaCreacion: new Date(),
-      estado: EstadoPedido.PENDIENTE,
-      precioTotal: 25000,
-      clienteId: 1,
-      productos: [],
-      direccionEntrega: 'Dirección demo',
-      metodoPago: MetodoPago.EFECTIVO
-    };
-    
-    return of(pedidoMock);
+    return this.http.get<Pedido>(`${this.pedidosApiUrl}/${id}`).pipe(
+      catchError((error) => {
+        console.warn(`getPedidoById(${id}) failed, returning mock:`, error);
+        const pedidoMock: Pedido = {
+          id: id,
+          fechaCreacion: new Date(),
+          estado: EstadoPedido.PENDIENTE,
+          precioTotal: 0,
+          clienteId: 0,
+          productos: [],
+          direccionEntrega: '',
+          metodoPago: MetodoPago.EFECTIVO
+        };
+        return of(pedidoMock);
+      })
+    );
   }
 
   // Obtener todos los pedidos (para administración)
   getPedidos(): Observable<Pedido[]> {
-    return this.pedidos$;
+    // Prefer backend
+    return this.http.get<Pedido[]>(`${this.pedidosApiUrl}`).pipe(
+      catchError((error) => {
+        console.warn('getPedidos failed, returning local subject:', error);
+        return this.pedidos$;
+      })
+    );
   }
 
   // Buscar pedidos por término
@@ -274,14 +321,15 @@ export class PedidoService {
 
   // Actualizar estado del pedido (para administración)
   updateEstadoPedido(id: number, estado: EstadoPedido): Observable<Pedido> {
+    // Placeholder: would be a backend call
     const pedidoActualizado: Pedido = {
       id,
       fechaCreacion: new Date(),
       estado,
-      precioTotal: 25000,
-      clienteId: 1,
+      precioTotal: 0,
+      clienteId: 0,
       productos: [],
-      direccionEntrega: 'Dirección actualizada',
+      direccionEntrega: '',
       metodoPago: MetodoPago.EFECTIVO
     };
     return of(pedidoActualizado);
@@ -293,11 +341,11 @@ export class PedidoService {
       id: pedidoId,
       fechaCreacion: new Date(),
       estado: EstadoPedido.EN_CAMINO,
-      precioTotal: 25000,
-      clienteId: 1,
+      precioTotal: 0,
+      clienteId: 0,
       domiciliarioId,
       productos: [],
-      direccionEntrega: 'Dirección',
+      direccionEntrega: '',
       metodoPago: MetodoPago.EFECTIVO
     };
     return of(pedidoActualizado);
@@ -309,10 +357,10 @@ export class PedidoService {
       id,
       fechaCreacion: new Date(),
       estado: EstadoPedido.CANCELADO,
-      precioTotal: 25000,
-      clienteId: 1,
+      precioTotal: 0,
+      clienteId: 0,
       productos: [],
-      direccionEntrega: 'Dirección',
+      direccionEntrega: '',
       metodoPago: MetodoPago.EFECTIVO,
       observaciones: motivo
     };
@@ -365,6 +413,58 @@ export class PedidoService {
         observer.error('Pedido no encontrado');
       }
       observer.complete();
+    });
+  }
+
+  // Sync carrito from backend on service init
+  private syncCarritoDesdeBackend(): void {
+    const clienteId = this.getCurrentClienteIdFromStorage();
+    if (!clienteId) {
+      // fallback to local storage
+      const carritoGuardado = localStorage.getItem('carrito');
+      if (carritoGuardado) {
+        try {
+          const parsed = JSON.parse(carritoGuardado);
+          const carrito = Array.isArray(parsed) ? parsed : [];
+          this.carritoSubject.next(carrito);
+        } catch {
+          this.carritoSubject.next([]);
+        }
+      }
+      return;
+    }
+    this.http.get<any>(`${this.carritoApiUrl}/activo/${clienteId}`).pipe(
+      map((carrito) => this.mapCarritoToFrontend(carrito)),
+      catchError((error) => {
+        console.warn('syncCarritoDesdeBackend failed, using local storage:', error);
+        const carritoGuardado = localStorage.getItem('carrito');
+        const parsed = carritoGuardado ? JSON.parse(carritoGuardado) : [];
+        return of(Array.isArray(parsed) ? parsed : []);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
+    });
+  }
+
+  // Map backend Carrito payload to frontend ProductoPedido[] with itemId for management
+  private mapCarritoToFrontend(apiCarrito: any): ProductoPedido[] {
+    const items: any[] = apiCarrito?.carritoItems || [];
+    return items.map((it: any) => {
+      const adicionales = (it.adicionalesPorProducto || []).map((x: any) => ({
+        adicionalId: x.adicional?.id || 0,
+        cantidad: 1,
+        precioUnitario: x.adicional?.precio || 0
+      }));
+      return {
+        productoId: it.producto?.id || 0,
+        cantidad: it.cantidad || 1,
+        precioUnitario: it.precioUnitario || 0,
+        adicionales,
+        observaciones: undefined,
+        // Attach backend item id for delete/update operations
+        ...(it.id ? { ['itemId' as any]: it.id } : {})
+      } as any as ProductoPedido;
     });
   }
 }

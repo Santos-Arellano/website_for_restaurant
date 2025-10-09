@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { catchError } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
+import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { Cliente, ClienteRegistro, ClienteLogin } from '../../Model/Cliente/cliente';
 
 @Injectable({
@@ -10,23 +9,93 @@ import { Cliente, ClienteRegistro, ClienteLogin } from '../../Model/Cliente/clie
 })
 export class ClienteService {
   private apiUrl = '/api/clientes';
+  private authUrl = '/api/auth';
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   public clientes$ = this.clientesSubject.asObservable();
   
   // Subject para el cliente actual
   private currentClienteSubject = new BehaviorSubject<Cliente | null>(null);
   public currentCliente$ = this.currentClienteSubject.asObservable();
+  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+  public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.loadClientes();
-    // Verificar si hay un usuario logueado al inicializar el servicio
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-      const cliente = this.getCurrentCliente();
-      if (cliente) {
-        this.currentClienteSubject.next(cliente);
+    // Inicializar desde backend: clientes y sesión actual
+    this.getAllClientes().subscribe({
+      next: (clientes) => this.clientesSubject.next(clientes),
+      error: () => this.clientesSubject.next([])
+    });
+
+    // Hidratar sesión desde localStorage inmediatamente (fallback rápido)
+    try {
+      const raw = localStorage.getItem('currentUser');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const mapped: Cliente = {
+          id: parsed.id,
+          nombre: parsed.nombre,
+          apellido: parsed.apellido,
+          correo: parsed.correo ?? parsed.email,
+          telefono: parsed.telefono,
+          direccion: parsed.direccion,
+          fechaRegistro: parsed.fechaRegistro ? new Date(parsed.fechaRegistro) : new Date(),
+          activo: typeof parsed.activo === 'boolean' ? parsed.activo : true,
+          pedidos: parsed.pedidos ?? []
+        };
+        this.currentClienteSubject.next(mapped);
       }
+    } catch {}
+
+    this.http.get<any>(`${this.authUrl}/current`, { withCredentials: true }).pipe(
+      map((cli: any) => {
+        const src = cli?.cliente ?? cli?.user ?? cli;
+        if (!src) return null;
+        const mapped: Cliente = {
+          id: src.id,
+          nombre: src.nombre,
+          apellido: src.apellido,
+          correo: src.correo ?? src.email,
+          telefono: src.telefono,
+          direccion: src.direccion,
+          fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
+          activo: typeof src.activo === 'boolean' ? src.activo : true,
+          pedidos: src.pedidos ?? []
+        };
+        return mapped;
+      })
+    ).subscribe({
+      next: (cliente) => {
+        this.currentClienteSubject.next(cliente);
+        this.isLoggedInSubject.next(!!cliente);
+        this.persistCurrentUser(cliente);
+      },
+      error: () => {
+        this.currentClienteSubject.next(null);
+        this.isLoggedInSubject.next(false);
+        this.persistCurrentUser(null);
+      }
+    });
+
+    // Mantener sincronizado el estado de autenticación con el subject del cliente
+    this.isLoggedInSubject.next(!!this.currentClienteSubject.value);
+    this.currentCliente$.subscribe(cli => this.isLoggedInSubject.next(!!cli));
+  }
+
+  // Helper seguro para parsear JSON desde localStorage con fallback
+  private safeParse<T>(raw: string | null, fallback: T): T {
+    if (!raw) return fallback;
+    try {
+      const parsed = JSON.parse(raw);
+      return (parsed !== undefined && parsed !== null) ? parsed as T : fallback;
+    } catch {
+      return fallback;
     }
+  }
+
+  // Obtener clientes almacenados de forma segura
+  private getStoredClientes(): any[] {
+    const parsed = this.safeParse<any[]>(localStorage.getItem('clientes'), []);
+    return Array.isArray(parsed) ? parsed : [];
   }
 
   // Cargar clientes desde localStorage o usar mock data
@@ -56,33 +125,26 @@ export class ClienteService {
   }
 
   // Registrar nuevo cliente (backend)
-  registrarCliente(clienteData: ClienteRegistro): Observable<Cliente> {
+  registrarCliente(clienteData: ClienteRegistro & { confirmPassword?: string }): Observable<Cliente> {
+    // Backend espera { nombre, apellido, email, password, confirmPassword, telefono, direccion }
     const payload = {
       nombre: clienteData.nombre,
       apellido: clienteData.apellido,
-      correo: clienteData.correo,
-      contrasena: clienteData.contrasena,
+      email: clienteData.correo,
+      password: (clienteData as any).contrasena,
+      confirmPassword: (clienteData as any).confirmPassword ?? (clienteData as any).contrasena,
       telefono: clienteData.telefono,
       direccion: clienteData.direccion
     };
-    return this.http.post<any>(`${this.apiUrl}`, payload).pipe(
-      // El backend devuelve { success, message, cliente }
-      // Mapear para retornar el objeto cliente
-      // y completar campos opcionales del modelo frontend
-      // que el backend no provee (fechaRegistro, pedidos)
-      
-      // Nota: si el backend cambia el contrato, ajustar aquí
-      
-      // Aseguramos que siempre devolvemos un Cliente
-      
+    return this.http.post<any>(`${this.authUrl}/register`, payload, { withCredentials: true }).pipe(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map((res: any) => {
-        const cli = res?.cliente ?? res;
+        const cli = res?.cliente ?? res?.user ?? res;
         const mapped: Cliente = {
           id: cli.id,
           nombre: cli.nombre,
           apellido: cli.apellido,
-          correo: cli.correo,
+          correo: cli.correo ?? cli.email,
           telefono: cli.telefono,
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
@@ -91,16 +153,45 @@ export class ClienteService {
         };
         return mapped;
       }),
+      // Tras registro, refrescar datos completos desde /auth/current para asegurar telefono/direccion
+      switchMap((mapped: Cliente) => this.http.get<any>(`${this.authUrl}/current`, { withCredentials: true }).pipe(
+        map((cli: any) => {
+          const src = cli?.cliente ?? cli?.user ?? cli;
+          if (!src) return mapped;
+          const full: Cliente = {
+            id: src.id,
+            nombre: src.nombre,
+            apellido: src.apellido,
+            correo: src.correo ?? src.email,
+            telefono: src.telefono,
+            direccion: src.direccion,
+            fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
+            activo: typeof src.activo === 'boolean' ? src.activo : true,
+            pedidos: src.pedidos ?? []
+          };
+          return full;
+        }),
+        catchError(() => of(mapped))
+      )),
+      tap((finalCliente: Cliente) => {
+        this.currentClienteSubject.next(finalCliente);
+        this.persistCurrentUser(finalCliente);
+      }),
       catchError((err) => {
+        // No hacer fallback local en errores de validación (400)
+        if (err?.status === 400) {
+          return throwError(() => err);
+        }
+        // Fallback offline sólo para errores de red u otros
         console.error('Error en registrarCliente, usando fallback local:', err);
-        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const clientes = this.getStoredClientes();
         const nextId = clientes.length ? Math.max(...clientes.map((c: any) => c.id)) + 1 : 1;
         const nuevo = {
           id: nextId,
           nombre: payload.nombre,
           apellido: payload.apellido,
-          correo: payload.correo,
-          contrasena: payload.contrasena,
+          correo: clienteData.correo,
+          contrasena: (clienteData as any).contrasena,
           telefono: payload.telefono,
           direccion: payload.direccion,
           fechaRegistro: new Date(),
@@ -120,40 +211,75 @@ export class ClienteService {
           activo: true,
           pedidos: []
         };
+        this.currentClienteSubject.next(mapped);
+        this.persistCurrentUser(mapped);
         return of(mapped);
       })
     );
   }
 
-  // Login de cliente (mantiene localStorage por ahora)
+  // Login de cliente (backend)
   loginCliente(loginData: ClienteLogin): Observable<Cliente | null> {
-    return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-      const cliente = clientes.find((c: Cliente) => 
-        c.correo === loginData.correo && 
-        c.contrasena === loginData.contrasena && 
-        c.activo
-      );
-      
-      if (cliente) {
-        // Determinar el tipo de usuario
-        const tipoUsuario = cliente.correo === 'admin@burgerclub.com' ? 'admin' : 'cliente';
-        
-        // Guardar información de sesión
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: cliente.id,
-          nombre: cliente.nombre,
-          correo: cliente.correo,
-          tipo: tipoUsuario
-        }));
-        // Actualizar el BehaviorSubject con el cliente actual
-        this.currentClienteSubject.next(cliente);
-        observer.next(cliente);
-      } else {
-        observer.next(null);
-      }
-      observer.complete();
-    });
+    // Backend espera { email, password } en lugar de { correo, contrasena }
+    const payload = {
+      email: loginData.correo,
+      password: loginData.contrasena
+    };
+    return this.http.post<any>(`${this.authUrl}/login`, payload, { withCredentials: true }).pipe(
+      map((res: any) => {
+        const cli = res?.cliente ?? res?.user ?? res;
+        if (!cli) return null;
+        const mapped: Cliente = {
+          id: cli.id,
+          nombre: cli.nombre,
+          apellido: cli.apellido,
+          correo: cli.correo ?? cli.email,
+          telefono: cli.telefono,
+          direccion: cli.direccion,
+          fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+          activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          pedidos: cli.pedidos ?? []
+        };
+        return mapped;
+      }),
+      // Refrescar con /auth/current para obtener teléfono/dirección completas
+      switchMap((mapped: Cliente | null) => {
+        if (!mapped) return of(null);
+        return this.http.get<any>(`${this.authUrl}/current`, { withCredentials: true }).pipe(
+          map((cli: any) => {
+            const src = cli?.cliente ?? cli?.user ?? cli;
+            if (!src) return mapped;
+            const full: Cliente = {
+              id: src.id,
+              nombre: src.nombre,
+              apellido: src.apellido,
+              correo: src.correo ?? src.email,
+              telefono: src.telefono,
+              direccion: src.direccion,
+              fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
+              activo: typeof src.activo === 'boolean' ? src.activo : true,
+              pedidos: src.pedidos ?? []
+            };
+            return full;
+          }),
+          catchError(() => of(mapped))
+        );
+      }),
+      tap((finalCliente: Cliente | null) => {
+        if (finalCliente) {
+          this.currentClienteSubject.next(finalCliente);
+          this.persistCurrentUser(finalCliente);
+        }
+      }),
+      catchError((err) => {
+        // Mapear errores 400 (credenciales inválidas) a null
+        if (err?.status === 400) {
+          return of(null);
+        }
+        // Para otros errores, propagar
+        return throwError(() => err);
+      })
+    );
   }
 
   // Obtener todos los clientes (backend)
@@ -163,7 +289,7 @@ export class ClienteService {
         id: cli.id,
         nombre: cli.nombre,
         apellido: cli.apellido,
-        correo: cli.correo,
+        correo: cli.correo ?? cli.email,
         telefono: cli.telefono,
         direccion: cli.direccion,
         fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
@@ -174,27 +300,19 @@ export class ClienteService {
       catchError((err) => {
         // Evitar ruido en consola: usar aviso en vez de error y hacer fallback silencioso
         console.warn('Backend no disponible en getAllClientes, usando datos de localStorage.');
-        const storedRaw = localStorage.getItem('clientes');
-        let stored: Cliente[] = [];
-        if (storedRaw) {
-          try {
-            const parsed = JSON.parse(storedRaw);
-            stored = (Array.isArray(parsed) ? parsed : []).map((cli: any) => ({
-              id: cli.id,
-              nombre: cli.nombre,
-              apellido: cli.apellido,
-              correo: cli.correo,
-              telefono: cli.telefono,
-              direccion: cli.direccion,
-              fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
-              activo: typeof cli.activo === 'boolean' ? cli.activo : true,
-              pedidos: cli.pedidos ?? []
-            } as Cliente));
-          } catch {
-            stored = this.getMockClientes();
-            this.saveClientesToStorage(stored);
-          }
-        } else {
+        const parsed = this.getStoredClientes();
+        let stored: Cliente[] = (Array.isArray(parsed) ? parsed : []).map((cli: any) => ({
+          id: cli.id,
+          nombre: cli.nombre,
+          apellido: cli.apellido,
+          correo: cli.correo,
+          telefono: cli.telefono,
+          direccion: cli.direccion,
+          fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
+          activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          pedidos: cli.pedidos ?? []
+        } as Cliente));
+        if (!stored.length) {
           stored = this.getMockClientes();
           this.saveClientesToStorage(stored);
         }
@@ -213,7 +331,7 @@ export class ClienteService {
           id: cli.id,
           nombre: cli.nombre,
           apellido: cli.apellido,
-          correo: cli.correo,
+          correo: cli.correo ?? cli.email,
           telefono: cli.telefono,
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
@@ -230,7 +348,9 @@ export class ClienteService {
     const payload = {
       nombre: cliente.nombre,
       apellido: cliente.apellido,
+      // incluir ambas claves para maximizar compatibilidad con backend
       correo: cliente.correo,
+      email: cliente.correo,
       telefono: cliente.telefono,
       direccion: cliente.direccion,
       contrasena: (cliente as any)?.contrasena // opcional
@@ -242,18 +362,35 @@ export class ClienteService {
           id: cli.id,
           nombre: cli.nombre,
           apellido: cli.apellido,
-          correo: cli.correo,
+          correo: cli.correo ?? cli.email,
           telefono: cli.telefono,
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
           activo: typeof cli.activo === 'boolean' ? cli.activo : true,
           pedidos: cli.pedidos ?? []
         };
+        // Propagar cliente actualizado a toda la app
+        this.currentClienteSubject.next(mapped);
+        this.persistCurrentUser(mapped);
+        // Actualizar almacenamiento local si existe una lista
+        const clientes = this.getStoredClientes();
+        const idx = clientes.findIndex((c: any) => c.id === mapped.id);
+        if (idx !== -1) {
+          clientes[idx] = {
+            ...clientes[idx],
+            nombre: mapped.nombre,
+            apellido: mapped.apellido,
+            correo: mapped.correo,
+            telefono: mapped.telefono,
+            direccion: mapped.direccion
+          };
+          this.saveClientesToStorage(clientes);
+        }
         return mapped;
       }),
       catchError((err) => {
         console.error('Error en updateCliente, usando fallback local:', err);
-        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const clientes = this.getStoredClientes();
         const idx = clientes.findIndex((c: any) => c.id === id);
         if (idx !== -1) {
           const updated = {
@@ -277,13 +414,16 @@ export class ClienteService {
             activo: typeof updated.activo === 'boolean' ? updated.activo : true,
             pedidos: updated.pedidos ?? []
           };
+          // Propagar fallback también al estado actual
+          this.currentClienteSubject.next(mapped);
+          this.persistCurrentUser(mapped);
           return of(mapped);
         }
         return of({
           id,
           nombre: payload.nombre || '',
           apellido: payload.apellido || '',
-          correo: payload.correo || '',
+          correo: (payload as any).correo || (payload as any).email || '',
           telefono: payload.telefono || '',
           direccion: payload.direccion || '',
           fechaRegistro: new Date(),
@@ -299,7 +439,7 @@ export class ClienteService {
     return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
       catchError((err) => {
         console.error('Error en deleteCliente, usando fallback local:', err);
-        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const clientes = this.getStoredClientes();
         const filtrados = clientes.filter((c: any) => c.id !== id);
         this.saveClientesToStorage(filtrados);
         return of({ success: true, message: 'Eliminado localmente' });
@@ -310,7 +450,7 @@ export class ClienteService {
   // Buscar clientes por término
   searchClientes(termino: string): Observable<Cliente[]> {
     return new Observable(observer => {
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+      const clientes = this.getStoredClientes();
       const filtered = clientes.filter((c: Cliente) => 
         c.nombre.toLowerCase().includes(termino.toLowerCase()) ||
         c.correo.toLowerCase().includes(termino.toLowerCase()) ||
@@ -334,7 +474,7 @@ export class ClienteService {
         };
       }),
       catchError(() => {
-        const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+        const clientes = this.getStoredClientes();
         const total = clientes.length;
         const activos = clientes.filter((c: any) => c.activo).length;
         return of({
@@ -348,31 +488,45 @@ export class ClienteService {
 
   // Métodos de autenticación adicionales
   isLoggedIn(): Observable<boolean> {
-    return new Observable(observer => {
-      const currentUser = localStorage.getItem('currentUser');
-      observer.next(!!currentUser);
-      observer.complete();
-    });
+    // Evita múltiples llamadas HTTP: deriva del estado actual
+    return this.isLoggedIn$;
   }
 
   getCurrentCliente(): Cliente | null {
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-      const userData = JSON.parse(currentUser);
-      const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-      return clientes.find((c: Cliente) => c.id === userData.id) || null;
-    }
-    return null;
+    return this.currentClienteSubject.value;
   }
 
   logout(): Observable<boolean> {
-    return new Observable(observer => {
-      localStorage.removeItem('currentUser');
-      // Actualizar el BehaviorSubject para indicar que no hay cliente logueado
-      this.currentClienteSubject.next(null);
-      observer.next(true);
-      observer.complete();
-    });
+    return this.http.post<any>(`${this.authUrl}/logout`, {}, { withCredentials: true }).pipe(
+      map(() => {
+        this.currentClienteSubject.next(null);
+        this.persistCurrentUser(null);
+        return true;
+      })
+    );
+  }
+
+  // Persistencia de sesión en localStorage
+  private persistCurrentUser(cliente: Cliente | null): void {
+    try {
+      if (cliente) {
+        const plain = {
+          id: cliente.id,
+          nombre: cliente.nombre,
+          apellido: cliente.apellido,
+          correo: cliente.correo,
+          telefono: cliente.telefono,
+          direccion: cliente.direccion,
+          fechaRegistro: cliente.fechaRegistro,
+          activo: cliente.activo,
+          pedidos: cliente.pedidos
+        };
+        localStorage.setItem('currentUser', JSON.stringify(plain));
+      } else {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('carrito');
+      }
+    } catch {}
   }
 
   // Obtener datos mock de clientes

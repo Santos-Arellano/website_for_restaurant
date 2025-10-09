@@ -22,11 +22,11 @@
         </div>
         
         <div class="item-quantity">
-          <button class="quantity-btn" (click)="actualizarCantidad(item.productoId, item.cantidad - 1)">
+          <button class="quantity-btn" (click)="actualizarCantidad(item.itemId || item.productoId, item.cantidad - 1)">
             <i class="fas fa-minus"></i>
           </button>
           <span class="quantity">{{ item.cantidad }}</span>
-          <button class="quantity-btn" (click)="actualizarCantidad(item.productoId, item.cantidad + 1)">
+          <button class="quantity-btn" (click)="actualizarCantidad(item.itemId || item.productoId, item.cantidad + 1)">
             <i class="fas fa-plus"></i>
           </button>
         </div>
@@ -35,7 +35,7 @@
           <p>${{ (item.precioUnitario * item.cantidad) | number:'1.0-0' }}</p>
         </div>
         
-        <button class="btn-remove" (click)="eliminarDelCarrito(item.productoId)">
+        <button class="btn-remove" (click)="eliminarDelCarrito(item.itemId || item.productoId)">
           <i class="fas fa-trash"></i>
         </button>
       </div>

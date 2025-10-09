@@ -79,17 +79,16 @@ export class CartComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  actualizarCantidad(productoId: number, nuevaCantidad: number): void {
+  actualizarCantidad(itemId: number, nuevaCantidad: number): void {
     if (nuevaCantidad <= 0) {
-      this.eliminarDelCarrito(productoId);
+      this.eliminarDelCarrito(itemId);
       return;
     }
-    
-    this.pedidoService.actualizarCantidad(productoId, nuevaCantidad);
+    this.pedidoService.actualizarCantidad(itemId, nuevaCantidad);
   }
 
-  eliminarDelCarrito(productoId: number): void {
-    this.pedidoService.eliminarDelCarrito(productoId);
+  eliminarDelCarrito(itemId: number): void {
+    this.pedidoService.eliminarDelCarritoPorItemId(itemId);
   }
 
   limpiarCarrito(): void {
@@ -98,7 +97,7 @@ export class CartComponent implements OnInit, OnDestroy {
 
   procederAlPago(): void {
     if (!this.isLoggedIn) {
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/login']);
       return;
     }
 
@@ -109,18 +108,13 @@ export class CartComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     
     // Crear el pedido
-    const pedidoData = {
-      clienteId: this.currentCliente?.id || 0,
-      metodoPago: 'EFECTIVO' as any,
-      direccionEntrega: this.currentCliente?.direccion || '',
-      observaciones: ''
-    };
-
-    this.pedidoService.crearPedido(pedidoData).subscribe({
-      next: (pedido) => {
+    const clienteId = this.currentCliente?.id || 0;
+    this.pedidoService.crearPedido(clienteId).subscribe({
+      next: (resp) => {
         this.isLoading = false;
         this.limpiarCarrito();
-        this.router.navigate(['/order-confirmation', pedido.id]);
+        // Backend returns a success message string; navigate to a confirmation or back to menu
+        this.router.navigate(['/menu']);
       },
       error: (error) => {
         this.isLoading = false;

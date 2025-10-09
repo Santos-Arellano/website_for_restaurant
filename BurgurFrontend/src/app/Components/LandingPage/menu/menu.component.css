@@ -222,12 +222,12 @@
     margin-bottom: 60px;
     position: relative;
     z-index: 2;
+    /* grid-auto-rows: 1fr;  Eliminado para no forzar alturas de fila */
 }
 
 /* Limitar el ancho máximo de las tarjetas cuando hay pocos resultados */
 .menu-grid .menu-card {
-    max-width: 400px;
-    justify-self: center;
+    width: 100%;
 }
 
 /* Para pantallas grandes, centrar el grid cuando hay pocos elementos */
@@ -246,6 +246,10 @@
     transition: all var(--transition-speed) ease;
     position: relative;
     cursor: pointer;
+    /* Estandarizar altura para tarjetas consistentes */
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
 }
 
 .menu-card::before {
@@ -295,6 +299,7 @@
     overflow: hidden;
     border-radius: var(--border-radius-small) var(--border-radius-small) 0 0;
     background: linear-gradient(135deg, rgba(251, 181, 181, 0.1) 0%, rgba(247, 246, 204, 0.1) 100%);
+    flex-shrink: 0;
 }
 
 .menu-card-img {
@@ -328,7 +333,7 @@
     backdrop-filter: blur(2px);
 }
 
-.menu-card:hover .card-overlay {
+.menu-card-image:hover .card-overlay {
     opacity: 1;
 }
 
@@ -361,6 +366,9 @@
     padding: 25px;
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .menu-card-name {
@@ -369,6 +377,11 @@
     color: var(--color-text-primary);
     margin-bottom: 10px;
     line-height: 1.3;
+    /* Clamp de líneas para mantener altura uniforme */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .menu-card-description {
@@ -376,6 +389,12 @@
     color: var(--color-text-secondary);
     margin-bottom: 20px;
     line-height: 1.5;
+    /* Clamp de líneas para mantener altura uniforme */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 3.6em; /* Reservar espacio para 3 líneas aprox */
 }
 
 /* ========== INGREDIENTS ========== */
@@ -395,6 +414,10 @@
 .ingredients-text {
     color: var(--color-text-secondary);
     line-height: 1.4;
+    /* Mantener una sola línea para consistencia */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ========== CARD FOOTER ========== */
@@ -402,6 +425,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
+    position: relative;
+    z-index: 3;
 }
 
 .menu-card-price {
@@ -425,6 +451,7 @@
     font-size: 1.1rem;
     position: relative;
     overflow: hidden;
+    z-index: 4;
     box-shadow: 0 2px 8px rgba(251, 181, 181, 0.3);
 }
 
@@ -681,6 +708,10 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
+    /* Altura uniforme en pantallas medianas */
+    .menu-card {
+        min-height: 440px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -733,6 +764,7 @@
     
     .menu-card {
         border-radius: var(--border-radius);
+        min-height: 420px;
     }
     
     .menu-card-image {

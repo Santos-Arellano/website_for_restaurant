@@ -184,7 +184,7 @@
                       [attr.data-price]="producto.precio"
                       [attr.data-image]="producto.imagen"
                       title="Agregar al carrito"
-                      (click)="addToCart(producto, $event)">
+                      (click)="addToCart(producto, $event); $event.stopPropagation()">
                 <i class="fas fa-plus"></i>
               </button>
             </div>
@@ -211,8 +211,8 @@
             <h3>¡Únete a BurGur!</h3>
             <p>Crea tu cuenta para disfrutar de ofertas exclusivas y un mejor servicio</p>
             <div class="cta-buttons">
-              <a routerLink="/auth/register" class="btn-cta primary">Registrarse</a>
-              <a routerLink="/auth/login" class="btn-cta secondary">Iniciar Sesión</a>
+        <a routerLink="/register" class="btn-cta primary">Registrarse</a>
+        <a routerLink="/login" class="btn-cta secondary">Iniciar Sesión</a>
             </div>
           </div>
         </div>
