@@ -1,29 +1,45 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { PedidoService } from '../../../Service/Pedido/pedido.service';
 import { ClienteService } from '../../../Service/Cliente/cliente.service';
 import { Pedido } from '../../../Model/Pedido/pedido';
 import { Cliente } from '../../../Model/Cliente/cliente';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-order-history',
   templateUrl: './order-history.component.html',
   styleUrls: ['./order-history.component.css']
 })
-export class OrderHistoryComponent implements OnInit {
+export class OrderHistoryComponent implements OnInit, OnDestroy {
   pedidos: Pedido[] = [];
   currentCliente: Cliente | null = null;
   isLoading = true;
   errorMessage = '';
 
+  private refreshHandler?: () => void;
+
   constructor(
     private pedidoService: PedidoService,
     private clienteService: ClienteService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
     this.loadCurrentCliente();
+    // Escuchar evento global para refrescar pedidos
+    this.refreshHandler = () => {
+      this.refreshOrders();
+      this.toast.info('Pedidos actualizados', 2500);
+    };
+    document.addEventListener('refreshOrders', this.refreshHandler);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshHandler) {
+      document.removeEventListener('refreshOrders', this.refreshHandler);
+    }
   }
 
   private loadCurrentCliente(): void {
@@ -60,8 +76,7 @@ export class OrderHistoryComponent implements OnInit {
   }
 
   viewOrderDetails(pedidoId: number): void {
-    // Navegar a los detalles del pedido (implementar más tarde si es necesario)
-    console.log('Ver detalles del pedido:', pedidoId);
+    this.router.navigate(['/orders', pedidoId]);
   }
 
   getEstadoClass(estado: string): string {

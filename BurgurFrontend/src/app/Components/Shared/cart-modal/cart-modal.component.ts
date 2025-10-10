@@ -122,8 +122,8 @@ export class CartModalComponent implements OnInit, OnDestroy {
       next: (resp) => {
         this.isLoading = false;
         this.pedidoService.limpiarCarrito();
-        // Navigate to menu or orders; backend returns success message string
-        this.router.navigate(['/menu']);
+        // Navegar a Mis Pedidos tras crear el pedido
+        this.router.navigate(['/orders']);
         this.onCloseModal();
       },
       error: (error) => {

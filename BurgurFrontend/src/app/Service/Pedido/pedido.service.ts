@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { Pedido, ProductoPedido, EstadoPedido, MetodoPago } from '../../Model/Pedido/pedido';
 
 @Injectable({
@@ -241,25 +241,17 @@ export class PedidoService {
     }
   }
 
-  // Crear pedido
-  crearPedido(clienteId?: number): Observable<string> {
-    const currentClienteId = clienteId ?? this.getCurrentClienteIdFromStorage();
-    if (!currentClienteId) return of('ERROR: cliente no autenticado');
-    const params = new HttpParams().set('clienteId', String(currentClienteId));
-    return this.http.post(`${this.pedidosApiUrl}/crear`, null, { params, responseType: 'text' }).pipe(
-      catchError((error) => {
-        console.error('crearPedido failed:', error);
-        return of('ERROR: crearPedido');
-      })
-    );
-  }
+  
 
   // Obtener pedidos del cliente
   getPedidosCliente(clienteId: number): Observable<Pedido[]> {
-    // Backend listing
-    return this.http.get<Pedido[]>(`${this.pedidosApiUrl}`).pipe(
+    return this.http.get<any[]>(`${this.pedidosApiUrl}`, { withCredentials: true }).pipe(
+      map((apiPedidos) => apiPedidos
+        .map(p => this.mapPedidoFromApi(p))
+        .filter((pedido) => pedido.clienteId === clienteId)
+      ),
       catchError((error) => {
-        console.warn('getPedidosCliente failed, returning empty list:', error);
+        this.logHttpError('getPedidosCliente', error);
         return of([] as Pedido[]);
       })
     );
@@ -267,9 +259,10 @@ export class PedidoService {
 
   // Obtener pedido por ID
   getPedidoById(id: number): Observable<Pedido> {
-    return this.http.get<Pedido>(`${this.pedidosApiUrl}/${id}`).pipe(
+    return this.http.get<any>(`${this.pedidosApiUrl}/${id}`, { withCredentials: true }).pipe(
+      map((apiPedido) => this.mapPedidoFromApi(apiPedido)),
       catchError((error) => {
-        console.warn(`getPedidoById(${id}) failed, returning mock:`, error);
+        this.logHttpError(`getPedidoById(${id})`, error);
         const pedidoMock: Pedido = {
           id: id,
           fechaCreacion: new Date(),
@@ -287,13 +280,62 @@ export class PedidoService {
 
   // Obtener todos los pedidos (para administración)
   getPedidos(): Observable<Pedido[]> {
-    // Prefer backend
-    return this.http.get<Pedido[]>(`${this.pedidosApiUrl}`).pipe(
+    return this.http.get<any[]>(`${this.pedidosApiUrl}`, { withCredentials: true }).pipe(
+      map((apiPedidos) => apiPedidos.map(p => this.mapPedidoFromApi(p))),
+      tap((pedidos) => this.pedidosSubject.next(pedidos)),
       catchError((error) => {
-        console.warn('getPedidos failed, returning local subject:', error);
+        this.logHttpError('getPedidos', error);
         return this.pedidos$;
       })
     );
+  }
+
+  // Helper centralizado para logs de errores HTTP
+  private logHttpError(context: string, error: any): void {
+    const status = error?.status;
+    const message = error?.message || error?.statusText;
+    const body = error?.error;
+    console.warn(`[${context}] HTTP error`, { status, message, body });
+  }
+
+  // Crear pedido en la base de datos a partir del carrito del cliente
+  crearPedido(clienteId: number): Observable<boolean> {
+    if (!clienteId || clienteId <= 0) {
+      console.warn('crearPedido: clienteId inválido');
+      return of(false);
+    }
+    const params = new HttpParams().set('clienteId', String(clienteId));
+    // Backend devuelve texto "Pedido creado exitosamente"; usamos responseType: 'text'
+    return this.http.post(`${this.pedidosApiUrl}/crear`, null, {
+      params,
+      withCredentials: true,
+      responseType: 'text'
+    }).pipe(
+      map(() => true),
+      tap(() => {
+        // Vaciar el carrito local tras crear el pedido
+        this.carritoSubject.next([]);
+        // Opcional: refrescar listado de pedidos
+        this.getPedidos().subscribe({
+          next: (pedidos) => this.pedidosSubject.next(pedidos),
+          error: () => {}
+        });
+      }),
+      catchError((error) => {
+        console.warn('crearPedido failed:', error);
+        return of(false);
+      })
+    );
+  }
+
+  // Atajo: crear pedido para el usuario actual leyendo su id de localStorage
+  crearPedidoParaUsuarioActual(): Observable<boolean> {
+    const id = this.getCurrentClienteIdFromStorage();
+    if (!id) {
+      console.warn('No hay cliente actual en almacenamiento para crear pedido');
+      return of(false);
+    }
+    return this.crearPedido(id);
   }
 
   // Buscar pedidos por término
@@ -321,18 +363,30 @@ export class PedidoService {
 
   // Actualizar estado del pedido (para administración)
   updateEstadoPedido(id: number, estado: EstadoPedido): Observable<Pedido> {
-    // Placeholder: would be a backend call
-    const pedidoActualizado: Pedido = {
-      id,
-      fechaCreacion: new Date(),
-      estado,
-      precioTotal: 0,
-      clienteId: 0,
-      productos: [],
-      direccionEntrega: '',
-      metodoPago: MetodoPago.EFECTIVO
-    };
-    return of(pedidoActualizado);
+    const params = new HttpParams().set('estado', estado);
+    return this.http.post(`${this.pedidosApiUrl}/${id}/estado`, null, {
+      params,
+      withCredentials: true,
+      responseType: 'text'
+    }).pipe(
+      // El backend retorna texto. Refrescamos el pedido desde la API y lo devolvemos.
+      catchError((error) => {
+        this.logHttpError(`updateEstadoPedido(${id}, ${estado})`, error);
+        throw error;
+      }),
+      // Tras actualizar, obtener el pedido actualizado
+      switchMap(() => this.getPedidoById(id)),
+      tap((pedido) => {
+        // Actualizar la lista en memoria si existe
+        const current = this.pedidosSubject.value || [];
+        const idx = current.findIndex(p => p.id === pedido.id);
+        if (idx !== -1) {
+          const next = current.slice();
+          next[idx] = pedido;
+          this.pedidosSubject.next(next);
+        }
+      })
+    );
   }
 
   // Asignar domiciliario al pedido (para administración)
@@ -416,6 +470,18 @@ export class PedidoService {
     });
   }
 
+  // Verificar si el cliente tiene un pedido en progreso (confirmado/listo/en_camino)
+  tienePedidoEnProgreso(clienteId: number, excluirPedidoId?: number): Observable<boolean> {
+    const enProgresoEstados: EstadoPedido[] = [
+      EstadoPedido.CONFIRMADO,
+      EstadoPedido.LISTO,
+      EstadoPedido.EN_CAMINO
+    ];
+    return this.getPedidosCliente(clienteId).pipe(
+      map((pedidos) => pedidos.some(p => (excluirPedidoId ? p.id !== excluirPedidoId : true) && enProgresoEstados.includes(p.estado)))
+    );
+  }
+
   // Sync carrito from backend on service init
   private syncCarritoDesdeBackend(): void {
     const clienteId = this.getCurrentClienteIdFromStorage();
@@ -466,5 +532,54 @@ export class PedidoService {
         ...(it.id ? { ['itemId' as any]: it.id } : {})
       } as any as ProductoPedido;
     });
+  }
+
+  // Normaliza y mapea pedido desde API backend a modelo frontend
+  private mapPedidoFromApi(apiPedido: any): Pedido {
+    const estadoMap: Record<string, EstadoPedido> = {
+      'COCINANDO': EstadoPedido.EN_PREPARACION,
+      'EN_PREPARACION': EstadoPedido.EN_PREPARACION,
+      'PENDIENTE': EstadoPedido.PENDIENTE,
+      'CONFIRMADO': EstadoPedido.CONFIRMADO,
+      'LISTO': EstadoPedido.LISTO,
+      'EN_CAMINO': EstadoPedido.EN_CAMINO,
+      'ENTREGADO': EstadoPedido.ENTREGADO,
+      'CANCELADO': EstadoPedido.CANCELADO
+    };
+
+    const estadoApi = (apiPedido?.estado || '').toString().toUpperCase();
+    const estado = estadoMap[estadoApi] || EstadoPedido.PENDIENTE;
+    const carrito = apiPedido?.carrito || {};
+    const items = Array.isArray(carrito?.carritoItems) ? carrito.carritoItems : [];
+    const productos: ProductoPedido[] = items.map((it: any) => ({
+      itemId: it?.id,
+      productoId: it?.producto?.id ?? 0,
+      productoNombre: it?.producto?.nombre ?? undefined,
+      cantidad: Number(it?.cantidad ?? 0),
+      precioUnitario: Number(it?.precioUnitario ?? 0),
+      adicionales: Array.isArray(it?.adicionalesPorProducto) ? it.adicionalesPorProducto.map((a: any) => ({
+        adicionalId: a?.adicional?.id ?? 0,
+        adicionalNombre: a?.adicional?.nombre ?? undefined,
+        cantidad: 1,
+        precioUnitario: Number(a?.adicional?.precio ?? 0)
+      })) : []
+    }));
+
+    const precioTotal = Number(carrito?.precioTotal ?? 0);
+
+    return {
+      id: Number(apiPedido?.id ?? 0),
+      fechaCreacion: apiPedido?.fechaCreacion ? new Date(apiPedido.fechaCreacion) : new Date(),
+      fechaEntrega: apiPedido?.fechaEntrega ? new Date(apiPedido.fechaEntrega) : undefined,
+      estado,
+      precioTotal,
+      clienteId: carrito?.cliente?.id ?? 0,
+      operadorId: apiPedido?.operador?.id,
+      domiciliarioId: apiPedido?.domiciliario?.id,
+      productos,
+      direccionEntrega: apiPedido?.direccionEntrega || '',
+      metodoPago: MetodoPago.EFECTIVO,
+      observaciones: apiPedido?.observaciones
+    };
   }
 }

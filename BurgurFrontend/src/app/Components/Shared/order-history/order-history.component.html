@@ -42,7 +42,7 @@
 
     <!-- Lista de pedidos -->
     <div class="orders-list" *ngIf="pedidos.length > 0">
-      <div class="order-card" *ngFor="let pedido of pedidos" (click)="viewOrderDetails(pedido.id)">
+      <div class="order-card" *ngFor="let pedido of pedidos">
         <div class="order-header-card">
           <div class="order-info">
             <h4>Pedido #{{ pedido.id }}</h4>
@@ -60,8 +60,16 @@
             <h5>Productos:</h5>
             <ul class="items-list">
               <li *ngFor="let producto of pedido.productos">
-                {{ producto.cantidad }}x Producto ID: {{ producto.productoId }}
+                {{ producto.cantidad }}x {{ producto.productoNombre || ('Producto #' + producto.productoId) }}
                 <span class="item-price">${{ (producto.cantidad * producto.precioUnitario) | number:'1.0-0' }}</span>
+                <div class="adicionales" *ngIf="producto.adicionales && producto.adicionales.length">
+                  <small>Adicionales:</small>
+                  <ul class="adicionales-list">
+                    <li *ngFor="let ad of producto.adicionales">
+                      • {{ ad.adicionalNombre || ('Adicional #' + ad.adicionalId) }} (+${{ ad.precioUnitario | number:'1.0-0' }})
+                    </li>
+                  </ul>
+                </div>
               </li>
             </ul>
           </div>

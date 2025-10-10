@@ -1,0 +1,65 @@
+<div class="order-detail-container">
+  <button class="back-btn" (click)="goBack()">Volver</button>
+
+  <div *ngIf="isLoading" class="loading">Cargando pedido...</div>
+  <div *ngIf="!isLoading && errorMessage" class="error">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && pedido" class="order-detail">
+    <h2>Pedido #{{ pedido.id }}</h2>
+    <p><strong>Fecha:</strong> {{ pedido.fechaCreacion | date:'short' }}</p>
+    <p><strong>Estado:</strong> <span class="status-badge" [ngClass]="getEstadoClass(pedido.estado)">{{ pedido.estado | titlecase }}</span></p>
+    <p><strong>Método de pago:</strong> {{ pedido.metodoPago }}</p>
+    <p *ngIf="pedido.direccionEntrega"><strong>Dirección:</strong> {{ pedido.direccionEntrega }}</p>
+    <p *ngIf="pedido.observaciones"><strong>Observaciones:</strong> {{ pedido.observaciones }}</p>
+
+    <div class="productos">
+      <h3>Productos</h3>
+      <div *ngFor="let item of pedido.productos" class="producto-item">
+        <div class="producto-header">
+          <img class="producto-img" [src]="getImageUrl(item.productoId)" [alt]="getProductoNombre(item.productoId, item.productoNombre)">
+          <div class="producto-info">
+            <div class="producto-top">
+              <span class="producto-nombre">{{ item.productoNombre || ('Producto #' + item.productoId) }}</span>
+              <span class="producto-cantidad">x{{ item.cantidad }}</span>
+            </div>
+            <div class="producto-bottom">
+              <span class="producto-precio">Unitario: {{ item.precioUnitario | currency:'USD' }}</span>
+              <span class="producto-subtotal">Subtotal: {{ calcSubtotal(item) | currency:'USD' }}</span>
+            </div>
+          </div>
+        </div>
+        <ul *ngIf="item.adicionales && item.adicionales.length" class="adicionales-list">
+          <li *ngFor="let ad of item.adicionales">
+            {{ ad.adicionalNombre || ('Adicional #' + ad.adicionalId) }} — {{ ad.precioUnitario | currency:'USD' }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="totales">
+      <p><strong>Total:</strong> {{ pedido.precioTotal | currency:'USD' }}</p>
+    </div>
+
+    <div class="accion-pedido">
+      <button class="hacer-pedido-btn" [disabled]="!puedeHacerPedido() || placingOrder" (click)="openConfirm('confirmar', '¿Confirmar pedido?')">
+        {{ placingOrder ? 'Procesando...' : 'Hacer pedido' }}
+      </button>
+      <button class="finalizar-pedido-btn" [disabled]="!puedeFinalizarEntrega()" (click)="openConfirm('finalizar', '¿Marcar como entregado?')">Finalizar entrega</button>
+      <button class="cancelar-pedido-btn" [disabled]="!puedeCancelarPedido()" (click)="openConfirm('cancelar', '¿Cancelar este pedido?', true)">Cancelar pedido</button>
+      <div *ngIf="placeOrderError" class="mensaje-error">{{ placeOrderError }}</div>
+      <div *ngIf="placeOrderSuccess" class="mensaje-exito">{{ placeOrderSuccess }}</div>
+    </div>
+
+    <app-confirm-modal
+      [visible]="showConfirmModal"
+      [title]="confirmModalConfig.title"
+      [message]="confirmModalConfig.message"
+      [confirmText]="confirmModalConfig.confirmText"
+      [cancelText]="confirmModalConfig.cancelText"
+      [danger]="confirmModalConfig.danger"
+      (confirm)="onConfirmModalConfirm()"
+      (cancel)="onConfirmModalCancel()"
+      (close)="onConfirmModalCancel()"
+    ></app-confirm-modal>
+  </div>
+</div>

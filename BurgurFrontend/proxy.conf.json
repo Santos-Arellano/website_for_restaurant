@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://localhost:8082",
+    "target": "http://localhost:8081",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true,
@@ -10,7 +10,7 @@
   }
   ,
   "/auth": {
-    "target": "http://localhost:8082",
+    "target": "http://localhost:8081",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true,
@@ -19,13 +19,13 @@
     }
   },
   "/css": {
-    "target": "http://localhost:8082",
+    "target": "http://localhost:8081",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
   "/images": {
-    "target": "http://localhost:8082",
+    "target": "http://localhost:8081",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true

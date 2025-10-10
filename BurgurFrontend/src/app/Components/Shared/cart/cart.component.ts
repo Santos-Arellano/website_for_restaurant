@@ -113,8 +113,8 @@ export class CartComponent implements OnInit, OnDestroy {
       next: (resp) => {
         this.isLoading = false;
         this.limpiarCarrito();
-        // Backend returns a success message string; navigate to a confirmation or back to menu
-        this.router.navigate(['/menu']);
+        // Navegar a Mis Pedidos tras crear el pedido
+        this.router.navigate(['/orders']);
       },
       error: (error) => {
         this.isLoading = false;

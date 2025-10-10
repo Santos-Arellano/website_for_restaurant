@@ -19,6 +19,7 @@ export interface ProductoPedido {
   productoId: number;
   cantidad: number;
   precioUnitario: number;
+  productoNombre?: string;
   adicionales?: AdicionalPedido[];
   observaciones?: string;
 }
@@ -27,6 +28,7 @@ export interface AdicionalPedido {
     adicionalId: number;
     cantidad: number;
     precioUnitario: number;
+    adicionalNombre?: string;
 }
 
 export enum EstadoPedido {

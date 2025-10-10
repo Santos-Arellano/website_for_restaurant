@@ -69,7 +69,45 @@ export class ClienteService {
         this.isLoggedInSubject.next(!!cliente);
         this.persistCurrentUser(cliente);
       },
-      error: () => {
+      error: (err) => {
+        // Si el backend no responde (timeout, network error), conservar la sesión local
+        const raw = localStorage.getItem('currentUser');
+        if (err && (err.status === 0 || err.status === 504 || err.status === 502 || err.status === 503)) {
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              const mapped: Cliente = {
+                id: parsed.id,
+                nombre: parsed.nombre,
+                apellido: parsed.apellido,
+                correo: parsed.correo ?? parsed.email,
+                telefono: parsed.telefono,
+                direccion: parsed.direccion,
+                fechaRegistro: parsed.fechaRegistro ? new Date(parsed.fechaRegistro) : new Date(),
+                activo: typeof parsed.activo === 'boolean' ? parsed.activo : true,
+                pedidos: parsed.pedidos ?? []
+              };
+              this.currentClienteSubject.next(mapped);
+              this.isLoggedInSubject.next(true);
+              // No sobrescribir localStorage; ya está
+              return;
+            } catch {}
+          }
+        }
+        // Si es 401/403, entonces sí cerrar sesión
+        if (err && (err.status === 401 || err.status === 403)) {
+          this.currentClienteSubject.next(null);
+          this.isLoggedInSubject.next(false);
+          this.persistCurrentUser(null);
+          return;
+        }
+        // Otros errores: conservar lo que haya en memoria si existe
+        const current = this.currentClienteSubject.value;
+        if (current) {
+          this.isLoggedInSubject.next(true);
+          return;
+        }
+        // Sin sesión local ni en memoria: estado desconectado
         this.currentClienteSubject.next(null);
         this.isLoggedInSubject.next(false);
         this.persistCurrentUser(null);
@@ -355,7 +393,7 @@ export class ClienteService {
       direccion: cliente.direccion,
       contrasena: (cliente as any)?.contrasena // opcional
     };
-    return this.http.put<any>(`${this.apiUrl}/${id}`, payload).pipe(
+    return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true }).pipe(
       map((res: any) => {
         const cli = res?.cliente ?? res;
         const mapped: Cliente = {
@@ -388,6 +426,28 @@ export class ClienteService {
         }
         return mapped;
       }),
+      // Refrescar el usuario actual desde sesión para asegurar consistencia
+      switchMap((mapped: Cliente) => this.http.get<any>(`${this.authUrl}/current`, { withCredentials: true }).pipe(
+        map((cli: any) => {
+          const src = cli?.cliente ?? cli?.user ?? cli;
+          if (!src) return mapped;
+          const full: Cliente = {
+            id: src.id,
+            nombre: src.nombre,
+            apellido: src.apellido,
+            correo: src.correo ?? src.email,
+            telefono: src.telefono,
+            direccion: src.direccion,
+            fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
+            activo: typeof src.activo === 'boolean' ? src.activo : true,
+            pedidos: src.pedidos ?? []
+          };
+          this.currentClienteSubject.next(full);
+          this.persistCurrentUser(full);
+          return full;
+        }),
+        catchError(() => of(mapped))
+      )),
       catchError((err) => {
         console.error('Error en updateCliente, usando fallback local:', err);
         const clientes = this.getStoredClientes();

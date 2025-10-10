@@ -7,6 +7,7 @@ import { CartComponent } from './Components/Shared/cart/cart.component';
 import { ProfileComponent } from './Components/Shared/profile/profile.component';
 import { OrderHistoryComponent } from './Components/Shared/order-history/order-history.component';
 import { ProductDetailComponent } from './Components/Shared/product-detail/product-detail.component';
+import { OrderDetailComponent } from './Components/Shared/order-detail/order-detail.component';
 import { DashboardComponent } from './Components/Admin/dashboard/dashboard.component';
 import { AdminProductsComponent } from './Components/Admin/admin-products/admin-products.component';
 import { AdminClientesComponent } from './Components/Admin/admin-clientes/admin-clientes.component';
@@ -23,6 +24,7 @@ const routes: Routes = [
   { path: 'cart', component: CartComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'orders', component: OrderHistoryComponent },
+  { path: 'orders/:id', component: OrderDetailComponent },
   // Rutas de administración
   { path: 'admin', component: DashboardComponent },
   { path: 'admin/dashboard', component: DashboardComponent },

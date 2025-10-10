@@ -1,0 +1,49 @@
+/* Container & basics */
+.order-detail-container { padding: 1.25rem; }
+.back-btn { margin-bottom: 1rem; border: 1px solid var(--color-border, rgba(255,255,255,0.14)); background: rgba(255,255,255,0.08); color: var(--color-text-primary, #ffffff); padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer; }
+.back-btn:hover { background: rgba(255,255,255,0.12); }
+.loading, .error { margin: 1rem 0; }
+
+/* Header */
+.order-detail h2 { margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem; color: var(--color-text-primary, #ffffff); }
+.status-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.14); }
+.estado-badge.pendiente { background: rgba(255, 233, 160, 0.18); color: #ffd86b; }
+.estado-badge.preparacion { background: rgba(160, 200, 255, 0.18); color: #7bb1ff; }
+.estado-badge.camino { background: rgba(161, 238, 201, 0.18); color: #72d2a7; }
+.estado-badge.entregado { background: rgba(204, 236, 179, 0.18); color: #a7d36e; }
+.estado-badge.cancelado { background: rgba(255, 178, 178, 0.18); color: #ff8a8a; }
+.estado-badge.default { background: rgba(255,255,255,0.12); color: #eaeaea; }
+
+/* Productos list */
+.productos { margin-top: 1rem; }
+.producto-item { border: 1px solid var(--color-border, rgba(255,255,255,0.12)); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.75rem; background: rgba(255,255,255,0.06); box-shadow: 0 1px 3px rgba(0,0,0,0.28); }
+.producto-header { display: grid; grid-template-columns: 80px 1fr; gap: 0.75rem; align-items: center; }
+.producto-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border, rgba(255,255,255,0.12)); }
+.producto-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.producto-top { display: flex; justify-content: space-between; align-items: baseline; }
+.producto-nombre { font-weight: 600; font-size: 1rem; color: var(--color-text-primary, #ffffff); }
+.producto-cantidad { color: var(--color-text-secondary, #cfcfcf); }
+.producto-bottom { display: flex; justify-content: space-between; font-size: 0.95rem; color: var(--color-text-primary, #ffffff); }
+
+/* Adicionales */
+.adicionales-list { margin: 0.5rem 0 0 0; padding-left: 1rem; color: var(--color-text-secondary, #d7d7d7); }
+.adicionales-list li { margin: 0.125rem 0; }
+
+/* Totales */
+.totales { margin-top: 1rem; font-size: 1.1rem; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; color: var(--color-text-primary, #ffffff); }
+
+/* Acción de pedido */
+.accion-pedido { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.hacer-pedido-btn { border: 1px solid var(--color-border, rgba(255,255,255,0.14)); background: linear-gradient(180deg, rgba(53, 173, 82, 0.25), rgba(28, 109, 51, 0.25)); color: #b2f5b4; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.hacer-pedido-btn:hover { background: linear-gradient(180deg, rgba(53, 173, 82, 0.33), rgba(28, 109, 51, 0.33)); }
+.hacer-pedido-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.mensaje-error { color: #ff9b9b; font-size: 0.95rem; }
+.mensaje-exito { color: #a7d36e; font-size: 0.95rem; }
+
+/* Botones adicionales */
+.finalizar-pedido-btn { border: 1px solid var(--color-border, rgba(255,255,255,0.14)); background: linear-gradient(180deg, rgba(71, 158, 233, 0.25), rgba(31, 95, 150, 0.25)); color: #a8d6ff; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.finalizar-pedido-btn:hover { background: linear-gradient(180deg, rgba(71, 158, 233, 0.33), rgba(31, 95, 150, 0.33)); }
+.finalizar-pedido-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cancelar-pedido-btn { border: 1px solid var(--color-border, rgba(255,255,255,0.14)); background: linear-gradient(180deg, rgba(255, 77, 79, 0.25), rgba(150, 31, 31, 0.25)); color: #ffb3b3; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.cancelar-pedido-btn:hover { background: linear-gradient(180deg, rgba(255, 77, 79, 0.33), rgba(150, 31, 31, 0.33)); }
+.cancelar-pedido-btn:disabled { opacity: 0.6; cursor: not-allowed; }

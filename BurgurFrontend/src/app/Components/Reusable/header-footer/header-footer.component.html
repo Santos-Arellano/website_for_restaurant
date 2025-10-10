@@ -24,7 +24,7 @@
               <i class="fas fa-user-circle"></i>
               <span>Mi Perfil</span>
             </a>
-            <a routerLink="/order-history" class="dropdown-item">
+            <a routerLink="/orders" class="dropdown-item">
               <i class="fas fa-history"></i>
               <span>Mis Pedidos</span>
             </a>
@@ -61,7 +61,7 @@
     <li *ngIf="!isLoggedIn"><a (click)="onLogin()" class="mobile-nav-link mobile-auth-link">Iniciar Sesión</a></li>
     <li *ngIf="!isLoggedIn"><a (click)="onRegister()" class="mobile-nav-link mobile-auth-link">Registrarse</a></li>
     <li *ngIf="isLoggedIn"><a routerLink="/profile" class="mobile-nav-link">Mi Perfil</a></li>
-    <li *ngIf="isLoggedIn"><a routerLink="/order-history" class="mobile-nav-link">Mis Pedidos</a></li>
+    <li *ngIf="isLoggedIn"><a routerLink="/orders" class="mobile-nav-link">Mis Pedidos</a></li>
     <li *ngIf="isLoggedIn"><a (click)="onLogout()" class="mobile-nav-link logout-link">Cerrar Sesión</a></li>
     <li><a (click)="onCartClick()" class="mobile-nav-link" id="mobileCartLink" style="cursor: pointer;">Carrito</a></li>
     <li><a href="#" class="mobile-nav-link" id="mobileLocationLink">Ubicación</a></li>

@@ -27,6 +27,8 @@ import { NuestraHistoriaComponent } from './Components/LandingPage/nuestra-histo
 import { ResenasComponent } from './Components/LandingPage/resenas/resenas.component';
 import { AdminHeaderComponent } from './Components/Shared/admin-header/admin-header.component';
 import { ToastComponent } from './Components/Shared/toast/toast.component';
+import { OrderDetailComponent } from './Components/Shared/order-detail/order-detail.component';
+import { ConfirmModalComponent } from './Components/Shared/confirm-modal/confirm-modal.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +43,7 @@ import { ToastComponent } from './Components/Shared/toast/toast.component';
     ProfileComponent,
     OrderHistoryComponent,
     ProductDetailComponent,
+    OrderDetailComponent,
     AdminAdicionalesComponent,
     ProductDetailModalComponent,
     DashboardComponent,
@@ -50,6 +53,7 @@ import { ToastComponent } from './Components/Shared/toast/toast.component';
     AdminOperadoresComponent
     ,NuestraHistoriaComponent
     ,ResenasComponent
+    ,ConfirmModalComponent
   ],
   imports: [
     BrowserModule,
