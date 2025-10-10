@@ -24,6 +24,7 @@ public class Carrito {
     //Relaciones BDD
     //1). Relación Pedido-Carrito (Uno a Uno)
     @OneToOne (mappedBy = "carrito", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Pedido pedido;
 
     //2). Relación Carrito-CarritoItem (Uno a Muchos)
@@ -32,7 +33,6 @@ public class Carrito {
 
     //3). Relación Carrito-Cliente (Muchos a Uno)
     @ManyToOne
-    @JsonIgnore
     private Cliente cliente;
 
     // Constructor vacío

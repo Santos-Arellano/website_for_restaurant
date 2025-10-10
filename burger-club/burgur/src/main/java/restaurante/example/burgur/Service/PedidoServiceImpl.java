@@ -109,9 +109,7 @@ public class PedidoServiceImpl implements PedidoService {
     // Obtener todos los Pedidos
     @Override
     public List<Pedido> obtenerTodosLosPedidos() {
-        if(pedidoRepository.findAll().isEmpty()){
-            throw new IllegalArgumentException("No hay pedidos en la base de datos.");
-        }
+        // Devuelve lista vacía si no hay datos; el controller decide el status
         return pedidoRepository.findAll();
     }
 

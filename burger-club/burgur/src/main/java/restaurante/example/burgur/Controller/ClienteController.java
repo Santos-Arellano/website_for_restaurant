@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Service.ClienteService;
 import lombok.Data;
@@ -69,7 +70,7 @@ public class ClienteController {
     @PutMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarCliente(
-            @PathVariable Long id, @RequestBody ClienteRequest request) {
+            @PathVariable Long id, @RequestBody ClienteRequest request, HttpSession session) {
         try {
             ResponseEntity<Map<String, Object>> validationError = validateClienteUpdateRequest(request);
             if (validationError != null) {
@@ -79,7 +80,19 @@ public class ClienteController {
             Cliente cliente = clienteService.obtenerClientePorId(id);
             updateClienteFromRequest(cliente, request);
             Cliente updatedCliente = clienteService.save(cliente);
-            
+            // Si el cliente actualizado coincide con el de la sesión, sincronizar la sesión
+            if (session != null) {
+                Object sesObj = session.getAttribute("cliente");
+                if (sesObj instanceof Cliente sesCliente) {
+                    if (sesCliente.getId() != null && updatedCliente.getId() != null
+                        && sesCliente.getId().equals(updatedCliente.getId())) {
+                        session.setAttribute("cliente", updatedCliente);
+                        session.setAttribute("clienteId", updatedCliente.getId());
+                        session.setAttribute("clienteNombre", updatedCliente.getNombre());
+                    }
+                }
+            }
+
             return buildSuccessResponse("Cliente actualizado correctamente", updatedCliente);
         } catch (IllegalArgumentException e) {
             return handleBadRequest(e.getMessage());

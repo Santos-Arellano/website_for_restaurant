@@ -27,7 +27,6 @@ public class CarritoItem {
 
     //2). Relación ProdYAdiPedido- Producto (Muchos a Uno)
     @ManyToOne
-    @JsonIgnore
     private Producto producto;
 
     //3). Relación CarritoItem- AdiXProdPedido (Uno a Muchos)

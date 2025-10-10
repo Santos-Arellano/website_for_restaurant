@@ -21,7 +21,6 @@ public class AdiXItemCarrito {
 
     //2). Relación AdiXProdPedido- Adicional (Muchos a Uno)
     @ManyToOne
-    @JsonIgnore
     private Adicional adicional;
 
     // Constructor vacio
