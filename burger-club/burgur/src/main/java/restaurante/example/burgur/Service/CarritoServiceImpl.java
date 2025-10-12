@@ -204,6 +204,14 @@ public class CarritoServiceImpl implements CarritoService {
         }
         carrito.setCarritoItems(items);
 
+        // 6. Actualizar el precio total del carrito
+        double precioTotalActual = carrito.getPrecioTotal();
+        double precioItem = persistedItem.getPrecioUnitario() * persistedItem.getCantidad();
+
+        carrito.setPrecioTotal(precioTotalActual - precioItem);
+
+        // 7. Guardar los cambios en el carrito
+        carritoRepository.save(carrito);
         return carrito;
     }
 
@@ -218,22 +226,19 @@ public class CarritoServiceImpl implements CarritoService {
             throw new IllegalStateException("El carrito está cerrado y no se puede modificar.");
         }
 
-        // 2. Eliminar todos los CarritoItems y sus AdiXItemCarrito asociados
+        // 2. Limpiar la lista de CarritoItems en el Carrito
+        // Usamos clear() en lugar de setCarritoItems(new ArrayList<>()) 
+        // para evitar el error de orphanRemoval
         List<CarritoItem> items = carrito.getCarritoItems();
-        if (items != null && !items.isEmpty()) {
-            for (CarritoItem item : items) {
-                // Eliminar los AdiXItemCarrito asociados
-                List<AdiXItemCarrito> adicionalesRelacion = item.getAdicionalesPorProducto();
-                if (adicionalesRelacion != null && !adicionalesRelacion.isEmpty()) {
-                    adiXItemCarritoRepository.deleteAll(adicionalesRelacion);
-                }
-                // Eliminar el CarritoItem
-                carritoItemRepository.delete(item);
-            }
+        if (items != null) {
+            items.clear(); // Esto eliminará todos los items gracias a orphanRemoval = true
         }
 
-        // 3. Limpiar la lista de CarritoItems en el Carrito
-        carrito.setCarritoItems(new ArrayList<>());
+        // 3. Resetear el precio total del carrito
+        carrito.setPrecioTotal(0);
+
+        // 4. Guardar los cambios en el carrito
+        carritoRepository.save(carrito);
 
         return carrito;
     }

@@ -29,8 +29,7 @@ public interface CarritoService {
     Carrito borrarProductoDelCarrito(CarritoItem carritoItem, Carrito carrito);
 
     //Vaciar Carrito
-    Carrito vaciarCarrito(Carrito carrito);
-    
+    Carrito vaciarCarrito(Carrito carrito);    
 
     // ==========================================
     // Enviar Carrito a Pedido
