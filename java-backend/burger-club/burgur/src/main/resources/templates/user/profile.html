@@ -1,0 +1,190 @@
+<!-- ==========================================
+     ARCHIVO: src/main/resources/templates/user/profile.html
+     ========================================== -->
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil | Burger Club</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    
+    <!-- Auth CSS (reutilizamos estilos similares) -->
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    
+    <!-- Profile CSS -->
+    <link rel="stylesheet" th:href="@{/css/user-profile.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container header-container">
+            <a th:href="@{/}" class="logo">
+                <div class="logo-icon-wrapper">
+                    <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                </div>
+                <span class="logo-text">BURGER CLUB</span>
+            </a>
+
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Inicio</a></li>
+                    <li><a th:href="@{/menu}">Menú</a></li>
+                    <li><a th:href="@{/user/profile}" class="active">Mi Perfil</a></li>
+                    <li><a th:href="@{/auth/logout}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Profile Section -->
+    <section class="profile-section">
+        <div class="auth-background"></div>
+        
+        <div class="profile-container">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h1 class="profile-title">Mi Perfil</h1>
+                <p class="profile-subtitle" th:text="'Hola, ' + ${cliente.nombre} + '! Gestiona tu información personal'">Hola! Gestiona tu información personal</p>
+            </div>
+            
+            <!-- Profile Tabs -->
+            <div class="profile-tabs">
+                <button class="tab-button active" data-tab="info">Información Personal</button>
+                <button class="tab-button" data-tab="security">Seguridad</button>
+                <button class="tab-button danger" data-tab="delete">Eliminar Cuenta</button>
+            </div>
+            
+            <!-- Tab Content: Información Personal -->
+            <div class="tab-content active" id="info-tab">
+                <form class="profile-form" id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre">Nombre <span class="required">*</span></label>
+                            <input type="text" id="nombre" name="nombre" th:value="${cliente.nombre}" required maxlength="50">
+                            <div class="error-message" id="nombreError"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="apellido">Apellido <span class="required">*</span></label>
+                            <input type="text" id="apellido" name="apellido" th:value="${cliente.apellido}" required maxlength="50">
+                            <div class="error-message" id="apellidoError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="correo">Correo Electrónico <span class="required">*</span></label>
+                        <input type="email" id="correo" name="correo" th:value="${cliente.correo}" required maxlength="100">
+                        <div class="error-message" id="correoError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" th:value="${cliente.telefono}" maxlength="20">
+                        <div class="error-message" id="telefonoError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="direccion">Dirección</label>
+                        <textarea id="direccion" name="direccion" rows="2" maxlength="200" th:text="${cliente.direccion}"></textarea>
+                        <div class="error-message" id="direccionError"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn-profile" id="updateProfileBtn">
+                        <span class="loading-spinner" id="profileSpinner"></span>
+                        <span id="profileButtonText">Actualizar Información</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Tab Content: Seguridad -->
+            <div class="tab-content" id="security-tab">
+                <form class="profile-form" id="passwordForm">
+                    <div class="security-info">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Cambiar Contraseña</h3>
+                        <p>Mantén tu cuenta segura actualizando tu contraseña regularmente</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">Nueva Contraseña <span class="required">*</span></label>
+                        <input type="password" id="newPassword" name="newPassword" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="64" autocomplete="new-password">
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <span class="strength-text">Ingresa una nueva contraseña</span>
+                        </div>
+                        <div class="error-message" id="newPasswordError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirmar Nueva Contraseña <span class="required">*</span></label>
+                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repite tu nueva contraseña" autocomplete="new-password">
+                        <div class="error-message" id="confirmNewPasswordError"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn-profile" id="updatePasswordBtn">
+                        <span class="loading-spinner" id="passwordSpinner"></span>
+                        <span id="passwordButtonText">Cambiar Contraseña</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Tab Content: Eliminar Cuenta -->
+            <div class="tab-content" id="delete-tab">
+                <div class="danger-zone">
+                    <div class="danger-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Zona Peligrosa</h3>
+                        <p>Esta acción no se puede deshacer. Tu cuenta será desactivada permanentemente.</p>
+                    </div>
+                    
+                    <form class="profile-form" id="deleteForm">
+                        <div class="form-group">
+                            <label for="deletePassword">Confirma tu contraseña para eliminar la cuenta <span class="required">*</span></label>
+                            <input type="password" id="deletePassword" name="deletePassword" placeholder="Tu contraseña actual" required autocomplete="current-password">
+                            <div class="error-message" id="deletePasswordError"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label" for="confirmDelete">
+                                <input type="checkbox" id="confirmDelete" name="confirmDelete" required>
+                                <span class="checkmark"></span>
+                                Entiendo que esta acción eliminará permanentemente mi cuenta
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn-danger" id="deleteAccountBtn">
+                            <span class="loading-spinner" id="deleteSpinner"></span>
+                            <span id="deleteButtonText">Eliminar Mi Cuenta</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/user-profile.js}" defer></script>
+</body>
+</html>

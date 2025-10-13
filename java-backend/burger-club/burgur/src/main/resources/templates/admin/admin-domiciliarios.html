@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Domiciliarios | Burger Club</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/images/Logo.png}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    
+    <!-- Admin CSS -->
+    <link th:href="@{/css/components/admin-dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/components/admin-common.css}" rel="stylesheet">
+    <link th:href="@{/css/components/admin-domiciliarios.css}" rel="stylesheet">
+    <link th:href="@{/css/components/footer.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container header-container">
+            <a th:href="@{/}" class="logo">
+                <div class="logo-icon-wrapper">
+                    <img th:src="@{/images/Logo.png}" alt="Burger Club Logo" class="logo-icon">
+                </div>
+                <span class="logo-text">BURGER CLUB</span>
+            </a>
+
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Inicio</a></li>
+                    <li><a th:href="@{/menu}">Menú</a></li>
+                    <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                    <li><a th:href="@{/menu/admin}">Productos</a></li>
+                    <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                    <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                    <li><a th:href="@{/admin/domiciliarios}" class="active">Domiciliarios</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-section">
+        <div class="container">
+            <div class="admin-header">
+                <h1 class="admin-title">Gestión de Domiciliarios</h1>
+                <p class="admin-subtitle">Administra los domiciliarios registrados en el sistema</p>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <i class="fas fa-motorcycle"></i>
+                    <div class="stat-info">
+                        <span class="stat-number" th:text="${totalDomiciliarios}">0</span>
+                        <span class="stat-label">Total Domiciliarios</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-info">
+                        <span class="stat-number" th:text="${domiciliariosDisponibles}">0</span>
+                        <span class="stat-label">Disponibles</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="admin-actions">
+                <button id="btnNuevoDomiciliario" class="action-btn primary">
+                    <i class="fas fa-plus"></i> Nuevo Domiciliario
+                </button>
+                <button id="btnRefrescar" class="action-btn secondary">
+                    <i class="fas fa-sync-alt"></i> Refrescar
+                </button>
+            </div>
+            
+            <!-- Domiciliarios Table -->
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Cédula</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="domiciliario : ${domiciliarios}">
+                            <td th:text="${domiciliario.id}">1</td>
+                            <td th:text="${domiciliario.nombre}">Juan Pérez</td>
+                            <td th:text="${domiciliario.cedula}">1234567890</td>
+                            <td>
+                                <span th:if="${domiciliario.disponible}" class="status-badge available">Disponible</span>
+                                <span th:unless="${domiciliario.disponible}" class="status-badge unavailable">No Disponible</span>
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn-edit" th:data-id="${domiciliario.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-delete" th:data-id="${domiciliario.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-toggle-status" th:data-id="${domiciliario.id}" th:data-disponible="${domiciliario.disponible}">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(domiciliarios)}">
+                            <td colspan="6" class="empty-table">No hay domiciliarios registrados</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Modal para Crear/Editar Domiciliario -->
+    <div id="domiciliarioModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalTitle">Nuevo Domiciliario</h2>
+            <form id="domiciliarioForm">
+                <input type="hidden" id="domiciliarioId">
+                
+                <div class="form-group">
+                    <label for="nombre">Nombre Completo:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cedula">Cédula:</label>
+                    <input type="text" id="cedula" name="cedula" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="disponible">Disponibilidad:</label>
+                    <select id="disponible" name="disponible">
+                        <option value="true">Disponible</option>
+                        <option value="false">No Disponible</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="btnCancelar" class="btn-secondary">Cancelar</button>
+                    <button type="submit" id="btnGuardar" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar este domiciliario?</p>
+            <div class="form-actions">
+                <button id="btnCancelarEliminar" class="btn-secondary">Cancelar</button>
+                <button id="btnConfirmarEliminar" class="btn-danger">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img th:src="@{/images/Logo.png}" alt="Burger Club" class="footer-logo-img">
+                        <h3>Burger Club Admin</h3>
+                    </div>
+                    <p>Panel de administración para la gestión completa del restaurante.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Gestión</h3>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                        <li><a th:href="@{/menu/admin}">Productos</a></li>
+                        <li><a th:href="@{/admin/adicionales}">Adicionales</a></li>
+                        <li><a th:href="@{/admin/clientes}">Clientes</a></li>
+                        <li><a th:href="@{/admin/domiciliarios}">Domiciliarios</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Sistema</h3>
+                    <div class="contact-info">
+                        <p><i class="fas fa-server"></i> Sistema v1.0</p>
+                        <p><i class="fas fa-database"></i> Base de datos activa</p>
+                        <p><i class="fas fa-shield-alt"></i> Acceso seguro</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Burger Club. Panel Administrativo - Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/Modules/admin/admin-domiciliarios.js}"></script>
+</body>
+</html>

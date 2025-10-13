@@ -1,0 +1,25 @@
+# Java / Spring Boot
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# H2 Database files
+*.mv.db
+*.trace.db
+*.db
+
+# Logs
+logs/
+*.log
+hs_err_pid*
+replay_pid*
+
+# IDEs and system files
+.DS_Store
+.idea/
+.project
+.classpath
+.settings/
+.vscode/

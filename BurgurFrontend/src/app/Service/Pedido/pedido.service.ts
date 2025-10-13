@@ -163,22 +163,40 @@ export class PedidoService {
   }
 
   actualizarCantidad(itemId: number, cantidad: number): void {
-    // Backend lacks explicit update endpoint; strategy: delete and re-add with new cantidad
+    // Serializar: eliminar en backend y luego re-agregar con la nueva cantidad
     if (!this.isUserLoggedIn()) return;
+    const clienteId = this.getCurrentClienteIdFromStorage();
+    if (!clienteId) return;
+
     const carritoActual = this.carritoSubject.value;
     const item = carritoActual.find((p: any) => (p as any).itemId === itemId);
     if (!item) return;
+
     if (cantidad <= 0) {
       this.eliminarDelCarritoPorItemId(itemId);
       return;
     }
-    // Remove old then re-add
-    this.eliminarDelCarritoPorItemId(itemId);
-    this.agregarAlCarrito({
-      productoId: item.productoId,
-      cantidad: cantidad,
-      precioUnitario: item.precioUnitario,
-      adicionales: item.adicionales
+
+    const deleteParams = new HttpParams().set('clienteId', String(clienteId));
+    const adicionalesIds = (item.adicionales || []).map((a: any) => a.adicionalId);
+    const addParams = new HttpParams()
+      .set('clienteId', String(clienteId))
+      .set('productoId', String(item.productoId))
+      .set('cantidad', String(cantidad))
+      .set('adicionalesIds', adicionalesIds.join(','));
+
+    this.http.delete<any>(`${this.carritoApiUrl}/item/${itemId}`, { params: deleteParams }).pipe(
+      map((carrito) => this.mapCarritoToFrontend(carrito)),
+      switchMap(() => this.http.post<any>(`${this.carritoApiUrl}/agregar`, null, { params: addParams }).pipe(
+        map((carrito) => this.mapCarritoToFrontend(carrito))
+      )),
+      catchError((error) => {
+        console.warn('actualizarCantidad failed, keeping local state:', error);
+        return of(this.carritoSubject.value);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
     });
   }
 

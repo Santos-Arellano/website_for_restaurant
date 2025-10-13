@@ -72,8 +72,8 @@ export class CartComponent implements OnInit, OnDestroy {
       const base = (item.precioUnitario || 0) * (item.cantidad || 0);
       const adicionalesTotal = (item.adicionales || []).reduce((acc, ad) => {
         const precio = ad.precioUnitario || 0;
-        const cantidad = ad.cantidad || 0;
-        return acc + precio * cantidad;
+        const multiplicador = (ad.cantidad ?? item.cantidad ?? 1);
+        return acc + precio * multiplicador;
       }, 0);
       return sum + base + adicionalesTotal;
     }, 0);
