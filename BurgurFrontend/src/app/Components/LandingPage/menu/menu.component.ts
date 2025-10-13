@@ -4,6 +4,7 @@ import { ProductoService } from '../../../Service/Producto/producto.service';
 import { PedidoService } from '../../../Service/Pedido/pedido.service';
 import { Producto, CategoriaProducto } from '../../../Model/Producto/producto';
 import { ProductoPedido } from '../../../Model/Pedido/pedido';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-menu',
@@ -26,7 +27,8 @@ export class MenuComponent implements OnInit {
   constructor(
     private productoService: ProductoService,
     private pedidoService: PedidoService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -150,8 +152,8 @@ export class MenuComponent implements OnInit {
     
     this.pedidoService.agregarAlCarrito(productoPedido);
     
-    // Mostrar feedback visual (opcional)
-    console.log(`${product.nombre} agregado al carrito`);
+    // Toast de confirmación
+    this.toast.success(`${product.nombre} agregado al carrito`, 2500);
   }
 
   viewProductDetails(product: Producto): void {

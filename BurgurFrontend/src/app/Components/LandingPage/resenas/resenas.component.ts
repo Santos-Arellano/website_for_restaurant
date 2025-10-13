@@ -8,7 +8,7 @@ interface Resena {
 @Component({
   selector: 'app-resenas',
   templateUrl: './resenas.component.html',
-  styleUrls: []
+  styleUrls: ['./resenas.component.css']
 })
 export class ResenasComponent {
   resenas: Resena[] = [

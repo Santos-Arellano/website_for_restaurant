@@ -115,3 +115,112 @@
 
 <!-- About Us Section -->
 <app-nuestra-historia></app-nuestra-historia>
+
+<!-- Featured Section -->
+<section class="featured-section">
+  <div class="container">
+    <div class="featured-header">
+      <h2>Destacados de la semana</h2>
+      <p>Prueba nuestras opciones más populares.</p>
+    </div>
+    <div class="featured-grid">
+      <div class="featured-card">
+        <div class="featured-image">
+          <img src="assets/images/menu/cheeseburger.png" alt="BurGur Clásica">
+        </div>
+        <div class="featured-info">
+          <h3>BurGur Clásica</h3>
+          <p>Carne 100%, queso cheddar y salsa especial.</p>
+          <a routerLink="/menu" class="btn btn-primary">Ordenar</a>
+        </div>
+      </div>
+      <div class="featured-card">
+        <div class="featured-image">
+          <img src="assets/images/menu/Hot-Dog-Supreme.png" alt="Hot Dog Supreme">
+        </div>
+        <div class="featured-info">
+          <h3>Hot Dog Supreme</h3>
+          <p>Salchicha premium, toppings generosos y pan artesanal.</p>
+          <a routerLink="/menu" class="btn btn-primary">Ordenar</a>
+        </div>
+      </div>
+      <div class="featured-card">
+        <div class="featured-image">
+          <img src="assets/images/menu/combo-fries-aros.png" alt="Combo Ahorro">
+        </div>
+        <div class="featured-info">
+          <h3>Combo Ahorro</h3>
+          <p>Hamburguesa + papas + bebida a precio especial.</p>
+          <a routerLink="/menu" class="btn btn-primary">Ordenar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+</section>
+
+<!-- Reviews Section -->
+<app-resenas></app-resenas>
+
+<!-- Stats Section -->
+<section class="home-stats">
+  <div class="container stats-grid">
+    <div class="stat-item">
+      <i class="fas fa-truck"></i>
+      <h3>+2k</h3>
+      <p>Pedidos entregados</p>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-star"></i>
+      <h3>4.8/5</h3>
+      <p>Clientes satisfechos</p>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-clock"></i>
+      <h3>25–40m</h3>
+      <p>Tiempo de entrega</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+  <div class="container">
+    <div class="faq-header">
+      <h2>Preguntas frecuentes</h2>
+      <p>Información útil antes de ordenar.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <h4><i class="fas fa-question-circle"></i> ¿Cuál es el tiempo de entrega?</h4>
+        <p>Entre 25 y 40 minutos, según la zona y demanda.</p>
+      </div>
+      <div class="faq-item">
+        <h4><i class="fas fa-question-circle"></i> ¿Tienen opciones vegetarianas?</h4>
+        <p>Sí, contamos con hamburguesas y toppings vegetarianos.</p>
+      </div>
+      <div class="faq-item">
+        <h4><i class="fas fa-question-circle"></i> ¿Cómo puedo pagar?</h4>
+        <p>Aceptamos efectivo, tarjetas y pagos digitales.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Simple Contact CTA Section -->
+<section class="contact-cta">
+  <div class="container">
+    <h2>¿Listo para ordenar?</h2>
+    <p>Contáctanos por WhatsApp o explora el menú.</p>
+    <div class="cta-buttons">
+      <a href="https://wa.me/573052581788" target="_blank" rel="noopener" class="btn btn-primary">
+        WhatsApp
+        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+      </a>
+      <a routerLink="/menu" class="btn btn-secondary">
+        Ver Menú
+        <i class="fas fa-utensils" aria-hidden="true"></i>
+      </a>
+    </div>
+  </div>
+</section>

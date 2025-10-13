@@ -1,0 +1,135 @@
+/* Reviews Section Styles (scoped to ResenasComponent) */
+.testimonials-section {
+  padding: 60px 20px;
+  background: var(--color-background);
+}
+
+.testimonials-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.testimonials-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.testimonials-header h2 {
+  font-family: var(--font-secondary);
+  font-size: 2rem;
+  margin: 0 0 8px 0;
+}
+
+.testimonials-header p {
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.testimonials-carousel {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+.testimonials-track {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.testimonial-card {
+  opacity: 0.25;
+  transform: scale(0.95);
+  transition: all var(--transition-speed) ease;
+  background: var(--color-surface);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--box-shadow);
+  padding: 20px;
+}
+
+.testimonial-card.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.testimonial-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quote-icon i {
+  color: var(--color-cta-stroke);
+  font-size: 1.2rem;
+}
+
+.testimonial-text {
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.author-info h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-secondary);
+}
+
+.testimonials-nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+}
+
+.nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.testimonials-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.2);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+}
+
+.indicator.active {
+  background: var(--color-cta-stroke);
+  transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+  .testimonials-track {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .testimonials-track {
+    grid-template-columns: 1fr;
+  }
+}
