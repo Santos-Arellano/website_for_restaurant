@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { map, catchError, tap, switchMap } from 'rxjs/operators';
+import { Observable, of, BehaviorSubject, timer } from 'rxjs';
+import { map, catchError, tap, switchMap, distinctUntilChanged, takeWhile } from 'rxjs/operators';
 import { Pedido, ProductoPedido, EstadoPedido, MetodoPago } from '../../Model/Pedido/pedido';
 
 @Injectable({
@@ -14,6 +14,19 @@ export class PedidoService {
   public carrito$ = this.carritoSubject.asObservable();
   private pedidosSubject = new BehaviorSubject<Pedido[]>([]);
   public pedidos$ = this.pedidosSubject.asObservable();
+  // Ruta mock para seguimiento del domiciliario (coincide con Bogotá aprox.)
+  private trackingPathMock: [number, number][] = [
+    [4.653, -74.057],
+    [4.654, -74.058],
+    [4.655, -74.059],
+    [4.656, -74.06],
+    [4.657, -74.061],
+    [4.658, -74.062],
+    [4.659, -74.063],
+    [4.66, -74.064],
+    [4.661, -74.065],
+    [4.662, -74.066]
+  ];
 
   constructor(private http: HttpClient) {
     this.syncCarritoDesdeBackend();
@@ -275,6 +288,47 @@ export class PedidoService {
         };
         return of(pedidoMock);
       })
+    );
+  }
+
+  // Polling: observar pedido por ID a intervalos
+  watchPedidoById(id: number, intervalMs: number = 3000): Observable<Pedido> {
+    if (!id || id <= 0) {
+      return of({
+        id: id || 0,
+        fechaCreacion: new Date(),
+        estado: EstadoPedido.PENDIENTE,
+        precioTotal: 0,
+        clienteId: 0,
+        productos: [],
+        direccionEntrega: '',
+        metodoPago: MetodoPago.EFECTIVO
+      } as Pedido);
+    }
+    return timer(0, intervalMs).pipe(
+      switchMap(() => this.getPedidoById(id))
+    );
+  }
+
+  // Polling: observar solo el estado del pedido
+  watchEstadoPedido(id: number, intervalMs: number = 3000): Observable<EstadoPedido> {
+    return this.watchPedidoById(id, intervalMs).pipe(
+      map((p) => p.estado),
+      distinctUntilChanged()
+    );
+  }
+
+  // Mock de ubicación del domiciliario: emite coordenadas a intervalos siguiendo una ruta fija
+  watchCourierLocationMock(intervalMs: number = 1500): Observable<{ lat: number; lng: number; index: number; total: number }> {
+    const total = this.trackingPathMock.length;
+    return timer(0, intervalMs).pipe(
+      map((i) => {
+        const idx = Math.min(Number(i), total - 1);
+        const [lat, lng] = this.trackingPathMock[idx];
+        return { lat, lng, index: idx, total };
+      }),
+      // Completa tras emitir el último punto (inclusive)
+      takeWhile((p) => p.index < total - 1, true)
     );
   }
 

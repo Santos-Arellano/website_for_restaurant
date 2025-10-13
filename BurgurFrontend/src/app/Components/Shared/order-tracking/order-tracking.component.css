@@ -1,0 +1,97 @@
+/* Estilos para el rastreo de pedidos */
+.tracking-wrapper {
+  padding: 20px;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+.tracking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.tracking-status {
+  color: var(--color-info);
+}
+
+.tracking-error {
+  color: var(--color-danger);
+}
+
+.tracking-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.tracking-info {
+  background: var(--color-card-bg);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.map-container {
+  width: 100%;
+  height: 420px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+/* Marcadores con DivIcon */
+/* Pins SVG */
+.pin { display: flex; align-items: center; justify-content: center; }
+.pin svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+
+.tracking-eta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tracking-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tracking-controls .btn.btn-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.progress {
+  width: 160px;
+  height: 6px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ff3b3b, #ffc107);
+  width: 0%;
+  transition: width var(--transition-base);
+}
+
+/* Estado badges */
+.estado-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+.estado-pendiente { background: #fff3cd; color: #856404; }
+.estado-preparacion { background: #cce5ff; color: #004085; }
+.estado-confirmado { background: #e2e3e5; color: #383d41; }
+.estado-listo { background: #d4edda; color: #155724; }
+.estado-camino { background: #ffe5d0; color: #8a3c00; }
+.estado-entregado { background: #d4edda; color: #155724; }
+.estado-cancelado { background: #f8d7da; color: #721c24; }
+.estado-default { background: #e2e3e5; color: #383d41; }
+
+@media (min-width: 768px) {
+  .tracking-content {
+    grid-template-columns: 320px 1fr;
+  }
+}

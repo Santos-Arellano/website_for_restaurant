@@ -30,6 +30,7 @@ import { AdminHeaderComponent } from './Components/Shared/admin-header/admin-hea
 import { ToastComponent } from './Components/Shared/toast/toast.component';
 import { OrderDetailComponent } from './Components/Shared/order-detail/order-detail.component';
 import { ConfirmModalComponent } from './Components/Shared/confirm-modal/confirm-modal.component';
+import { OrderTrackingComponent } from './Components/Shared/order-tracking/order-tracking.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { ConfirmModalComponent } from './Components/Shared/confirm-modal/confirm
     OrderHistoryComponent,
     ProductDetailComponent,
     OrderDetailComponent,
+    OrderTrackingComponent,
     AdminAdicionalesComponent,
     ProductDetailModalComponent,
     DashboardComponent,

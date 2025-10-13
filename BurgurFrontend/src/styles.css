@@ -5,6 +5,9 @@
 /* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;700&family=Lexend+Zetta:wght@400;700&display=swap');
 
+/* Leaflet CSS */
+@import url('leaflet/dist/leaflet.css');
+
 /* CSS Variables - Paleta de colores original */
 :root {
   /* Colors - Paleta original del proyecto */

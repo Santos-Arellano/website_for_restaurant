@@ -1,0 +1,35 @@
+<div class="tracking-wrapper">
+  <div class="tracking-header">
+    <h2>Rastreo del pedido</h2>
+    <button class="btn btn-primary" (click)="volver()">Volver</button>
+  </div>
+
+  <div *ngIf="isLoading" class="tracking-status">Cargando pedido...</div>
+  <div *ngIf="errorMessage" class="tracking-error">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && !errorMessage" class="tracking-content">
+    <div class="tracking-info">
+      <p><strong>ID:</strong> {{ pedido?.id }}</p>
+      <p><strong>Estado:</strong> <span [class]="getEstadoBadgeClass(pedido?.estado)">{{ pedido?.estado }}</span></p>
+      <p><strong>Entrega:</strong> {{ pedido?.direccionEntrega }}</p>
+      <div class="tracking-eta" *ngIf="statusMessage">
+        <span><i class="fa-solid fa-motorcycle"></i> {{ statusMessage }}</span>
+        <span *ngIf="etaMinutes > 0">• ETA: {{ etaMinutes }} min</span>
+        <div class="progress" aria-label="Progreso de entrega">
+          <div class="progress-bar" [style.width.%]="progressPercent"></div>
+        </div>
+      </div>
+
+      <div class="tracking-controls">
+        <button class="btn btn-sm" (click)="fitToRoute()"><i class="fa-solid fa-arrows-to-circle"></i> Ajustar ruta</button>
+        <button class="btn btn-sm" (click)="recenterCourier()"><i class="fa-solid fa-location-crosshairs"></i> Centrar courier</button>
+        <button class="btn btn-sm" (click)="toggleRoute()">
+          <i class="fa-solid" [class.fa-eye]="showRoute" [class.fa-eye-slash]="!showRoute"></i>
+          {{ showRoute ? 'Ocultar' : 'Mostrar' }} ruta
+        </button>
+      </div>
+    </div>
+
+    <div #orderMap class="map-container" aria-label="Mapa de ruta del pedido"></div>
+  </div>
+</div>

@@ -69,6 +69,10 @@
     </div>
 
     <div class="accion-pedido sticky-actions">
+      <button class="btn-action" *ngIf="puedeRastrearPedido()" (click)="irARastreo()">
+        <i class="fa-solid fa-location-dot"></i>
+        <span>Rastrear pedido</span>
+      </button>
       <button class="btn-action hacer-pedido-btn" [disabled]="!puedeHacerPedido() || placingOrder" (click)="openConfirm('confirmar', '¿Confirmar pedido?')">
         <i class="fa-solid fa-bag-shopping"></i>
         <span>{{ placingOrder ? 'Procesando...' : 'Hacer pedido' }}</span>

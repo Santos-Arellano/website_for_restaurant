@@ -71,6 +71,23 @@ export class OrderDetailComponent implements OnInit {
     this.router.navigate(['/orders']);
   }
 
+  irARastreo(): void {
+    if (!this.pedido) return;
+    const isLogged = !!localStorage.getItem('currentUser');
+    if (!isLogged) {
+      this.toast.warning('Debes iniciar sesión para rastrear tu pedido', 4000);
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.router.navigate(['/orders', this.pedido.id, 'track']);
+  }
+
+  puedeRastrearPedido(): boolean {
+    if (!this.pedido) return false;
+    const e = this.pedido.estado;
+    return e === EstadoPedido.CONFIRMADO || e === EstadoPedido.LISTO || e === EstadoPedido.EN_CAMINO;
+  }
+
   private loadProductosForPedido(): void {
     if (!this.pedido || !this.pedido.productos || this.pedido.productos.length === 0) return;
     const ids = Array.from(new Set(this.pedido.productos.map(i => i.productoId))).filter(id => !!id);
