@@ -22,13 +22,15 @@
         <form class="menu-search-form" role="search" aria-label="Buscar productos" (ngSubmit)="onSearch()">
           <div class="search-input-wrapper">
             <i class="fas fa-search search-icon" aria-hidden="true"></i>
-            <input
-              type="text"
-              name="nombre"
-              class="menu-search-input"
-              placeholder="Buscar productos..."
-              [(ngModel)]="searchTerm"
-              autocomplete="off" />
+             <input
+               type="text"
+               name="nombre"
+               class="menu-search-input"
+               placeholder="Buscar productos..."
+               [(ngModel)]="searchTerm"
+               (focus)="onSearchFocus()"
+               (blur)="onSearchBlur()"
+               autocomplete="off" />
             <button class="search-submit" type="submit" aria-label="Buscar" style="display: none;">Buscar</button>
             <!-- Botón limpiar búsqueda -->
             <a class="search-clear" *ngIf="searchTerm" (click)="clearSearch()" aria-label="Limpiar búsqueda">
@@ -36,6 +38,26 @@
             </a>
           </div>
         </form>
+
+        <!-- Historial de búsqueda -->
+        <div class="search-history" *ngIf="isSearchFocused && searchHistory.length > 0" aria-label="Historial de búsqueda">
+          <div class="search-history-header">
+            <span><i class="fas fa-history"></i> Búsquedas recientes</span>
+            <button type="button" class="clear-history-btn" (click)="clearHistory()" title="Limpiar historial">
+              Limpiar
+            </button>
+          </div>
+          <div class="search-history-list">
+            <button type="button"
+                    class="history-chip"
+                    *ngFor="let term of searchHistory; trackBy: trackByTerm"
+                    (click)="applySearch(term)"
+                    [title]="term">
+              <i class="fas fa-search"></i>
+              <span>{{ term }}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Filtros de categoría -->

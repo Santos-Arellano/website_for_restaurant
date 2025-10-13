@@ -18,6 +18,12 @@ export class MenuComponent implements OnInit {
   filteredProducts: Producto[] = [];
   categorias = Object.values(CategoriaProducto);
   carritoCount = 0;
+  // Historial de búsqueda
+  searchHistory: string[] = [];
+  private readonly SEARCH_HISTORY_KEY = 'menuSearchHistory';
+  private readonly MAX_HISTORY_ITEMS = 8;
+  // Mostrar historial solo cuando el input está enfocado
+  isSearchFocused: boolean = false;
   
   // Modal properties
   selectedProduct: Producto | null = null;
@@ -36,6 +42,7 @@ export class MenuComponent implements OnInit {
     this.cargarProductos();
     this.suscribirCarrito();
     this.loadAdicionales();
+    this.loadSearchHistory();
   }
 
   // Método para limpiar datos antiguos del localStorage
@@ -89,6 +96,10 @@ export class MenuComponent implements OnInit {
   }
 
   onSearch(): void {
+    const term = this.searchTerm?.trim();
+    if (term) {
+      this.addToSearchHistory(term);
+    }
     this.filterProducts();
   }
 
@@ -136,6 +147,76 @@ export class MenuComponent implements OnInit {
   clearSearch(): void {
     this.searchTerm = '';
     this.filterProducts();
+  }
+
+  // ===== Historial de búsqueda =====
+  private loadSearchHistory(): void {
+    try {
+      const raw = localStorage.getItem(this.SEARCH_HISTORY_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(list)) {
+        this.searchHistory = list.filter((v: any) => typeof v === 'string').slice(0, this.MAX_HISTORY_ITEMS);
+      }
+    } catch (err) {
+      console.warn('No se pudo cargar el historial de búsqueda:', err);
+      this.searchHistory = [];
+    }
+  }
+
+  private saveSearchHistory(): void {
+    try {
+      localStorage.setItem(this.SEARCH_HISTORY_KEY, JSON.stringify(this.searchHistory));
+    } catch (err) {
+      console.warn('No se pudo guardar el historial de búsqueda:', err);
+    }
+  }
+
+  private addToSearchHistory(term: string): void {
+    const normalized = term.trim();
+    if (!normalized) return;
+    // Evitar duplicados (case-insensitive)
+    const existsIndex = this.searchHistory.findIndex(t => t.toLowerCase() === normalized.toLowerCase());
+    if (existsIndex !== -1) {
+      // Mover a la primera posición
+      this.searchHistory.splice(existsIndex, 1);
+    }
+    this.searchHistory.unshift(normalized);
+    // Limitar tamaño máximo
+    if (this.searchHistory.length > this.MAX_HISTORY_ITEMS) {
+      this.searchHistory = this.searchHistory.slice(0, this.MAX_HISTORY_ITEMS);
+    }
+    this.saveSearchHistory();
+  }
+
+  applySearch(term: string): void {
+    this.searchTerm = term;
+    this.addToSearchHistory(term);
+    this.filterProducts();
+    // Cerrar el historial tras aplicar búsqueda
+    this.isSearchFocused = false;
+  }
+
+  clearHistory(): void {
+    this.searchHistory = [];
+    try {
+      localStorage.removeItem(this.SEARCH_HISTORY_KEY);
+    } catch {}
+  }
+
+  trackByTerm(index: number, term: string): string {
+    return term.toLowerCase();
+  }
+
+  // Manejo de enfoque/blur del campo de búsqueda
+  onSearchFocus(): void {
+    this.isSearchFocused = true;
+  }
+
+  onSearchBlur(): void {
+    // Pequeño retraso para permitir clic en chips antes de ocultar
+    setTimeout(() => {
+      this.isSearchFocused = false;
+    }, 150);
   }
 
   addToCart(product: Producto, event?: Event): void {
