@@ -179,6 +179,7 @@ export class HeaderFooterComponent implements OnInit, OnDestroy {
       this.isLoggedIn = false;
       this.currentUser = null;
       this.pedidoService.resetCarrito();
+      this.toast.success('Has cerrado sesión correctamente', 3000);
       this.router.navigate(['/']);
     });
   }
@@ -200,11 +201,17 @@ export class HeaderFooterComponent implements OnInit, OnDestroy {
   }
 
   onProfile() {
+    if (!this.isLoggedIn) {
+      this.toast.warning('Inicia sesión para ver tu perfil', 3500);
+      this.router.navigate(['/login']);
+      return;
+    }
     this.router.navigate(['/profile']);
   }
 
   onLocationClick() {
     this.showLocationModal = true;
+    this.toast.info('Mostrando ubicación del restaurante', 2000);
   }
 
   onCloseLocationModal() {
@@ -217,10 +224,12 @@ export class HeaderFooterComponent implements OnInit, OnDestroy {
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
     window.open(googleMapsUrl, '_blank');
     this.showLocationModal = false;
+    this.toast.info('Abriendo Google Maps', 2000);
   }
 
   onCallRestaurant() {
     window.open('tel:+571234567890', '_self');
+    this.toast.info('Llamando al restaurante...', 2000);
   }
 
   onOpenWhatsApp() {
@@ -229,5 +238,6 @@ export class HeaderFooterComponent implements OnInit, OnDestroy {
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(whatsappUrl, '_blank');
     this.showLocationModal = false;
+    this.toast.info('Abriendo WhatsApp', 2000);
   }
 }

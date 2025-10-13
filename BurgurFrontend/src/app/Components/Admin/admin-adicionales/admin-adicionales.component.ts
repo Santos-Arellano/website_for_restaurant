@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { AdicionalService } from '../../../Service/Adicional/adicional.service';
 import { ProductoService } from '../../../Service/Producto/producto.service';
 import { Adicional } from '../../../Model/Adicional/adicional';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-admin-adicionales',
@@ -45,7 +46,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
   
   private subscriptions: Subscription = new Subscription();
 
-  constructor(private adicionalService: AdicionalService, private productoService: ProductoService) { }
+  constructor(private adicionalService: AdicionalService, private productoService: ProductoService, private toast: ToastService) { }
 
   ngOnInit(): void {
     this.loadAdicionales();
@@ -64,11 +65,13 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         this.adicionales = adicionales;
         this.filteredAdicionales = [...adicionales];
         this.isLoading = false;
+        this.toast.info('Adicionales cargados correctamente', 2500);
       },
       error: (error) => {
         this.errorMessage = 'Error al cargar adicionales';
         this.isLoading = false;
         console.error('Error:', error);
+        this.toast.error(this.errorMessage, 5000);
       }
     });
     this.subscriptions.add(sub);
@@ -80,9 +83,11 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
       next: (stats) => {
         this.totalAdicionales = stats.totalAdicionales;
         this.adicionalesActivos = stats.adicionalesActivos;
+        this.toast.info('Estadísticas actualizadas', 2000);
       },
       error: (error) => {
         console.error('Error al cargar estadísticas:', error);
+        this.toast.error('No se pudieron cargar las estadísticas', 4000);
       }
     });
     this.subscriptions.add(sub);
@@ -92,6 +97,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
   onSearch(): void {
     if (!this.searchTerm.trim()) {
       this.filteredAdicionales = [...this.adicionales];
+      this.toast.info('Búsqueda limpia. Mostrando todos los adicionales', 2500);
       return;
     }
 
@@ -100,6 +106,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
       adicional.nombre.toLowerCase().includes(term) ||
       adicional.categorias.some(cat => cat.toLowerCase().includes(term))
     );
+    this.toast.info(`Filtrados por: "${this.searchTerm}"`, 2500);
   }
 
   // Abrir modal de agregar
@@ -111,6 +118,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
       categorias: []
     };
     this.showAddModal = true;
+    this.toast.info('Abriste el modal de agregar adicional', 2000);
   }
 
   // Abrir modal de editar
@@ -123,12 +131,14 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
       categorias: [...adicional.categorias]
     };
     this.showEditModal = true;
+    this.toast.info(`Editando adicional: ${adicional.nombre}`, 2000);
   }
 
   // Abrir modal de eliminar
   openDeleteModal(adicional: Adicional): void {
     this.selectedAdicional = adicional;
     this.showDeleteModal = true;
+    this.toast.warning(`Eliminarás: ${adicional.nombre}. Confirma tu acción.`, 3500);
   }
 
   // Cerrar modales
@@ -143,12 +153,14 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
       activo: true,
       categorias: []
     };
+    this.toast.info('Cerraste los modales', 2000);
   }
 
   // Guardar adicional (crear o editar)
   saveAdicional(): void {
     if (!this.adicionalForm.nombre || !this.adicionalForm.precio) {
       this.errorMessage = 'Por favor completa todos los campos requeridos';
+      this.toast.warning(this.errorMessage, 4000);
       return;
     }
 
@@ -167,11 +179,13 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
           this.productoService?.getProductos()?.subscribe();
           this.closeModals();
           this.isLoading = false;
+          this.toast.success('Adicional actualizado correctamente', 3000);
         },
         error: (error) => {
           this.errorMessage = 'Error al actualizar adicional';
           this.isLoading = false;
           console.error('Error:', error);
+           this.toast.error(this.errorMessage, 5000);
         }
       });
       this.subscriptions.add(sub);
@@ -187,11 +201,13 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
           this.productoService?.getProductos()?.subscribe();
           this.closeModals();
           this.isLoading = false;
+          this.toast.success('Adicional creado correctamente', 3000);
         },
         error: (error) => {
           this.errorMessage = 'Error al crear adicional';
           this.isLoading = false;
           console.error('Error:', error);
+          this.toast.error(this.errorMessage, 5000);
         }
       });
       this.subscriptions.add(sub);
@@ -211,11 +227,13 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         this.productoService?.getProductos()?.subscribe();
         this.closeModals();
         this.isLoading = false;
+        this.toast.success('Adicional eliminado correctamente', 3000);
       },
       error: (error) => {
         this.errorMessage = 'Error al eliminar adicional';
         this.isLoading = false;
         console.error('Error:', error);
+        this.toast.error(this.errorMessage, 5000);
       }
     });
     this.subscriptions.add(sub);

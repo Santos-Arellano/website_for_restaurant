@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './Guards/auth.guard';
+import { AdminGuard } from './Guards/admin.guard';
 import { HeroComponent } from './Components/LandingPage/hero/hero.component';
 import { MenuComponent } from './Components/LandingPage/menu/menu.component';
 import { AuthComponent } from './Components/LandingPage/auth/auth.component';
@@ -22,17 +24,17 @@ const routes: Routes = [
   { path: 'login', component: AuthComponent },
   { path: 'register', component: AuthComponent },
   { path: 'cart', component: CartComponent },
-  { path: 'profile', component: ProfileComponent },
-  { path: 'orders', component: OrderHistoryComponent },
-  { path: 'orders/:id', component: OrderDetailComponent },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'orders', component: OrderHistoryComponent, canActivate: [AuthGuard] },
+  { path: 'orders/:id', component: OrderDetailComponent, canActivate: [AuthGuard] },
   // Rutas de administración
-  { path: 'admin', component: DashboardComponent },
-  { path: 'admin/dashboard', component: DashboardComponent },
-  { path: 'admin/productos', component: AdminProductsComponent },
-  { path: 'admin/clientes', component: AdminClientesComponent },
-  { path: 'admin/adicionales', component: AdminAdicionalesComponent },
-  { path: 'admin/domiciliarios', component: AdminDomiciliariosComponent },
-  { path: 'admin/operadores', component: AdminOperadoresComponent },
+  { path: 'admin', component: DashboardComponent, canActivate: [AdminGuard] },
+  { path: 'admin/dashboard', component: DashboardComponent, canActivate: [AdminGuard] },
+  { path: 'admin/productos', component: AdminProductsComponent, canActivate: [AdminGuard] },
+  { path: 'admin/clientes', component: AdminClientesComponent, canActivate: [AdminGuard] },
+  { path: 'admin/adicionales', component: AdminAdicionalesComponent, canActivate: [AdminGuard] },
+  { path: 'admin/domiciliarios', component: AdminDomiciliariosComponent, canActivate: [AdminGuard] },
+  { path: 'admin/operadores', component: AdminOperadoresComponent, canActivate: [AdminGuard] },
   { path: '**', redirectTo: '' }
 ];
 

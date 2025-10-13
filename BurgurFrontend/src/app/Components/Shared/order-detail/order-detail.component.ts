@@ -18,6 +18,8 @@ export class OrderDetailComponent implements OnInit {
   errorMessage = '';
   productosIndex: Record<number, Producto> = {};
   placingOrder = false;
+  finalizing = false;
+  canceling = false;
   placeOrderError = '';
   placeOrderSuccess = '';
   // Modal de confirmación
@@ -46,18 +48,21 @@ export class OrderDetailComponent implements OnInit {
     if (!id) {
       this.errorMessage = 'ID de pedido inválido';
       this.isLoading = false;
+      this.toast.error(this.errorMessage, 5000);
       return;
     }
     this.pedidoService.getPedidoById(id).subscribe({
       next: (p) => {
         this.pedido = p;
         this.isLoading = false;
+        this.toast.success('Pedido cargado correctamente', 2500);
         this.loadProductosForPedido();
       },
       error: (err) => {
         console.error('Error cargando pedido:', err);
         this.errorMessage = 'No se pudo cargar el pedido';
         this.isLoading = false;
+        this.toast.error(this.errorMessage, 5000);
       }
     });
   }
@@ -75,10 +80,12 @@ export class OrderDetailComponent implements OnInit {
         const index: Record<number, Producto> = {};
         for (const p of productos) index[p.id] = p;
         this.productosIndex = index;
+        this.toast.info('Productos relacionados cargados', 2000);
       },
       error: () => {
         // En caso de error, dejamos el índice vacío y usaremos imagen por defecto
         this.productosIndex = {};
+        this.toast.warning('No se pudieron cargar detalles de productos', 3000);
       }
     });
   }
@@ -108,6 +115,24 @@ export class OrderDetailComponent implements OnInit {
         return 'estado-badge cancelado';
       default:
         return 'estado-badge default';
+    }
+  }
+
+  getEstadoIcon(estado: string): string {
+    const e = (estado || '').toString().toLowerCase();
+    switch (e) {
+      case 'pendiente':
+        return 'fa-solid fa-clock';
+      case 'en_preparacion':
+        return 'fa-solid fa-utensils';
+      case 'en_camino':
+        return 'fa-solid fa-truck';
+      case 'entregado':
+        return 'fa-solid fa-circle-check';
+      case 'cancelado':
+        return 'fa-solid fa-ban';
+      default:
+        return 'fa-solid fa-flag';
     }
   }
 
@@ -241,15 +266,18 @@ export class OrderDetailComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    this.finalizing = true;
     this.pedidoService.updateEstadoPedido(this.pedido.id, EstadoPedido.ENTREGADO).subscribe({
       next: (pedidoActualizado) => {
         this.pedido = pedidoActualizado;
         this.toast.success('Entrega finalizada. ¡Buen provecho!', 3500);
         document.dispatchEvent(new Event('refreshOrders'));
+        this.finalizing = false;
       },
       error: (err) => {
         console.error('Error al finalizar entrega:', err);
         this.toast.error('No se pudo finalizar la entrega. Intenta más tarde.', 5000);
+        this.finalizing = false;
       }
     });
   }
@@ -267,15 +295,18 @@ export class OrderDetailComponent implements OnInit {
       this.toast.warning('No puedes cancelar un pedido en camino o entregado', 4000);
       return;
     }
+    this.canceling = true;
     this.pedidoService.updateEstadoPedido(this.pedido.id, EstadoPedido.CANCELADO).subscribe({
       next: (pedidoActualizado) => {
         this.pedido = pedidoActualizado;
         this.toast.success('Pedido cancelado correctamente', 3500);
         document.dispatchEvent(new Event('refreshOrders'));
+        this.canceling = false;
       },
       error: (err) => {
         console.error('Error al cancelar pedido:', err);
         this.toast.error('No se pudo cancelar el pedido. Intenta más tarde.', 5000);
+        this.canceling = false;
       }
     });
   }

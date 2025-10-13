@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ClienteService } from '../../../Service/Cliente/cliente.service';
 import { ClienteLogin, ClienteRegistro, Cliente } from '../../../Model/Cliente/cliente';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-auth',
@@ -35,7 +36,8 @@ export class AuthComponent implements OnInit {
   constructor(
     private clienteService: ClienteService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -54,6 +56,9 @@ export class AuthComponent implements OnInit {
     // Actualizar la URL
     const newPath = this.isLoginMode ? '/login' : '/register';
     this.router.navigate([newPath]);
+
+    // Informar cambio de modo
+    this.toast.info(this.isLoginMode ? 'Modo: Iniciar sesión' : 'Modo: Registro', 2500);
   }
 
   onLogin(): void {
@@ -75,6 +80,7 @@ export class AuthComponent implements OnInit {
         this.isLoading = false;
         if (cliente) {
           console.log('Login exitoso:', cliente);
+          this.toast.success('Sesión iniciada correctamente', 3000);
           
           // Redirección: si es admin por correo, ir a /admin
           // Caso contrario, ir a la página principal
@@ -82,12 +88,14 @@ export class AuthComponent implements OnInit {
           this.router.navigate([isAdmin ? '/admin' : '/']);
         } else {
           this.errorMessage = 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.';
+          this.toast.warning(this.errorMessage, 4000);
         }
       },
       error: (error: any) => {
         this.isLoading = false;
         this.errorMessage = error?.error?.message || 'Error en el sistema. Por favor, intenta de nuevo.';
         console.error('Error en login:', error);
+        this.toast.error(this.errorMessage, 5000);
       }
     });
   }
@@ -115,6 +123,7 @@ export class AuthComponent implements OnInit {
       next: (cliente: Cliente) => {
         this.isLoading = false;
         console.log('Registro exitoso:', cliente);
+        this.toast.success('Registro exitoso. ¡Bienvenido a BurGur!', 3500);
         const isAdmin = cliente.correo?.toLowerCase() === 'admin@burgerclub.com';
         this.router.navigate([isAdmin ? '/admin' : '/']);
       },
@@ -122,6 +131,7 @@ export class AuthComponent implements OnInit {
         this.isLoading = false;
         this.errorMessage = error?.error?.message || 'Error al registrar. Por favor, intenta de nuevo.';
         console.error('Error en registro:', error);
+        this.toast.error(this.errorMessage, 5000);
       }
     });
   }
@@ -129,11 +139,13 @@ export class AuthComponent implements OnInit {
   private validateLoginForm(): boolean {
     if (!this.loginForm.correo || !this.loginForm.contrasena) {
       this.errorMessage = 'Por favor, completa todos los campos.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 
     if (!this.isValidEmail(this.loginForm.correo)) {
       this.errorMessage = 'Por favor, ingresa un correo válido.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 
@@ -145,26 +157,31 @@ export class AuthComponent implements OnInit {
 
     if (!nombre || !apellido || !correo || !contrasena || !telefono || !direccion) {
       this.errorMessage = 'Por favor, completa todos los campos.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 
     if (!this.isValidEmail(correo)) {
       this.errorMessage = 'Por favor, ingresa un correo válido.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 
     if (contrasena.length < 6) {
       this.errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 
     if (confirmPassword === undefined || confirmPassword === null || String(confirmPassword).trim() === '') {
       this.errorMessage = 'Por favor, confirma tu contraseña.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 
     if (contrasena !== confirmPassword) {
       this.errorMessage = 'Las contraseñas no coinciden.';
+      this.toast.warning(this.errorMessage, 4000);
       return false;
     }
 

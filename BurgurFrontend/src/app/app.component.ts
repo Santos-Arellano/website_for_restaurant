@@ -16,14 +16,19 @@ export class AppComponent implements OnInit, OnDestroy {
   private cartModalSubscription?: Subscription;
   private openCartHandler?: (ev: Event) => void;
   isAdminRoute = false;
+  isLoggedIn = false;
+  private isLoggedInSubscription?: Subscription;
 
   constructor(private router: Router, private clienteService: ClienteService, private toast: ToastService) {}
 
   ngOnInit(): void {
+    // Suscribir estado de sesión
+    this.isLoggedInSubscription = this.clienteService.isLoggedIn().subscribe(val => {
+      this.isLoggedIn = val;
+    });
     // Escuchar eventos globales para abrir el modal del carrito
     this.openCartHandler = () => {
-      const isLogged = !!localStorage.getItem('currentUser');
-      if (!isLogged) {
+      if (!this.isLoggedIn) {
         this.toast.warning('Debes iniciar sesión para abrir el carrito', 4000);
         this.showCartModal = false;
         this.router.navigate(['/login']);
@@ -45,6 +50,9 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.cartModalSubscription) {
       this.cartModalSubscription.unsubscribe();
+    }
+    if (this.isLoggedInSubscription) {
+      this.isLoggedInSubscription.unsubscribe();
     }
     if (this.openCartHandler) {
       document.removeEventListener('openCartModal', this.openCartHandler);

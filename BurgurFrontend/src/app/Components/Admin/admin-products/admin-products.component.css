@@ -194,6 +194,40 @@
   color: var(--text-white);
 }
 
+/* Botón Agregar Producto (barra de filtros) */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  min-height: 42px;
+  border-radius: var(--border-radius-small);
+  border: 1px solid rgba(40, 255, 20, 0.35);
+  background: linear-gradient(180deg, rgba(40, 255, 20, 0.18), rgba(13, 88, 36, 0.18));
+  color: var(--text-white);
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-add i { font-size: 0.95rem; }
+
+.btn-add:hover {
+  background: linear-gradient(180deg, rgba(40, 255, 20, 0.28), rgba(13, 88, 36, 0.28));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-add:active { transform: translateY(0); }
+
+.btn-add:focus-visible {
+  outline: 2px solid rgba(40, 255, 20, 0.5);
+  outline-offset: 2px;
+}
+
 .btn-add-product {
   background: var(--status-activo-bg);
   color: var(--text-white);
