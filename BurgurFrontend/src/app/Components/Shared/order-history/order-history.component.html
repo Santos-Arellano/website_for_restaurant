@@ -42,10 +42,10 @@
 
     <!-- Lista de pedidos -->
     <div class="orders-list" *ngIf="pedidos.length > 0">
-      <div class="order-card" *ngFor="let pedido of pedidos">
+      <div class="order-card" *ngFor="let pedido of pedidos; let i = index">
         <div class="order-header-card">
           <div class="order-info">
-            <h4>Pedido #{{ pedido.id }}</h4>
+            <h4>Pedido {{ i + 1 }} <small class="order-id">(ID #{{ pedido.id }})</small></h4>
             <p class="order-date">{{ pedido.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</p>
           </div>
           <div class="order-status">

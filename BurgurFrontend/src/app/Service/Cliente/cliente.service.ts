@@ -48,10 +48,14 @@ export class ClienteService {
 
     this.http.get<any>(`${this.authUrl}/current`, { withCredentials: true }).pipe(
       map((cli: any) => {
+        // Si el backend responde { authenticated: false }, no hay sesión
+        if (!cli || cli?.authenticated === false) return null;
+        // Aceptar diferentes formatos: { cliente }, { user } o el objeto del cliente directamente
         const src = cli?.cliente ?? cli?.user ?? cli;
-        if (!src) return null;
+        // Validar que el objeto tenga un id válido; de lo contrario, considerar sin sesión
+        if (!src || (typeof src.id !== 'number' && typeof src.id !== 'string')) return null;
         const mapped: Cliente = {
-          id: src.id,
+          id: Number(src.id),
           nombre: src.nombre,
           apellido: src.apellido,
           correo: src.correo ?? src.email,

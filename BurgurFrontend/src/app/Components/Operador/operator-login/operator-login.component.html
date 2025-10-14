@@ -1,0 +1,17 @@
+<section class="operator-login-section">
+  <div class="container">
+    <h1 class="title">Portal de Operador</h1>
+    <p class="subtitle">Ingresa tu cédula para iniciar sesión</p>
+
+    <div class="form-group">
+      <label for="cedula">Cédula</label>
+      <input id="cedula" type="text" [(ngModel)]="cedula" placeholder="Ej: 1234567890" />
+    </div>
+
+    <button class="btn-login" (click)="login()" [disabled]="loading">
+      {{ loading ? 'Ingresando...' : 'Ingresar' }}
+    </button>
+
+    <p class="hint">Acceso restringido a operadores autorizados.</p>
+  </div>
+</section>

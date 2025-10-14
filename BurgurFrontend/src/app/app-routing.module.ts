@@ -18,6 +18,9 @@ import { AdminDomiciliariosComponent } from './Components/Admin/admin-domiciliar
 import { AdminOperadoresComponent } from './Components/Admin/admin-operadores/admin-operadores.component';
 import { OrderTrackingComponent } from './Components/Shared/order-tracking/order-tracking.component';
 import { LoadingComponent } from './Components/LandingPage/loading/loading.component';
+import { OperadorGuard } from './Guards/operador.guard';
+import { OperatorLoginComponent } from './Components/Operador/operator-login/operator-login.component';
+import { OperatorPedidosComponent } from './Components/Operador/operator-pedidos/operator-pedidos.component';
 
 const routes: Routes = [
   { path: '', component: HeroComponent },
@@ -39,6 +42,9 @@ const routes: Routes = [
   { path: 'admin/adicionales', component: AdminAdicionalesComponent, canActivate: [AdminGuard] },
   { path: 'admin/domiciliarios', component: AdminDomiciliariosComponent, canActivate: [AdminGuard] },
   { path: 'admin/operadores', component: AdminOperadoresComponent, canActivate: [AdminGuard] },
+  // Portal Operador
+  { path: 'operador/login', component: OperatorLoginComponent },
+  { path: 'operador/pedidos', component: OperatorPedidosComponent, canActivate: [OperadorGuard] },
   { path: '**', redirectTo: '' }
 ];
 

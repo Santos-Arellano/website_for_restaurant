@@ -154,9 +154,8 @@ export class OrderDetailComponent implements OnInit {
   }
 
   calcSubtotal(item: ProductoPedido): number {
-    const base = (item?.cantidad || 0) * (item?.precioUnitario || 0);
-    const adicionales = (item?.adicionales || []).reduce((sum, ad) => sum + (ad?.precioUnitario || 0), 0);
-    return base + adicionales;
+    // El precioUnitario ya incluye adicionales por unidad según backend
+    return (item?.cantidad || 0) * (item?.precioUnitario || 0);
   }
 
   puedeHacerPedido(): boolean {

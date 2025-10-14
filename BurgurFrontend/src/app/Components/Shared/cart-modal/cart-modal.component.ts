@@ -176,12 +176,11 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   // Calcula subtotal del item incluyendo adicionales seleccionados
   getSubtotalItem(item: ProductoPedido): number {
-    const base = (item.precioUnitario || 0) * (item.cantidad || 1);
-    const extras = (item.adicionales || []).reduce((acc, adi) => {
-      const precioAdi = (adi.precioUnitario || 0) * (adi.cantidad || item.cantidad || 1);
-      return acc + precioAdi;
-    }, 0);
-    return base + extras;
+    // El precioUnitario que viene del backend ya incluye adicionales por unidad
+    // Por coherencia, el subtotal es simplemente precioUnitario * cantidad
+    const unitTotal = item?.precioUnitario || 0;
+    const qty = item?.cantidad || 1;
+    return unitTotal * qty;
   }
 
   trackByProductId(index: number, item: ProductoPedido): number {

@@ -7,5 +7,6 @@ import restaurante.example.burgur.Model.Operador;
 
 @Repository
 public interface OperadorRepository extends JpaRepository<Operador, Long> {
-    
+    // Buscar operador por cédula (para autenticación básica)
+    Operador findByCedula(String cedula);
 }

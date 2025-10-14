@@ -25,4 +25,6 @@ public interface OperadorService {
     public void cambiarDisponibilidad(Long id, boolean disponible);
 
 
+    // Buscar por cédula (para login básico de operador)
+    public Operador obtenerOperadorPorCedula(String cedula);
 }

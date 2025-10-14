@@ -1,0 +1,13 @@
+.operator-pedidos-section { max-width: 960px; margin: 32px auto; padding: 0 16px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.btn-logout { background: #333; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.filters { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+.btn-refresh { background: #1890ff; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.lista-pedidos { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.pedido-card { border: 1px solid #eee; border-radius: 10px; padding: 12px; background: #fff; }
+.pedido-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pedido-id { font-weight: 700; }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.acciones button { padding: 6px 10px; border: 1px solid #ddd; background: #fafafa; border-radius: 6px; cursor: pointer; }
+.acciones .btn-cancel { border-color: #ff4d4f; color: #ff4d4f; }
+.empty { text-align: center; color: #777; padding: 24px; }

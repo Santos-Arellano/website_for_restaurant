@@ -127,6 +127,41 @@ export class AdminProductsComponent implements OnInit {
     }
   }
 
+  // Abrir modal de edición cargando detalles completos (incluye adicionales permitidos)
+  abrirModalEdicionConDetalles(producto?: Producto): void {
+    this.mostrarModalEdicion = true;
+    if (producto) {
+      this.modoEdicion = true;
+      this.isLoading = true;
+      this.productoService.getProductoById(producto.id).subscribe({
+        next: (detalle) => {
+          this.productoForm = { ...(detalle || producto) };
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.warn('No se pudo cargar detalles del producto para edición, usando datos existentes:', error);
+          this.productoForm = { ...producto };
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.modoEdicion = false;
+      this.productoForm = {
+        id: 0,
+        nombre: '',
+        descripcion: '',
+        precio: 0,
+        categoria: CategoriaProducto.HAMBURGUESAS,
+        imagen: '',
+        disponible: true,
+        isPopular: false,
+        fechaCreacion: new Date(),
+        ingredientes: [],
+        adicionales: []
+      };
+    }
+  }
+
   cerrarModalEdicion(): void {
     this.mostrarModalEdicion = false;
     this.modoEdicion = false;
@@ -220,6 +255,24 @@ export class AdminProductsComponent implements OnInit {
     }
   }
   
+  // Abrir detalles con carga de adicionales permitidos desde backend
+  verDetallesConPermisos(producto: Producto): void {
+    this.isLoading = true;
+    this.productoService.getProductoById(producto.id).subscribe({
+      next: (detalle) => {
+        this.productoSeleccionado = detalle || producto;
+        this.mostrarModalDetalles = true;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.warn('No se pudo cargar detalles del producto, usando datos existentes:', error);
+        this.productoSeleccionado = producto;
+        this.mostrarModalDetalles = true;
+        this.isLoading = false;
+      }
+    });
+  }
+
   verDetalles(producto: Producto): void {
     this.productoSeleccionado = producto;
     this.mostrarModalDetalles = true;

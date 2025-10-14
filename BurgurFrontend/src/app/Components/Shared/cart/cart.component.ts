@@ -68,14 +68,12 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   calcularTotal(): void {
+    // El backend define precioUnitario como (precio producto + adicionales) por unidad.
+    // Para evitar doble conteo de adicionales, el total es precioUnitario * cantidad.
     this.total = this.carrito.reduce((sum, item) => {
-      const base = (item.precioUnitario || 0) * (item.cantidad || 0);
-      const adicionalesTotal = (item.adicionales || []).reduce((acc, ad) => {
-        const precio = ad.precioUnitario || 0;
-        const multiplicador = (ad.cantidad ?? item.cantidad ?? 1);
-        return acc + precio * multiplicador;
-      }, 0);
-      return sum + base + adicionalesTotal;
+      const unitTotal = item?.precioUnitario || 0;
+      const qty = item?.cantidad || 0;
+      return sum + (unitTotal * qty);
     }, 0);
   }
 

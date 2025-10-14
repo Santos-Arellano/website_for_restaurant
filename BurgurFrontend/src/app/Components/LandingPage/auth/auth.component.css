@@ -200,6 +200,25 @@
   to { transform: rotate(360deg); }
 }
 
+/* Enlace discreto para el portal de Operador */
+.operator-access {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.operator-link {
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  transition: color var(--transition-speed) ease, opacity var(--transition-speed) ease;
+}
+
+.operator-link:hover {
+  opacity: 1;
+  color: var(--color-text-primary);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .auth-container {

@@ -1,11 +1,9 @@
 package restaurante.example.burgur.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import restaurante.example.burgur.Model.AdiXItemCarrito;
@@ -16,6 +14,7 @@ import restaurante.example.burgur.Model.CarritoItem;
 import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Repository.AdiXItemCarritoRepository;
 import restaurante.example.burgur.Repository.PedidoRepository;
+import restaurante.example.burgur.Model.Domiciliario;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
@@ -27,6 +26,8 @@ public class PedidoServiceImpl implements PedidoService {
     private AdicionalService adicionalService;
     @Autowired
     private AdiXItemCarritoRepository adiXItemCarritoRepository;
+    @Autowired
+    private DomiciliarioService domiciliarioService;
 
     
     // ==========================================
@@ -82,13 +83,56 @@ public class PedidoServiceImpl implements PedidoService {
         // 2) Actualizar estado del pedido
         pedido.setEstado(nuevoEstado);
 
-        // Si el nuevo estado es "Entregado", se actualiza la fecha de entrega
-        if (nuevoEstado.equalsIgnoreCase("Entregado")) {
+        // Normalizar estado para comparaciones
+        String estadoUpper = nuevoEstado.trim().toUpperCase();
+
+        // Si el nuevo estado es "ENTREGADO", se actualiza la fecha de entrega y se libera el domiciliario
+        if (estadoUpper.equals("ENTREGADO")) {
             pedido.setFechaEntrega(LocalDateTime.now());
+            Domiciliario dom = pedido.getDomiciliario();
+            if (dom != null) {
+                dom.setDisponible(true);
+                domiciliarioService.save(dom);
+            }
         }
+
+        // Si el estado es "ENVIADO" o "EN_CAMINO", asignar un domiciliario disponible si no tiene
+        if (estadoUpper.equals("ENVIADO") || estadoUpper.equals("EN_CAMINO")) {
+            if (pedido.getDomiciliario() == null) {
+                List<Domiciliario> disponibles = domiciliarioService.obtenerDomiciliariosDisponibles();
+                if (disponibles == null || disponibles.isEmpty()) {
+                    throw new IllegalStateException("No hay domiciliarios disponibles para asignar.");
+                }
+                Domiciliario asignado = disponibles.get(0);
+                asignado.setDisponible(false);
+                domiciliarioService.save(asignado);
+                pedido.setDomiciliario(asignado);
+            }
+        }
+
+        // Si el estado es "CANCELADO", liberar domiciliario si estaba asignado
+        if (estadoUpper.equals("CANCELADO")) {
+            Domiciliario dom = pedido.getDomiciliario();
+            if (dom != null) {
+                dom.setDisponible(true);
+                domiciliarioService.save(dom);
+            }
+        }
+
         pedidoRepository.save(pedido);
 
     }
+
+    @Override
+    public List<Pedido> obtenerTodosLosPedidos() {
+        // Devuelve lista vacía si no hay datos; el controller decide el status
+        return pedidoRepository.findAll();
+    }
+
+    // Métodos adicionales como obtenerPedidosActivos() y obtenerPedidosDeCliente()
+    // no están definidos en la interfaz PedidoService de este proyecto.
+    // Se eliminan para evitar errores de compilación. Si se requieren,
+    // deben añadirse primero a la interfaz y al PedidoRepository.
 
     //Obtener Pedido por ID
     @Override
@@ -106,12 +150,7 @@ public class PedidoServiceImpl implements PedidoService {
         }
     }
 
-    // Obtener todos los Pedidos
-    @Override
-    public List<Pedido> obtenerTodosLosPedidos() {
-        // Devuelve lista vacía si no hay datos; el controller decide el status
-        return pedidoRepository.findAll();
-    }
+    // (Método duplicado eliminado) obtenerTodosLosPedidos()
 
 
 

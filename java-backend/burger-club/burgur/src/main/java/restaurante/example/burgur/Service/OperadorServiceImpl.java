@@ -66,4 +66,9 @@ public class OperadorServiceImpl implements OperadorService {
         }
     }
     
+    @Override
+    public Operador obtenerOperadorPorCedula(String cedula) {
+        if (cedula == null) return null;
+        return operadorRepository.findByCedula(cedula);
+    }
 }

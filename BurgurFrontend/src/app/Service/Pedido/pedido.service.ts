@@ -244,14 +244,12 @@ export class PedidoService {
 
   // Calcular total del carrito
   calcularTotal(): number {
-    return this.carritoSubject.value.reduce((total, producto) => {
-      let subtotal = (producto.cantidad || 0) * (producto.precioUnitario || 0);
-      if (producto.adicionales) {
-        const totalAdicionales = producto.adicionales.reduce((sum, adicional) =>
-          sum + ((adicional.cantidad || 0) * (adicional.precioUnitario || 0)), 0);
-        subtotal += totalAdicionales;
-      }
-      return total + subtotal;
+    // El backend ya incluye adicionales en el precioUnitario por unidad
+    // El total se obtiene multiplicando por la cantidad, sin sumar adicionales aparte
+    return this.carritoSubject.value.reduce((total, p) => {
+      const unitTotal = p?.precioUnitario || 0;
+      const qty = p?.cantidad || 0;
+      return total + (unitTotal * qty);
     }, 0);
   }
 
@@ -276,11 +274,8 @@ export class PedidoService {
 
   // Obtener pedidos del cliente
   getPedidosCliente(clienteId: number): Observable<Pedido[]> {
-    return this.http.get<any[]>(`${this.pedidosApiUrl}`, { withCredentials: true }).pipe(
-      map((apiPedidos) => apiPedidos
-        .map(p => this.mapPedidoFromApi(p))
-        .filter((pedido) => pedido.clienteId === clienteId)
-      ),
+    return this.http.get<any[]>(`${this.pedidosApiUrl}/cliente/${clienteId}`, { withCredentials: true }).pipe(
+      map((apiPedidos) => (Array.isArray(apiPedidos) ? apiPedidos : []).map(p => this.mapPedidoFromApi(p))),
       catchError((error) => {
         this.logHttpError('getPedidosCliente', error);
         return of([] as Pedido[]);
@@ -358,6 +353,17 @@ export class PedidoService {
       catchError((error) => {
         this.logHttpError('getPedidos', error);
         return this.pedidos$;
+      })
+    );
+  }
+
+  // Obtener pedidos activos (no entregados ni cancelados)
+  getPedidosActivos(): Observable<Pedido[]> {
+    return this.http.get<any[]>(`${this.pedidosApiUrl}/activos`, { withCredentials: true }).pipe(
+      map((apiPedidos) => (Array.isArray(apiPedidos) ? apiPedidos : []).map(p => this.mapPedidoFromApi(p))),
+      catchError((error) => {
+        this.logHttpError('getPedidosActivos', error);
+        return of([] as Pedido[]);
       })
     );
   }

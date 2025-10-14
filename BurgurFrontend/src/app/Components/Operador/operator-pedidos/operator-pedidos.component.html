@@ -1,0 +1,41 @@
+<section class="operator-pedidos-section">
+  <div class="header">
+    <h1>Pedidos Activos</h1>
+    <button class="btn-logout" (click)="logout()">Cerrar sesión</button>
+  </div>
+
+  <div class="filters">
+    <label>Filtrar por estado:</label>
+    <select [(ngModel)]="filtroEstado">
+      <option value="todos">Todos</option>
+      <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+    </select>
+    <button class="btn-refresh" (click)="cargarPedidos()" [disabled]="loading">{{ loading ? 'Cargando...' : 'Refrescar' }}</button>
+  </div>
+
+  <div class="lista-pedidos" *ngIf="pedidosFiltrados().length; else empty">
+    <div class="pedido-card" *ngFor="let p of pedidosFiltrados()">
+      <div class="pedido-info">
+        <div>
+          <div class="pedido-id">Pedido #{{ p.id }}</div>
+          <div class="pedido-cliente">Cliente: {{ p.clienteId }}</div>
+          <div class="pedido-direccion">Entrega: {{ p.direccionEntrega }}</div>
+        </div>
+        <div class="pedido-estado">Estado: <strong>{{ p.estado }}</strong></div>
+      </div>
+
+      <div class="acciones">
+        <button (click)="cambiarEstado(p, EstadoPedido.CONFIRMADO)">Confirmar</button>
+        <button (click)="cambiarEstado(p, EstadoPedido.EN_PREPARACION)">Preparar</button>
+        <button (click)="cambiarEstado(p, EstadoPedido.LISTO)">Listo</button>
+        <button (click)="cambiarEstado(p, EstadoPedido.EN_CAMINO)">En Camino</button>
+        <button (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)">Entregado</button>
+        <button class="btn-cancel" (click)="cambiarEstado(p, EstadoPedido.CANCELADO)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #empty>
+    <div class="empty">No hay pedidos activos</div>
+  </ng-template>
+</section>

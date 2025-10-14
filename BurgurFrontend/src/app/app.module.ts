@@ -32,6 +32,8 @@ import { OrderDetailComponent } from './Components/Shared/order-detail/order-det
 import { ConfirmModalComponent } from './Components/Shared/confirm-modal/confirm-modal.component';
 import { OrderTrackingComponent } from './Components/Shared/order-tracking/order-tracking.component';
 import { LoadingComponent } from './Components/LandingPage/loading/loading.component';
+import { OperatorLoginComponent } from './Components/Operador/operator-login/operator-login.component';
+import { OperatorPedidosComponent } from './Components/Operador/operator-pedidos/operator-pedidos.component';
 
 @NgModule({
   declarations: [
@@ -59,6 +61,8 @@ import { LoadingComponent } from './Components/LandingPage/loading/loading.compo
     ,NuestraHistoriaComponent
     ,ResenasComponent
     ,ConfirmModalComponent
+    ,OperatorLoginComponent
+    ,OperatorPedidosComponent
   ],
   imports: [
     BrowserModule,

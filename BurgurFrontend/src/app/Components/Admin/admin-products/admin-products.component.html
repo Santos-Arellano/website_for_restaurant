@@ -107,7 +107,7 @@
           </div>
           
           <div class="product-actions">
-            <button class="btn-action btn-edit" (click)="abrirModalEdicion(producto)">
+            <button class="btn-action btn-edit" (click)="abrirModalEdicionConDetalles(producto)">
               <i class="fas fa-edit"></i>
               Editar
             </button>
@@ -115,7 +115,7 @@
               <i class="fas fa-trash"></i>
               Eliminar
             </button>
-            <button class="btn-action btn-details" (click)="verDetalles(producto)">
+            <button class="btn-action btn-details" (click)="verDetallesConPermisos(producto)">
               <i class="fas fa-info-circle"></i>
               Detalles
             </button>
@@ -246,6 +246,18 @@
             [(ngModel)]="productoForm.imagen" 
             name="imagen"
             placeholder="https://ejemplo.com/imagen.jpg">
+        </div>
+
+        <!-- Adicionales permitidos (solo lectura en edición) -->
+        <div class="form-group" *ngIf="modoEdicion && productoForm.adicionales && productoForm.adicionales.length > 0">
+          <label>Adicionales permitidos</label>
+          <div class="adicionales-list">
+            <div class="adicional-item" *ngFor="let adicional of productoForm.adicionales">
+              <span class="adicional-name">{{ adicional.nombre }}</span>
+              <span class="adicional-price">{{ formatearPrecio(adicional.precio) }}</span>
+            </div>
+          </div>
+          <small class="hint-text">Los adicionales se definen automáticamente según la categoría del producto y las categorías del adicional. Para modificar, usa la sección "Adicionales" del panel admin.</small>
         </div>
         
         <div class="form-checkboxes">

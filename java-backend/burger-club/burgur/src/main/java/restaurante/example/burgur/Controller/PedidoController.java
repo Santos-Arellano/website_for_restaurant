@@ -47,7 +47,7 @@ public class PedidoController {
     }
 
     // Obtener pedido por ID
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
         try {
             Pedido pedido = pedidoService.obtenerPedidoPorId(id);

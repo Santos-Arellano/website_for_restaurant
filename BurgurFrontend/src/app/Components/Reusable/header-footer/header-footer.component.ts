@@ -128,18 +128,12 @@ export class HeaderFooterComponent implements OnInit, OnDestroy {
   }
 
   calcularTotalCarrito(): number {
+    // El backend ya incluye adicionales en precioUnitario por unidad.
+    // Solo multiplicamos por cantidad para el total del carrito.
     return this.carrito.reduce((total, item) => {
-      let subtotal = (this.productos[item.productoId]?.precio || 0) * (item.cantidad || 0);
-      // Agregar el precio de los adicionales
-      if (item.adicionales && item.adicionales.length > 0) {
-        const totalAdicionales = item.adicionales.reduce((sum, adicional) => {
-          const precio = adicional.precioUnitario || 0;
-          const multiplicador = (adicional.cantidad ?? item.cantidad ?? 1);
-          return sum + precio * multiplicador;
-        }, 0);
-        subtotal += totalAdicionales;
-      }
-      return total + subtotal;
+      const unitTotal = item?.precioUnitario || 0;
+      const qty = item?.cantidad || 0;
+      return total + (unitTotal * qty);
     }, 0);
   }
 
