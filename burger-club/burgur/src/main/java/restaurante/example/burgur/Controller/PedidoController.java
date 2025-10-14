@@ -49,8 +49,16 @@ public class PedidoController {
     // Obtener pedido por ID
     @GetMapping("/{id}")
     public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
-        Pedido pedido = pedidoService.obtenerPedidoPorId(id);
-        return ResponseEntity.ok(pedido);
+        try {
+            Pedido pedido = pedidoService.obtenerPedidoPorId(id);
+            return ResponseEntity.ok(pedido);
+        } catch (IllegalArgumentException e) {
+            // Pedido no encontrado o ID inválido
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            // Error inesperado en el servidor
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     // Actualizar estado del pedido
