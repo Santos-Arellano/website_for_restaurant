@@ -17,6 +17,7 @@ import { AdminAdicionalesComponent } from './Components/Admin/admin-adicionales/
 import { AdminDomiciliariosComponent } from './Components/Admin/admin-domiciliarios/admin-domiciliarios.component';
 import { AdminOperadoresComponent } from './Components/Admin/admin-operadores/admin-operadores.component';
 import { OrderTrackingComponent } from './Components/Shared/order-tracking/order-tracking.component';
+import { LoadingComponent } from './Components/LandingPage/loading/loading.component';
 
 const routes: Routes = [
   { path: '', component: HeroComponent },
@@ -29,6 +30,7 @@ const routes: Routes = [
   { path: 'orders', component: OrderHistoryComponent, canActivate: [AuthGuard] },
   { path: 'orders/:id', component: OrderDetailComponent, canActivate: [AuthGuard] },
   { path: 'orders/:id/track', component: OrderTrackingComponent, canActivate: [AuthGuard] },
+  { path: 'loading', component: LoadingComponent },
   // Rutas de administración
   { path: 'admin', component: DashboardComponent, canActivate: [AdminGuard] },
   { path: 'admin/dashboard', component: DashboardComponent, canActivate: [AdminGuard] },

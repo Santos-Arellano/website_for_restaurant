@@ -1,5 +1,7 @@
 <!-- Main App Layout -->
 <div class="app-container">
+  <!-- Global Route Loading Overlay -->
+  <app-loading *ngIf="isRouteLoading"></app-loading>
   <!-- Header condicional: admin vs público -->
   <app-admin-header *ngIf="isAdminRoute"></app-admin-header>
   <app-header-footer *ngIf="!isAdminRoute"></app-header-footer>

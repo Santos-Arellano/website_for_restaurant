@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, NavigationStart, NavigationCancel, NavigationError } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ClienteService } from './Service/Cliente/cliente.service';
 import { ToastService } from './Components/Shared/toast/toast.service';
@@ -17,6 +17,10 @@ export class AppComponent implements OnInit, OnDestroy {
   private openCartHandler?: (ev: Event) => void;
   isAdminRoute = false;
   isLoggedIn = false;
+  isRouteLoading = false;
+  private loadingStartTime = 0;
+  private minLoaderMs = 700;
+  private loaderHideTimeout?: any;
   private isLoggedInSubscription?: Subscription;
 
   constructor(private router: Router, private clienteService: ClienteService, private toast: ToastService) {}
@@ -38,13 +42,31 @@ export class AppComponent implements OnInit, OnDestroy {
     };
     document.addEventListener('openCartModal', this.openCartHandler);
 
-    // Detectar rutas admin para mostrar header correcto
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event) => {
-        const url = (event as NavigationEnd).urlAfterRedirects || (event as NavigationEnd).url;
+    // Activar loader al inicio para primera carga
+    this.isRouteLoading = true;
+    this.loadingStartTime = performance.now();
+
+    // Detectar rutas admin y mostrar loader en cambios de navegación
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        if (this.loaderHideTimeout) { try { clearTimeout(this.loaderHideTimeout); } catch {} }
+        this.loadingStartTime = performance.now();
+        this.isRouteLoading = true;
+      }
+      if (event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError) {
+        const elapsed = performance.now() - this.loadingStartTime;
+        const remaining = Math.max(0, this.minLoaderMs - elapsed);
+        if (remaining > 0) {
+          this.loaderHideTimeout = setTimeout(() => {
+            this.isRouteLoading = false;
+          }, remaining);
+        } else {
+          this.isRouteLoading = false;
+        }
+        const url = (event as NavigationEnd).urlAfterRedirects || (event as NavigationEnd).url || '';
         this.isAdminRoute = url.startsWith('/admin');
-      });
+      }
+    });
   }
 
   ngOnDestroy(): void {

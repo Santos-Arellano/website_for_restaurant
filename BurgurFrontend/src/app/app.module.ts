@@ -31,6 +31,7 @@ import { ToastComponent } from './Components/Shared/toast/toast.component';
 import { OrderDetailComponent } from './Components/Shared/order-detail/order-detail.component';
 import { ConfirmModalComponent } from './Components/Shared/confirm-modal/confirm-modal.component';
 import { OrderTrackingComponent } from './Components/Shared/order-tracking/order-tracking.component';
+import { LoadingComponent } from './Components/LandingPage/loading/loading.component';
 
 @NgModule({
   declarations: [
@@ -47,6 +48,7 @@ import { OrderTrackingComponent } from './Components/Shared/order-tracking/order
     ProductDetailComponent,
     OrderDetailComponent,
     OrderTrackingComponent,
+    LoadingComponent,
     AdminAdicionalesComponent,
     ProductDetailModalComponent,
     DashboardComponent,
