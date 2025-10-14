@@ -11,6 +11,7 @@ import { Producto } from '../../../Model/Producto/producto';
 import { Adicional } from '../../../Model/Adicional/adicional';
 import { ToastService } from '../../Shared/toast/toast.service';
 import { Subscription } from 'rxjs';
+import { debugLog } from '../../../utils/logger';
 
 @Component({
   selector: 'app-header-footer',
@@ -186,7 +187,7 @@ export class HeaderFooterComponent implements OnInit, OnDestroy {
   }
 
   onCartClick() {
-    console.log('Intento de abrir carrito (Angular modal)');
+    debugLog('Intento de abrir carrito (Angular modal)');
     // Exigir sesión antes de abrir el carrito
     if (!this.isLoggedIn) {
       this.toast.warning('Inicia sesión para usar el carrito', 4000);

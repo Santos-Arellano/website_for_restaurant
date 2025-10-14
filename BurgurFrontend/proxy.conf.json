@@ -29,5 +29,23 @@
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
+  },
+  "/osm": {
+    "target": "https://tile.openstreetmap.org",
+    "secure": true,
+    "logLevel": "debug",
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/osm": ""
+    }
+  },
+  "/carto": {
+    "target": "https://basemaps.cartocdn.com",
+    "secure": true,
+    "logLevel": "debug",
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/carto": ""
+    }
   }
 }

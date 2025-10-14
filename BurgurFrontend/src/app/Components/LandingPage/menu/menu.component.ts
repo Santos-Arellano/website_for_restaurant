@@ -5,6 +5,7 @@ import { PedidoService } from '../../../Service/Pedido/pedido.service';
 import { Producto, CategoriaProducto } from '../../../Model/Producto/producto';
 import { ProductoPedido } from '../../../Model/Pedido/pedido';
 import { ToastService } from '../../Shared/toast/toast.service';
+import { debugLog } from '../../../utils/logger';
 
 @Component({
   selector: 'app-menu',
@@ -73,7 +74,7 @@ export class MenuComponent implements OnInit {
         
         if (needsUpdate) {
           localStorage.setItem('productos', JSON.stringify(updatedProductos));
-          console.log('Datos del localStorage actualizados para usar PNG en lugar de SVG');
+          debugLog('Datos del localStorage actualizados para usar PNG en lugar de SVG');
         }
       } catch (error) {
         console.error('Error al procesar datos del localStorage:', error);
@@ -262,7 +263,7 @@ export class MenuComponent implements OnInit {
 
   onProductAdded(event: any): void {
     // Handle product added to cart from modal
-    console.log('Product added from modal:', event);
+    debugLog('Product added from modal:', event);
   }
 
   loadAdicionales(): void {

@@ -3,6 +3,7 @@ import { ProductoService } from '../../../Service/Producto/producto.service';
 import { ClienteService } from '../../../Service/Cliente/cliente.service';
 import { AdicionalService } from '../../../Service/Adicional/adicional.service';
 import { PedidoService } from '../../../Service/Pedido/pedido.service';
+import { debugLog } from '../../../utils/logger';
 
 @Component({
   selector: 'app-dashboard',
@@ -88,14 +89,14 @@ export class DashboardComponent implements OnInit {
 
   // Método para actualizar adicionales
   updateAdicionales(): void {
-    console.log('Actualizando relaciones de adicionales...');
+    debugLog('Actualizando relaciones de adicionales...');
     
     // Recargar estadísticas de adicionales
     this.adicionalService.getEstadisticas().subscribe({
       next: (stats) => {
         this.totalAdicionales = stats.totalAdicionales;
         this.adicionalesActivos = stats.adicionalesActivos;
-        console.log('Relaciones de adicionales actualizadas correctamente');
+        debugLog('Relaciones de adicionales actualizadas correctamente');
       },
       error: (error) => {
         console.error('Error al actualizar relaciones de adicionales:', error);

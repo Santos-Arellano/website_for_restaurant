@@ -22,6 +22,9 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
   showRoute = true;
   private subs: Subscription[] = [];
   private animating = false;
+  private useExternalTiles = false;
+  private tileProvider: 'osm' | 'carto' = 'osm';
+  private tileErrorCount = 0;
 
   map?: L.Map;
   courierMarker?: L.Marker;
@@ -29,6 +32,7 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
   destinationMarker?: L.Marker;
   routePolyline?: L.Polyline;
   intervalId?: any;
+  private fallbackOverlay?: L.ImageOverlay;
 
   // Simulación de ruta dentro de la ciudad (Bogotá)
   private simulatedPath: L.LatLngExpression[] = [
@@ -56,6 +60,21 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     const id = idParam ? Number(idParam) : 0;
+    // Permitir activar tiles externos con ?tiles=on
+    const tilesParam = (this.route.snapshot.queryParamMap.get('tiles') || '').toLowerCase();
+    // Por defecto, mostrar mapa real con calles (tiles externos ON, proveedor OSM)
+    if (!tilesParam) {
+      this.useExternalTiles = true;
+      this.tileProvider = 'osm';
+    } else if (tilesParam === 'off' || tilesParam === 'false' || tilesParam === '0') {
+      this.useExternalTiles = false;
+    } else if (tilesParam === 'carto') {
+      this.useExternalTiles = true;
+      this.tileProvider = 'carto';
+    } else {
+      this.useExternalTiles = true;
+      this.tileProvider = 'osm';
+    }
     if (!id) {
       this.errorMessage = 'ID de pedido inválido';
       this.isLoading = false;
@@ -112,10 +131,39 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
       attributionControl: true
     }).setView([4.653, -74.057], 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(this.map);
+    // Asegurar que el mapa calcule correctamente su tamaño al renderizar
+    setTimeout(() => {
+      try { this.map?.invalidateSize(); } catch {}
+    }, 0);
+
+    if (this.useExternalTiles) {
+      // Selección de proveedor de tiles
+      const isCarto = this.tileProvider === 'carto';
+      const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      const url = isCarto
+        ? (isDev ? '/carto/light_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png')
+        : (isDev ? '/osm/{z}/{x}/{y}.png' : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+      const attribution = isCarto
+        ? '&copy; OpenStreetMap contributors &copy; CARTO'
+        : '&copy; OpenStreetMap contributors';
+      const tileLayer = L.tileLayer(url, {
+        maxZoom: 19,
+        detectRetina: true,
+        crossOrigin: true,
+        attribution
+      } as any);
+      tileLayer.addTo(this.map!);
+      // Fallback automático si los tiles fallan repetidamente (entornos con red restringida)
+      tileLayer.on('tileerror', () => {
+        this.tileErrorCount++;
+        if (this.tileErrorCount >= 4 && this.map && !this.fallbackOverlay) {
+          try { tileLayer.remove(); } catch {}
+          const bounds = this.map.getBounds();
+          this.fallbackOverlay = L.imageOverlay('assets/map-fallback.svg', bounds, { opacity: 0.45 });
+          this.fallbackOverlay.addTo(this.map);
+        }
+      });
+    }
 
     const courierIcon = L.divIcon({ className: 'pin pin-courier', html: this.svgPin('#ff3b3b'), iconSize: [24, 36], iconAnchor: [12, 36] });
     const restaurantIcon = L.divIcon({ className: 'pin pin-restaurant', html: this.svgPin('#2d8cff'), iconSize: [24, 36], iconAnchor: [12, 36] });
@@ -132,6 +180,11 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
       this.routePolyline.addTo(this.map!);
     }
     this.fitToRoute();
+    if (!this.useExternalTiles && this.map) {
+      const bounds = this.map.getBounds();
+      this.fallbackOverlay = L.imageOverlay('assets/map-fallback.svg', bounds, { opacity: 0.45 });
+      this.fallbackOverlay.addTo(this.map);
+    }
   }
 
   private startLiveTracking(): void {
@@ -213,6 +266,8 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
   fitToRoute(): void {
     if (this.routePolyline && this.map) {
       this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+      // Recalcular tamaño por si cambió el layout
+      try { this.map.invalidateSize(); } catch {}
     }
   }
 

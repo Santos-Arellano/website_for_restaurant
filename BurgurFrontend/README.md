@@ -25,3 +25,14 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+## Problems & Diagnostics
+
+- Use Node LTS 20: `nvm use 20` (project `.nvmrc` set to 20).
+- Suppress Node deprecations: start script includes `NODE_OPTIONS=--no-deprecation`.
+- Optional debug logs: append `?debug=on` to URL or set `localStorage.debug = 'true'` to enable verbose logging.
+- Map tiles: by default external tiles are disabled to avoid network errors; enable with `?tiles=on`.
+
+### Useful URLs
+- App: `http://localhost:4301/`
+- Tracking: `http://localhost:4301/orders/1/track` (enable tiles: `?tiles=on`)

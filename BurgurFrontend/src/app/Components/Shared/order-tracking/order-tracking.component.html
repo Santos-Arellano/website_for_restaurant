@@ -7,7 +7,7 @@
   <div *ngIf="isLoading" class="tracking-status">Cargando pedido...</div>
   <div *ngIf="errorMessage" class="tracking-error">{{ errorMessage }}</div>
 
-  <div *ngIf="!isLoading && !errorMessage" class="tracking-content">
+  <div *ngIf="!isLoading" class="tracking-content">
     <div class="tracking-info">
       <p><strong>ID:</strong> {{ pedido?.id }}</p>
       <p><strong>Estado:</strong> <span [class]="getEstadoBadgeClass(pedido?.estado)">{{ pedido?.estado }}</span></p>

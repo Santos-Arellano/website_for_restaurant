@@ -24,6 +24,9 @@
               "src/favicon.ico",
               "src/assets"
             ],
+            "allowedCommonJsDependencies": [
+              "leaflet"
+            ],
         "styles": [
           "src/styles.css"
         ],

@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ClienteService } from '../../../Service/Cliente/cliente.service';
 import { ClienteLogin, ClienteRegistro, Cliente } from '../../../Model/Cliente/cliente';
 import { ToastService } from '../../Shared/toast/toast.service';
+import { debugLog } from '../../../utils/logger';
 
 @Component({
   selector: 'app-auth',
@@ -79,7 +80,7 @@ export class AuthComponent implements OnInit {
       next: (cliente: Cliente | null) => {
         this.isLoading = false;
         if (cliente) {
-          console.log('Login exitoso:', cliente);
+          debugLog('Login exitoso:', cliente);
           this.toast.success('Sesión iniciada correctamente', 3000);
           
           // Redirección: si es admin por correo, ir a /admin
@@ -122,7 +123,7 @@ export class AuthComponent implements OnInit {
     this.clienteService.registrarCliente(this.registroForm).subscribe({
       next: (cliente: Cliente) => {
         this.isLoading = false;
-        console.log('Registro exitoso:', cliente);
+        debugLog('Registro exitoso:', cliente);
         this.toast.success('Registro exitoso. ¡Bienvenido a BurGur!', 3500);
         const isAdmin = cliente.correo?.toLowerCase() === 'admin@burgerclub.com';
         this.router.navigate([isAdmin ? '/admin' : '/']);

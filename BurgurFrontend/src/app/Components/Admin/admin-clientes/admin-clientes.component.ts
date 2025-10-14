@@ -114,7 +114,11 @@ export class AdminClientesComponent implements OnInit {
         this.cargarClientes(); // Recargar la lista desde el servicio
         this.cerrarModal();
         this.cargando = false;
-        console.log('Cliente agregado:', nuevoCliente);
+        // Log sólo en modo debug
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        // @ts-ignore
+        // using debugLog for optional logging
+        // debugLog('Cliente agregado:', nuevoCliente);
       },
       error: (error) => {
         console.error('Error al agregar cliente:', error);
