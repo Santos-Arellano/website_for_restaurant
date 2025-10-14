@@ -2,8 +2,11 @@ import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef } fr
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 import { PedidoService } from '../../../Service/Pedido/pedido.service';
+import { ClienteService } from '../../../Service/Cliente/cliente.service';
+import { GeocodingService } from '../../../Service/Geo/geocoding.service';
 import { Pedido, EstadoPedido } from '../../../Model/Pedido/pedido';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { DEFAULT_DESTINATION, DEFAULT_TILE_PROVIDER, DEFAULT_USE_EXTERNAL_TILES, RESTAURANT_ORIGIN } from '../../../config';
 
 @Component({
   selector: 'app-order-tracking',
@@ -22,9 +25,11 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
   showRoute = true;
   private subs: Subscription[] = [];
   private animating = false;
-  private useExternalTiles = false;
-  private tileProvider: 'osm' | 'carto' = 'osm';
+  useExternalTiles = false;
+  private tileProvider: 'osm' | 'carto' = DEFAULT_TILE_PROVIDER;
   private tileErrorCount = 0;
+  private tileLayer?: L.TileLayer;
+  tileStatusMessage = '';
 
   map?: L.Map;
   courierMarker?: L.Marker;
@@ -36,25 +41,19 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
 
   // Simulación de ruta dentro de la ciudad (Bogotá)
   private simulatedPath: L.LatLngExpression[] = [
-    [4.653, -74.057], // Restaurante
-    [4.654, -74.058],
-    [4.655, -74.059],
-    [4.656, -74.06],
-    [4.657, -74.061],
-    [4.658, -74.062],
-    [4.659, -74.063],
-    [4.660, -74.064],
-    [4.661, -74.065],
-    [4.662, -74.066]  // Destino (aproximado)
+    [RESTAURANT_ORIGIN.lat, RESTAURANT_ORIGIN.lon],
+    [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon]
   ];
   private cursor = 0;
 
-  @ViewChild('orderMap') orderMapEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('orderMap', { static: false }) orderMapEl?: ElementRef<HTMLDivElement>;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private pedidoService: PedidoService
+    private pedidoService: PedidoService,
+    private clienteService: ClienteService,
+    private geocoding: GeocodingService
   ) {}
 
   ngOnInit(): void {
@@ -62,10 +61,10 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
     const id = idParam ? Number(idParam) : 0;
     // Permitir activar tiles externos con ?tiles=on
     const tilesParam = (this.route.snapshot.queryParamMap.get('tiles') || '').toLowerCase();
-    // Por defecto, mostrar mapa real con calles (tiles externos ON, proveedor OSM)
+    // Por defecto, desactivar tiles externos para evitar errores en redes restringidas
     if (!tilesParam) {
-      this.useExternalTiles = true;
-      this.tileProvider = 'osm';
+      this.useExternalTiles = DEFAULT_USE_EXTERNAL_TILES;
+      this.tileProvider = DEFAULT_TILE_PROVIDER;
     } else if (tilesParam === 'off' || tilesParam === 'false' || tilesParam === '0') {
       this.useExternalTiles = false;
     } else if (tilesParam === 'carto') {
@@ -81,10 +80,29 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
       return;
     }
     this.pedidoService.getPedidoById(id).subscribe({
-      next: (p) => {
+      next: async (p) => {
         this.pedido = p;
-        this.isLoading = false;
-        this.tryInit();
+        // Intentar usar direccionEntrega del pedido; si no, del cliente actual.
+        const destinoTexto = (p?.direccionEntrega || '').trim() || (this.clienteService.getCurrentCliente()?.direccion || '').trim();
+        const origen: [number, number] = [RESTAURANT_ORIGIN.lat, RESTAURANT_ORIGIN.lon];
+        try {
+          if (destinoTexto) {
+            const coords = await firstValueFrom(this.geocoding.geocodeAddress(destinoTexto));
+            const destino: [number, number] = coords ? [coords.lat, coords.lon] : [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon];
+            this.simulatedPath = this.interpolatePath(origen, destino, 10);
+          } else {
+            // Sin dirección disponible, usar destino por defecto
+            const destino: [number, number] = [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon];
+            this.simulatedPath = this.interpolatePath(origen, destino, 10);
+          }
+        } catch (e) {
+          console.warn('Fallo geocodificación, usando destino por defecto', e);
+          const destino: [number, number] = [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon];
+          this.simulatedPath = this.interpolatePath(origen, destino, 10);
+        } finally {
+          this.isLoading = false;
+          this.tryInit();
+        }
       },
       error: (err) => {
         console.error('Error cargando pedido:', err);
@@ -129,62 +147,43 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
     this.map = L.map(this.orderMapEl.nativeElement, {
       zoomControl: true,
       attributionControl: true
-    }).setView([4.653, -74.057], 14);
+    }).setView([RESTAURANT_ORIGIN.lat, RESTAURANT_ORIGIN.lon], 14);
 
     // Asegurar que el mapa calcule correctamente su tamaño al renderizar
     setTimeout(() => {
       try { this.map?.invalidateSize(); } catch {}
     }, 0);
 
-    if (this.useExternalTiles) {
-      // Selección de proveedor de tiles
-      const isCarto = this.tileProvider === 'carto';
-      const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-      const url = isCarto
-        ? (isDev ? '/carto/light_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png')
-        : (isDev ? '/osm/{z}/{x}/{y}.png' : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
-      const attribution = isCarto
-        ? '&copy; OpenStreetMap contributors &copy; CARTO'
-        : '&copy; OpenStreetMap contributors';
-      const tileLayer = L.tileLayer(url, {
-        maxZoom: 19,
-        detectRetina: true,
-        crossOrigin: true,
-        attribution
-      } as any);
-      tileLayer.addTo(this.map!);
-      // Fallback automático si los tiles fallan repetidamente (entornos con red restringida)
-      tileLayer.on('tileerror', () => {
-        this.tileErrorCount++;
-        if (this.tileErrorCount >= 4 && this.map && !this.fallbackOverlay) {
-          try { tileLayer.remove(); } catch {}
-          const bounds = this.map.getBounds();
-          this.fallbackOverlay = L.imageOverlay('assets/map-fallback.svg', bounds, { opacity: 0.45 });
-          this.fallbackOverlay.addTo(this.map);
-        }
-      });
-    }
+    this.applyTileMode();
 
     const courierIcon = L.divIcon({ className: 'pin pin-courier', html: this.svgPin('#ff3b3b'), iconSize: [24, 36], iconAnchor: [12, 36] });
     const restaurantIcon = L.divIcon({ className: 'pin pin-restaurant', html: this.svgPin('#2d8cff'), iconSize: [24, 36], iconAnchor: [12, 36] });
     const destinationIcon = L.divIcon({ className: 'pin pin-destination', html: this.svgPin('#2ecc71'), iconSize: [24, 36], iconAnchor: [12, 36] });
 
-    this.restaurantMarker = L.marker(this.simulatedPath[0], { icon: restaurantIcon }).addTo(this.map).bindPopup('Restaurante');
-    this.destinationMarker = L.marker(this.simulatedPath[this.simulatedPath.length - 1], { icon: destinationIcon }).addTo(this.map).bindPopup('Destino');
-    this.courierMarker = L.marker(this.simulatedPath[0], { icon: courierIcon }).addTo(this.map).bindPopup('Domiciliario');
+    const path: L.LatLngExpression[] = (Array.isArray(this.simulatedPath) && this.simulatedPath.length >= 1)
+      ? (this.simulatedPath as L.LatLngExpression[])
+      : [
+          [RESTAURANT_ORIGIN.lat, RESTAURANT_ORIGIN.lon] as L.LatLngTuple,
+          [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon] as L.LatLngTuple
+        ];
+
+    this.restaurantMarker = L.marker(path[0] as L.LatLngExpression, { icon: restaurantIcon }).addTo(this.map!).bindPopup('Restaurante');
+    this.destinationMarker = L.marker(path[path.length - 1] as L.LatLngExpression, { icon: destinationIcon }).addTo(this.map!).bindPopup('Destino');
+    this.courierMarker = L.marker(path[0] as L.LatLngExpression, { icon: courierIcon }).addTo(this.map!).bindPopup('Domiciliario');
   }
 
   private initRoute(): void {
-    this.routePolyline = L.polyline(this.simulatedPath as any, { color: '#fbb5b5', weight: 4 });
+    const pathForRoute: L.LatLngExpression[] = (Array.isArray(this.simulatedPath) && this.simulatedPath.length >= 2)
+      ? (this.simulatedPath as L.LatLngExpression[])
+      : [
+          [RESTAURANT_ORIGIN.lat, RESTAURANT_ORIGIN.lon] as L.LatLngTuple,
+          [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon] as L.LatLngTuple
+        ];
+    this.routePolyline = L.polyline(pathForRoute, { color: '#fbb5b5', weight: 4 });
     if (this.showRoute) {
       this.routePolyline.addTo(this.map!);
     }
     this.fitToRoute();
-    if (!this.useExternalTiles && this.map) {
-      const bounds = this.map.getBounds();
-      this.fallbackOverlay = L.imageOverlay('assets/map-fallback.svg', bounds, { opacity: 0.45 });
-      this.fallbackOverlay.addTo(this.map);
-    }
   }
 
   private startLiveTracking(): void {
@@ -212,6 +211,76 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
     this.subs.push(subLoc);
   }
 
+  private applyTileMode(): void {
+    if (!this.map) return;
+    // Limpiar capas anteriores
+    if (this.tileLayer) {
+      try { this.tileLayer.remove(); } catch {}
+      this.tileLayer = undefined;
+    }
+    if (this.fallbackOverlay) {
+      try { this.fallbackOverlay.remove(); } catch {}
+      this.fallbackOverlay = undefined;
+    }
+    this.tileErrorCount = 0;
+    this.tileStatusMessage = '';
+
+    if (this.useExternalTiles) {
+      this.tileLayer = this.createTileLayer();
+      this.tileLayer.addTo(this.map!);
+      this.tileLayer.on('tileerror', () => {
+        this.tileErrorCount++;
+        if (this.tileErrorCount >= 1) {
+          this.tileStatusMessage = 'Problema de carga de tiles. Activando mapa simplificado.';
+          this.addFallbackOverlay();
+        }
+      });
+    } else {
+      this.tileStatusMessage = 'Simplified map mode active.';
+      this.addFallbackOverlay();
+    }
+  }
+
+  private createTileLayer(): L.TileLayer {
+    const isCarto = this.tileProvider === 'carto';
+    const url = isCarto
+      ? 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const attribution = isCarto
+      ? '&copy; OpenStreetMap contributors &copy; CARTO'
+      : '&copy; OpenStreetMap contributors';
+    return L.tileLayer(url, {
+      maxZoom: 19,
+      detectRetina: false,
+      // Siempre proveer subdomains para evitar errores internos que leen .length
+      subdomains: isCarto ? 'abcd' : 'abc',
+      attribution
+    } as any);
+  }
+
+  private addFallbackOverlay(): void {
+    if (!this.map) return;
+    // Añadir un overlay simple que ocupe el área visible
+    try {
+      const bounds = this.map.getBounds();
+      this.fallbackOverlay = L.imageOverlay('assets/map-fallback.svg', bounds, { opacity: 0.45 });
+      this.fallbackOverlay.addTo(this.map);
+      // Mantener el overlay actualizado al mover/zoomear
+      this.map.on('moveend', () => {
+        if (!this.map || !this.fallbackOverlay) return;
+        try {
+          const newBounds = this.map.getBounds();
+          this.fallbackOverlay!.setBounds(newBounds);
+        } catch {}
+      });
+    } catch {}
+  }
+
+  toggleTiles(): void {
+    this.useExternalTiles = !this.useExternalTiles;
+    this.applyTileMode();
+  }
+
   private animateMarker(marker: L.Marker, to: L.LatLng, durationMs: number = 1000): void {
     const from = marker.getLatLng();
     const start = performance.now();
@@ -231,10 +300,16 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   private computeProgressLive(): void {
-    const totalSteps = this.simulatedPath.length - 1;
-    this.progressPercent = Math.min(100, Math.round((this.cursor / totalSteps) * 100));
+    const validPath: [number, number][] = (Array.isArray(this.simulatedPath) && this.simulatedPath.length >= 2)
+      ? (this.simulatedPath as [number, number][])
+      : [
+          [RESTAURANT_ORIGIN.lat, RESTAURANT_ORIGIN.lon],
+          [DEFAULT_DESTINATION.lat, DEFAULT_DESTINATION.lon]
+        ];
+    const totalSteps = validPath.length - 1;
+    this.progressPercent = Math.min(100, Math.round(totalSteps > 0 ? (this.cursor / totalSteps) * 100 : 0));
     const courierLatLng = this.courierMarker?.getLatLng();
-    const dest = this.simulatedPath[this.simulatedPath.length - 1] as [number, number];
+    const dest = validPath[validPath.length - 1] as [number, number];
     if (courierLatLng) {
       const remainingKm = this.haversineDistance([courierLatLng.lat, courierLatLng.lng], dest);
       const avgSpeedKmPerMin = 0.5; // ~30 km/h -> 0.5 km/min
@@ -257,6 +332,22 @@ export class OrderTrackingComponent implements OnInit, OnDestroy, AfterViewInit 
       Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
     return R * c;
+  }
+
+  // Interpolar una ruta simple de puntos entre origen y destino
+  private interpolatePath(
+    origen: [number, number],
+    destino: [number, number],
+    steps: number
+  ): L.LatLngExpression[] {
+    const path: [number, number][] = [];
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const lat = origen[0] + (destino[0] - origen[0]) * t;
+      const lng = origen[1] + (destino[1] - origen[1]) * t;
+      path.push([lat, lng]);
+    }
+    return path;
   }
 
   volver(): void {

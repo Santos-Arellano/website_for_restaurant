@@ -35,6 +35,7 @@
 
 .map-container {
   width: 100%;
+  min-height: 320px;
   height: 420px;
   border-radius: var(--border-radius);
   overflow: hidden;

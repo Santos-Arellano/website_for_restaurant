@@ -27,7 +27,13 @@
           <i class="fa-solid" [class.fa-eye]="showRoute" [class.fa-eye-slash]="!showRoute"></i>
           {{ showRoute ? 'Ocultar' : 'Mostrar' }} ruta
         </button>
+        <button class="btn btn-sm" (click)="toggleTiles()">
+          <i class="fa-solid" [class.fa-map]="useExternalTiles" [class.fa-image]="!useExternalTiles"></i>
+          {{ useExternalTiles ? 'Simplificar mapa' : 'Activar mapa real' }}
+        </button>
       </div>
+
+      <div class="tracking-status" *ngIf="tileStatusMessage">{{ tileStatusMessage }}</div>
     </div>
 
     <div #orderMap class="map-container" aria-label="Mapa de ruta del pedido"></div>
