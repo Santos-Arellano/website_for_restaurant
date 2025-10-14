@@ -65,5 +65,13 @@ public class OperadorServiceImpl implements OperadorService {
             throw new IllegalArgumentException("Operador con ID " + id + " no encontrado");
         }
     }
+
+    @Override
+    public Operador obtenerOperadorPorCedula(String cedula) {
+        if (cedula == null || cedula.trim().isEmpty()) {
+            throw new IllegalArgumentException("La cédula es requerida");
+        }
+        return operadorRepository.findByCedula(cedula.trim());
+    }
     
 }

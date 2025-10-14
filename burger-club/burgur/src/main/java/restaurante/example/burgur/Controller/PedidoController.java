@@ -3,6 +3,7 @@ package restaurante.example.burgur.Controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
 
@@ -46,8 +47,14 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.obtenerTodosLosPedidos());
     }
 
+    // Listar pedidos activos (no entregados ni cancelados)
+    @GetMapping("/activos")
+    public ResponseEntity<List<Pedido>> listarPedidosActivos() {
+        return ResponseEntity.ok(pedidoService.obtenerPedidosActivos());
+    }
+
     // Obtener pedido por ID
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
         try {
             Pedido pedido = pedidoService.obtenerPedidoPorId(id);
@@ -61,13 +68,31 @@ public class PedidoController {
         }
     }
 
+    // Listar pedidos por cliente
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<Pedido>> listarPedidosPorCliente(@PathVariable Long clienteId) {
+        try {
+            return ResponseEntity.ok(pedidoService.obtenerPedidosDeCliente(clienteId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     // Actualizar estado del pedido
     @PostMapping("/{id}/estado")
     public ResponseEntity<String> actualizarEstado(
             @PathVariable Long id,
-            @RequestParam String estado
+            @RequestParam String estado,
+            HttpSession session
     ) {
         Pedido pedido = pedidoService.obtenerPedidoPorId(id);
+        // Si hay un operador en sesión, asignarlo al pedido
+        Object opObj = session != null ? session.getAttribute("operador") : null;
+        if (opObj instanceof restaurante.example.burgur.Model.Operador operador) {
+            pedido.setOperador(operador);
+        }
         pedidoService.actualizarEstadoPedido(pedido, estado);
         return ResponseEntity.ok("Estado actualizado a " + estado);
     }

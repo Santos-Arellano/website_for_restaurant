@@ -20,9 +20,13 @@ public interface OperadorService {
     // ==========================================
     // MÉTODOS ESPECÍFICOS DE NEGOCIO
     // ==========================================
+    // Obtener operadores disponibles
     public List<Operador> obtenerOperadoresDisponibles();
     public long countTotal();
     public void cambiarDisponibilidad(Long id, boolean disponible);
+
+    // Buscar por cédula (para login básico)
+    public Operador obtenerOperadorPorCedula(String cedula);
 
 
 }
