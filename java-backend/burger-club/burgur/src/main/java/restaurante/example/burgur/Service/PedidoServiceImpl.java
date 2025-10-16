@@ -129,10 +129,20 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoRepository.findAll();
     }
 
-    // Métodos adicionales como obtenerPedidosActivos() y obtenerPedidosDeCliente()
-    // no están definidos en la interfaz PedidoService de este proyecto.
-    // Se eliminan para evitar errores de compilación. Si se requieren,
-    // deben añadirse primero a la interfaz y al PedidoRepository.
+    // Obtener pedidos activos (no entregados ni cancelados)
+    @Override
+    public List<Pedido> obtenerPedidosActivos() {
+        return pedidoRepository.findActivos();
+    }
+
+    // Obtener pedidos por cliente
+    @Override
+    public List<Pedido> obtenerPedidosDeCliente(Long clienteId) {
+        if (clienteId == null || clienteId <= 0) {
+            throw new IllegalArgumentException("El ID del cliente no puede ser null o menor o igual a cero.");
+        }
+        return pedidoRepository.findByCarritoClienteId(clienteId);
+    }
 
     //Obtener Pedido por ID
     @Override

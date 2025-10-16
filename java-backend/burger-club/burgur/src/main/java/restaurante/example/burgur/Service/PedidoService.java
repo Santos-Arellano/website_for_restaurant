@@ -30,6 +30,12 @@ public interface PedidoService {
     //Obtener todos los Pedidos
     List<Pedido> obtenerTodosLosPedidos();
 
+    //Obtener pedidos activos (no entregados ni cancelados)
+    List<Pedido> obtenerPedidosActivos();
+
+    //Obtener pedidos por cliente
+    List<Pedido> obtenerPedidosDeCliente(Long clienteId);
+
     // //Eliminar Pedido por ID
     // void eliminarPedido(Long id);
 
