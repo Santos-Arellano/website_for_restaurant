@@ -36,6 +36,9 @@ public interface PedidoService {
     //Obtener pedidos de un cliente
     List<Pedido> obtenerPedidosDeCliente(Long clienteId);
 
+    //Asignar domiciliario a un pedido
+    Pedido asignarDomiciliario(Long pedidoId, Long domiciliarioId);
+
     // //Eliminar Pedido por ID
     // void eliminarPedido(Long id);
 

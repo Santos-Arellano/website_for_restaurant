@@ -58,7 +58,7 @@ public class PedidoServiceImpl implements PedidoService {
         Pedido nuevoPedido = new Pedido();
         nuevoPedido.setFechaCreacion(LocalDateTime.now());
         nuevoPedido.setFechaEntrega(null);
-        nuevoPedido.setEstado("Cocinando");
+        nuevoPedido.setEstado("Recibido");
         nuevoPedido.setCarrito(carrito);
         // Se le asignan null a domiciliario y operador, ya que se asignarán posteriormente
         nuevoPedido.setOperador(null);
@@ -82,11 +82,14 @@ public class PedidoServiceImpl implements PedidoService {
         if (nuevoEstado == null || nuevoEstado.isEmpty()) {
             throw new IllegalArgumentException("El nuevo estado no puede ser null o vacío.");
         }
+        // Normalizar estado
+        String estadoUpper = nuevoEstado.trim().toUpperCase();
+        // Validar estados permitidos
+        if (!(estadoUpper.equals("RECIBIDO") || estadoUpper.equals("COCINANDO") || estadoUpper.equals("ENVIADO") || estadoUpper.equals("ENTREGADO") || estadoUpper.equals("CANCELADO"))) {
+            throw new IllegalArgumentException("Estado inválido. Permitidos: Recibido, Cocinando, Enviado, Entregado, Cancelado.");
+        }
         // 2) Actualizar estado del pedido
         pedido.setEstado(nuevoEstado);
-
-        // Normalizar estado para comparaciones
-        String estadoUpper = nuevoEstado.trim().toUpperCase();
 
         // Si el nuevo estado es "ENTREGADO", se actualiza la fecha de entrega y se libera el domiciliario
         if (estadoUpper.equals("ENTREGADO")) {
@@ -97,22 +100,7 @@ public class PedidoServiceImpl implements PedidoService {
                 domiciliarioService.save(dom);
             }
         }
-
-        // Si el estado es "ENVIADO" o "EN_CAMINO", asignar un domiciliario disponible si no tiene
-        if (estadoUpper.equals("ENVIADO") || estadoUpper.equals("EN_CAMINO")) {
-            if (pedido.getDomiciliario() == null) {
-                List<Domiciliario> disponibles = domiciliarioService.obtenerDomiciliariosDisponibles();
-                if (disponibles == null || disponibles.isEmpty()) {
-                    throw new IllegalStateException("No hay domiciliarios disponibles para asignar.");
-                }
-                Domiciliario asignado = disponibles.get(0);
-                asignado.setDisponible(false);
-                domiciliarioService.save(asignado);
-                pedido.setDomiciliario(asignado);
-            }
-        }
-
-        // Si el estado es "CANCELADO", liberar domiciliario si estaba asignado
+        // Liberar domiciliario si se cancela el pedido
         if (estadoUpper.equals("CANCELADO")) {
             Domiciliario dom = pedido.getDomiciliario();
             if (dom != null) {
@@ -120,9 +108,9 @@ public class PedidoServiceImpl implements PedidoService {
                 domiciliarioService.save(dom);
             }
         }
+        // Nota: En estado "ENVIADO" NO auto-asignamos domiciliario, se hace por endpoint dedicado
 
         pedidoRepository.save(pedido);
-
     }
 
     @Override
@@ -161,7 +149,29 @@ public class PedidoServiceImpl implements PedidoService {
         // Devuelve lista vacía si no hay datos; el controller decide el status
         return pedidoRepository.findAll();
     }
-
-
-
+    @Override
+    public Pedido asignarDomiciliario(Long pedidoId, Long domiciliarioId) {
+        if (pedidoId == null || pedidoId <= 0) {
+            throw new IllegalArgumentException("El ID del pedido no es válido.");
+        }
+        if (domiciliarioId == null || domiciliarioId <= 0) {
+            throw new IllegalArgumentException("El ID del domiciliario no es válido.");
+        }
+        Pedido pedido = obtenerPedidoPorId(pedidoId);
+        String estadoUpper = pedido.getEstado() != null ? pedido.getEstado().trim().toUpperCase() : "";
+        if (!estadoUpper.equals("ENVIADO")) {
+            throw new IllegalStateException("Solo se puede asignar domiciliario cuando el pedido está en estado 'Enviado'.");
+        }
+        Domiciliario dom = domiciliarioService.obtenerDomiciliarioPorId(domiciliarioId);
+        if (dom == null) {
+            throw new IllegalArgumentException("El domiciliario no existe.");
+        }
+        if (!dom.isDisponible()) {
+            throw new IllegalStateException("El domiciliario no está disponible.");
+        }
+        dom.setDisponible(false);
+        domiciliarioService.save(dom);
+        pedido.setDomiciliario(dom);
+        return pedidoRepository.save(pedido);
+    }
 }

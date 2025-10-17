@@ -96,4 +96,20 @@ public class PedidoController {
         pedidoService.actualizarEstadoPedido(pedido, estado);
         return ResponseEntity.ok("Estado actualizado a " + estado);
     }
+
+    // Asignar domiciliario al pedido (solo cuando estado es ENVIADO)
+    @PostMapping("/{id}/domiciliario")
+    public ResponseEntity<Pedido> asignarDomiciliario(
+            @PathVariable Long id,
+            @RequestParam Long domiciliarioId
+    ) {
+        try {
+            Pedido actualizado = pedidoService.asignarDomiciliario(id, domiciliarioId);
+            return ResponseEntity.ok(actualizado);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
