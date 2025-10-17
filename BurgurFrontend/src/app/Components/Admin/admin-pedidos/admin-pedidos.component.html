@@ -1,0 +1,206 @@
+<section class="admin-pedidos-section">
+  <div class="container">
+    <div class="admin-header">
+      <h1 class="admin-title">Pedidos (Admin)</h1>
+      <p class="admin-subtitle">Ver, actualizar estados y asignar domiciliarios</p>
+    </div>
+
+    <!-- NUEVO: Tarjetas de resumen de estados -->
+    <div class="admin-stats">
+      <div class="stat-card"
+           role="button"
+           tabindex="0"
+           [class.active]="filtroEstado === EstadoPedido.PENDIENTE"
+           (click)="toggleFiltroEstado(EstadoPedido.PENDIENTE)"
+           (keyup.enter)="toggleFiltroEstado(EstadoPedido.PENDIENTE)"
+           title="Filtrar: Pendientes">
+        <div class="stat-icon pending"><i class="fas fa-hourglass-half"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ countByEstado(EstadoPedido.PENDIENTE) }}</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+      </div>
+      <div class="stat-card"
+           role="button"
+           tabindex="0"
+           [class.active]="filtroEstado === EstadoPedido.EN_PREPARACION"
+           (click)="toggleFiltroEstado(EstadoPedido.EN_PREPARACION)"
+           (keyup.enter)="toggleFiltroEstado(EstadoPedido.EN_PREPARACION)"
+           title="Filtrar: En preparación">
+        <div class="stat-icon preparacion"><i class="fas fa-fire"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ countByEstado(EstadoPedido.EN_PREPARACION) }}</div>
+          <div class="stat-label">En preparación</div>
+        </div>
+      </div>
+      <div class="stat-card"
+           role="button"
+           tabindex="0"
+           [class.active]="filtroEstado === EstadoPedido.EN_CAMINO"
+           (click)="toggleFiltroEstado(EstadoPedido.EN_CAMINO)"
+           (keyup.enter)="toggleFiltroEstado(EstadoPedido.EN_CAMINO)"
+           title="Filtrar: En camino">
+        <div class="stat-icon camino"><i class="fas fa-motorcycle"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ countByEstado(EstadoPedido.EN_CAMINO) }}</div>
+          <div class="stat-label">En camino</div>
+        </div>
+      </div>
+      <div class="stat-card"
+           role="button"
+           tabindex="0"
+           [class.active]="filtroEstado === EstadoPedido.ENTREGADO"
+           (click)="toggleFiltroEstado(EstadoPedido.ENTREGADO)"
+           (keyup.enter)="toggleFiltroEstado(EstadoPedido.ENTREGADO)"
+           title="Filtrar: Entregados">
+        <div class="stat-icon entregado"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{ countByEstado(EstadoPedido.ENTREGADO) }}</div>
+          <div class="stat-label">Entregados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls search-bar">
+      <button class="btn-refresh" (click)="cargarPedidos()" [disabled]="loading">{{ loading ? 'Cargando...' : 'Refrescar' }}</button>
+    </div>
+
+    <div class="table-wrapper" *ngIf="pedidosFiltrados().length; else empty">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Estado</th>
+            <th>Creación</th>
+            <th>Entrega</th>
+            <th>Dirección</th>
+            <th>Total</th>
+            <th>Detalle</th>
+            <th>Domiciliario</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of pedidosFiltrados(); trackBy: trackByPedidoId">
+            <td>{{ p.id }}</td>
+            <td>{{ clienteNombre(p.clienteId) }}</td>
+            <td><span class="estado-label" [ngClass]="estadoClass(p.estado)">{{ p.estado }}</span></td>
+            <td>{{ p.fechaCreacion | date:'short' }}</td>
+            <td>{{ p.fechaEntrega ? (p.fechaEntrega | date:'short') : '-' }}</td>
+            <td>{{ p.direccionEntrega }}</td>
+            <td>{{ p.precioTotal | currency:'COP':'symbol-narrow' }}</td>
+            <td>
+              <button type="button" class="btn-detalle" (click)="abrirDetallePedido(p)" title="Ver detalle del pedido">
+                <i class="fas fa-eye" aria-hidden="true"></i> Ver
+              </button>
+            </td>
+            <td>
+              <ng-container *ngIf="p.estado === EstadoPedido.EN_CAMINO; else domInfo">
+                <div class="dom-assign">
+                  <div class="dom-select-group">
+                    <i class="fas fa-motorcycle dom-icon" aria-hidden="true"></i>
+                    <select class="dom-select" [(ngModel)]="domSeleccionado[p.id]" [disabled]="accionEnProgreso[p.id]" aria-label="Seleccionar domiciliario">
+                      <option [ngValue]="undefined">Selecciona</option>
+                      <option *ngFor="let d of domDisponibles" [ngValue]="d.id">{{ d.nombre }} (ID {{ d.id }})</option>
+                    </select>
+                    <span class="dom-caret" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                  </div>
+                  <button class="btn-asignar" (click)="asignarDomiciliario(p)" [disabled]="accionEnProgreso[p.id] || !domSeleccionado[p.id]">
+                    <i class="fas fa-user-check" aria-hidden="true"></i> Asignar
+                  </button>
+                </div>
+              </ng-container>
+              <ng-template #domInfo>
+                <span class="dom-info-label"><i class="fas fa-motorcycle" aria-hidden="true"></i> {{ domNombre(p.domiciliarioId) }}</span>
+              </ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="p.estado !== EstadoPedido.ENTREGADO; else accionesEntregado">
+                <div class="acciones">
+                  <button class="btn-recibido" (click)="cambiarEstado(p, EstadoPedido.PENDIENTE)" [disabled]="accionEnProgreso[p.id]" [class.active]="p.estado === EstadoPedido.PENDIENTE" title="Marcar como Recibido">
+                    <i class="fas fa-clock"></i> Recibido
+                  </button>
+                  <button class="btn-cocinando" (click)="cambiarEstado(p, EstadoPedido.EN_PREPARACION)" [disabled]="accionEnProgreso[p.id]" [class.active]="p.estado === EstadoPedido.EN_PREPARACION" title="Marcar como Cocinando">
+                    <i class="fas fa-fire"></i> Cocinando
+                  </button>
+                  <button class="btn-enviado" (click)="cambiarEstado(p, EstadoPedido.EN_CAMINO)" [disabled]="accionEnProgreso[p.id]" [class.active]="p.estado === EstadoPedido.EN_CAMINO" title="Marcar como Enviado">
+                    <i class="fas fa-motorcycle"></i> Enviado
+                  </button>
+                  <button class="btn-entregado" (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)" [disabled]="accionEnProgreso[p.id]" title="Marcar como Entregado">
+                    <i class="fas fa-check-circle"></i> Entregado
+                  </button>
+                </div>
+              </ng-container>
+              <ng-template #accionesEntregado>
+                <span class="acciones-entregado" aria-label="Pedido entregado">
+                  <i class="fas fa-check-circle" aria-hidden="true"></i> Entregado
+                </span>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #empty>
+      <div class="empty">No hay pedidos</div>
+    </ng-template>
+    <!-- Modal Detalle Pedido (Admin) -->
+    <div class="modal-overlay" *ngIf="detalleVisible" (click)="cerrarDetallePedido()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <i class="fas fa-receipt"></i>
+            Pedido #{{ pedidoSeleccionado?.id }}
+          </h3>
+          <button type="button" class="modal-close" (click)="cerrarDetallePedido()" aria-label="Cerrar">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="modal-subheader">
+          <span class="cliente"><i class="fas fa-user"></i> {{ pedidoSeleccionado?.clienteId ? clienteNombre(pedidoSeleccionado?.clienteId) : '—' }}</span>
+          <span class="estado" [ngClass]="estadoClass(pedidoSeleccionado?.estado)"><i class="fas fa-info-circle"></i> {{ pedidoSeleccionado?.estado }}</span>
+          <span class="fecha"><i class="fas fa-clock"></i> {{ pedidoSeleccionado?.fechaCreacion | date:'short' }}</span>
+        </div>
+        <div class="items-table-wrapper">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of (pedidoSeleccionado?.productos || [])">
+                <td>
+                  {{ item.productoNombre || ('#' + item.productoId) }}
+                  <div class="adicionales-list" *ngIf="item.adicionales?.length">
+                    <div class="adicional-line" *ngFor="let a of item.adicionales">
+                      <small>
+                        + {{ getNombreAdicional(a.adicionalId) }} ({{ formatearPrecio(a.precioUnitario) }})
+                      </small>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ formatearPrecio(item.precioUnitario) }}</td>
+                <td>{{ formatearPrecio(item.precioUnitario * item.cantidad) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-actions">
+          <div class="total">
+            Total: <strong>{{ formatearPrecio(calcularTotalPedidoSeleccionado()) }}</strong>
+          </div>
+          <button type="button" class="btn-primary" (click)="cerrarDetallePedido()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

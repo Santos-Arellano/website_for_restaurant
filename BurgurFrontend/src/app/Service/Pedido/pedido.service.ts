@@ -441,7 +441,8 @@ export class PedidoService {
 
   // Actualizar estado del pedido (para administración)
   updateEstadoPedido(id: number, estado: EstadoPedido): Observable<Pedido> {
-    const params = new HttpParams().set('estado', estado);
+    const backendEstado = this.mapEstadoToBackend(estado);
+    const params = new HttpParams().set('estado', backendEstado);
     return this.http.post(`${this.pedidosApiUrl}/${id}/estado`, null, {
       params,
       withCredentials: true,
@@ -467,20 +468,45 @@ export class PedidoService {
     );
   }
 
+  private mapEstadoToBackend(e: EstadoPedido): string {
+    switch (e) {
+      case EstadoPedido.PENDIENTE:
+        return 'Recibido';
+      case EstadoPedido.EN_PREPARACION:
+        return 'Cocinando';
+      case EstadoPedido.EN_CAMINO:
+        return 'Enviado';
+      case EstadoPedido.ENTREGADO:
+        return 'Entregado';
+      case EstadoPedido.CANCELADO:
+        return 'Cancelado';
+      default:
+        return 'Recibido';
+    }
+  }
   // Asignar domiciliario al pedido (para administración)
   asignarDomiciliario(pedidoId: number, domiciliarioId: number): Observable<Pedido> {
-    const pedidoActualizado: Pedido = {
-      id: pedidoId,
-      fechaCreacion: new Date(),
-      estado: EstadoPedido.EN_CAMINO,
-      precioTotal: 0,
-      clienteId: 0,
-      domiciliarioId,
-      productos: [],
-      direccionEntrega: '',
-      metodoPago: MetodoPago.EFECTIVO
-    };
-    return of(pedidoActualizado);
+    const params = new HttpParams().set('domiciliarioId', String(domiciliarioId));
+    return this.http.post<any>(`${this.pedidosApiUrl}/${pedidoId}/domiciliario`, null, {
+      params,
+      withCredentials: true
+    }).pipe(
+      map((apiPedido) => this.mapPedidoFromApi(apiPedido)),
+      tap((pedidoActualizado) => {
+        // Actualizar la lista en memoria si existe
+        const current = this.pedidosSubject.value || [];
+        const idx = current.findIndex(p => p.id === pedidoActualizado.id);
+        if (idx !== -1) {
+          const next = current.slice();
+          next[idx] = pedidoActualizado;
+          this.pedidosSubject.next(next);
+        }
+      }),
+      catchError((error) => {
+        this.logHttpError(`asignarDomiciliario(${pedidoId}, ${domiciliarioId})`, error);
+        throw error;
+      })
+    );
   }
 
   // Cancelar pedido (para administración)
@@ -615,12 +641,9 @@ export class PedidoService {
   // Normaliza y mapea pedido desde API backend a modelo frontend
   private mapPedidoFromApi(apiPedido: any): Pedido {
     const estadoMap: Record<string, EstadoPedido> = {
+      'RECIBIDO': EstadoPedido.PENDIENTE,
       'COCINANDO': EstadoPedido.EN_PREPARACION,
-      'EN_PREPARACION': EstadoPedido.EN_PREPARACION,
-      'PENDIENTE': EstadoPedido.PENDIENTE,
-      'CONFIRMADO': EstadoPedido.CONFIRMADO,
-      'LISTO': EstadoPedido.LISTO,
-      'EN_CAMINO': EstadoPedido.EN_CAMINO,
+      'ENVIADO': EstadoPedido.EN_CAMINO,
       'ENTREGADO': EstadoPedido.ENTREGADO,
       'CANCELADO': EstadoPedido.CANCELADO
     };

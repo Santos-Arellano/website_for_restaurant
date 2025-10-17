@@ -15,22 +15,31 @@
 
   <div class="lista-pedidos" *ngIf="pedidosFiltrados().length; else empty">
     <div class="pedido-card" *ngFor="let p of pedidosFiltrados()">
+      <div class="card-loading" *ngIf="accionEnProgreso[p.id]"><span class="spinner"></span> Procesando...</div>
       <div class="pedido-info">
         <div>
           <div class="pedido-id">Pedido #{{ p.id }}</div>
-          <div class="pedido-cliente">Cliente: {{ p.clienteId }}</div>
+          <div class="pedido-cliente">Cliente: {{ clienteNombre(p.clienteId) }}</div>
           <div class="pedido-direccion">Entrega: {{ p.direccionEntrega }}</div>
+          <div class="pedido-domiciliario" *ngIf="p.domiciliarioId">Domiciliario: {{ domNombre(p.domiciliarioId) }}</div>
         </div>
         <div class="pedido-estado">Estado: <strong>{{ p.estado }}</strong></div>
       </div>
 
       <div class="acciones">
-        <button (click)="cambiarEstado(p, EstadoPedido.CONFIRMADO)">Confirmar</button>
-        <button (click)="cambiarEstado(p, EstadoPedido.EN_PREPARACION)">Preparar</button>
-        <button (click)="cambiarEstado(p, EstadoPedido.LISTO)">Listo</button>
-        <button (click)="cambiarEstado(p, EstadoPedido.EN_CAMINO)">En Camino</button>
-        <button (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)">Entregado</button>
-        <button class="btn-cancel" (click)="cambiarEstado(p, EstadoPedido.CANCELADO)">Cancelar</button>
+        <button class="btn-recibido" (click)="cambiarEstado(p, EstadoPedido.PENDIENTE)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Recibido</button>
+        <button class="btn-cocinando" (click)="cambiarEstado(p, EstadoPedido.EN_PREPARACION)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Cocinando</button>
+        <button class="btn-enviado" (click)="cambiarEstado(p, EstadoPedido.EN_CAMINO)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Enviado</button>
+        <button class="btn-entregado" (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Entregado</button>
+      </div>
+
+      <div class="asignar-domi" *ngIf="p.estado === EstadoPedido.EN_CAMINO">
+        <label>Domiciliario:</label>
+        <select [(ngModel)]="domSeleccionado[p.id]" [disabled]="accionEnProgreso[p.id]">
+          <option [ngValue]="undefined">Selecciona</option>
+          <option *ngFor="let d of domDisponibles" [ngValue]="d.id">{{ d.nombre }} (ID {{ d.id }})</option>
+        </select>
+        <button (click)="asignarDomiciliario(p)" [disabled]="accionEnProgreso[p.id] || !domSeleccionado[p.id]">Asignar domiciliario</button>
       </div>
     </div>
   </div>

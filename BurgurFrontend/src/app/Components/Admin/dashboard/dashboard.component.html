@@ -6,6 +6,13 @@
       <h1 class="dashboard-title">Panel de Administración</h1>
       <p class="dashboard-subtitle">Gestiona tu restaurante desde un solo lugar</p>
     </div>
+    
+    <!-- Enlaces sutiles del sitio -->
+    <div class="subtle-links">
+      <span class="subtle-label"><i class="fas fa-link"></i> Enlaces del sitio:</span>
+      <a routerLink="/" class="subtle-link"><i class="fas fa-home"></i> Inicio</a>
+      <a routerLink="/menu" class="subtle-link"><i class="fas fa-utensils"></i> Menú</a>
+    </div>
 
     <!-- Estadísticas principales -->
     <div class="stats-grid">
@@ -59,6 +66,11 @@
       <a routerLink="/admin/operadores" class="action-btn">
         <i class="fas fa-headset"></i>
         <span>Gestionar Operadores</span>
+      </a>
+      
+      <a routerLink="/admin/pedidos" class="action-btn">
+        <i class="fas fa-receipt"></i>
+        <span>Gestionar Pedidos</span>
       </a>
       
       <a routerLink="/admin/operadores" class="action-btn">
@@ -148,6 +160,120 @@
           </div>
         </div>
       </div>
+    <!-- Resumen de Pedidos -->
+    <div class="orders-summary">
+      <div class="summary-card total">
+        <i class="fas fa-receipt"></i>
+        <div class="summary-value">{{ totalPedidos || 0 }}</div>
+        <div class="summary-label">Pedidos Totales</div>
+      </div>
+      <div class="summary-card pendientes">
+        <i class="fas fa-clock"></i>
+        <div class="summary-value">{{ pedidosPendientes || 0 }}</div>
+        <div class="summary-label">Pendientes</div>
+      </div>
+      <div class="summary-card ventas">
+        <i class="fas fa-dollar-sign"></i>
+        <div class="summary-value">{{ formatearPrecio(ventasHoy || 0) }}</div>
+        <div class="summary-label">Ventas Hoy</div>
+      </div>
+    </div>
+
+    <!-- Pedidos Recientes -->
+    <div class="recent-orders">
+      <h3><i class="fas fa-list"></i> Pedidos Recientes</h3>
+      <div class="table-wrapper">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of pedidosRecientes">
+              <td>#{{ p.id }}</td>
+              <td>{{ getNombreCliente(p.clienteId) }}</td>
+              <td>{{ formatearPrecio(p.precioTotal) }}</td>
+              <td>
+                <span class="estado-badge" [ngClass]="estadoClase(p.estado)">{{ p.estado | titlecase }}</span>
+              </td>
+              <td>{{ formatearFecha(p.fechaCreacion) }}</td>
+              <td>
+                <button type="button" class="btn-detalle" (click)="abrirDetallePedido(p)">
+                  <i class="fas fa-eye"></i>
+                  Ver
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Productos -->
+    <div class="top-products">
+      <h3><i class="fas fa-chart-line"></i> Productos más vendidos</h3>
+      <ul class="top-products-list">
+        <li class="top-product-item" *ngFor="let t of topProductos; let i = index">
+          <span class="rank-chip">{{ i + 1 }}</span>
+          <span class="product-name">{{ t.nombre }}</span>
+          <span class="product-sales">{{ t.ventas }} ventas</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Modal Detalle Pedido -->
+    <div class="modal-overlay" *ngIf="detalleVisible" (click)="cerrarDetallePedido()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <i class="fas fa-receipt"></i>
+            Pedido #{{ selectedPedido?.id }}
+          </h3>
+          <button type="button" class="modal-close" (click)="cerrarDetallePedido()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-subheader">
+          <span class="cliente"><i class="fas fa-user"></i> {{ selectedPedido?.clienteId ? getNombreCliente(selectedPedido?.clienteId) : '—' }}</span>
+          <span class="estado"><i class="fas fa-info-circle"></i> {{ selectedPedido?.estado | titlecase }}</span>
+          <span class="fecha"><i class="fas fa-clock"></i> {{ selectedPedido?.fechaCreacion ? formatearFecha(selectedPedido?.fechaCreacion) : '—' }}</span>
+        </div>
+        <div class="items-table-wrapper">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedDetalleItems">
+                <td>{{ item.producto }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ formatearPrecio(item.precio) }}</td>
+                <td>{{ formatearPrecio(item.precio * item.cantidad) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-actions">
+          <div class="total">
+            Total: <strong>{{ formatearPrecio(calcularTotalPedido(selectedDetalleItems)) }}</strong>
+          </div>
+          <button type="button" class="btn-primary" (click)="cerrarDetallePedido()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </main>
