@@ -29,7 +29,6 @@ public class Pedido {
 
     //2). Relación Pedido - Domiciliario (Muchos a 1)
     @ManyToOne
-    @JsonIgnore
     private Domiciliario domiciliario;
 
     //3). Relación Pedido - Operador (Muchos a 1)
@@ -73,7 +72,7 @@ public class Pedido {
     public void setEstado(String estado) {
         this.estado = estado;
     }
-    
+
     public Carrito getCarrito() {
         return carrito;
     }
@@ -98,8 +97,4 @@ public class Pedido {
         this.operador = operador;
     }
 
-    
-
-
-    
 }

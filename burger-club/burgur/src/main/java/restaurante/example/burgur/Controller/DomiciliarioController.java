@@ -55,6 +55,10 @@ public class DomiciliarioController {
                 request.getCedula(),
                 request.getDisponible() != null ? request.getDisponible() : true
             );
+            // Nuevos campos
+            domiciliario.setTelefono(request.getTelefono());
+            domiciliario.setVehiculo(request.getVehiculo());
+            domiciliario.setPlaca(request.getPlaca());
             
             Domiciliario creado = domiciliarioService.save(domiciliario);
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
@@ -77,6 +81,10 @@ public class DomiciliarioController {
             if (request.getDisponible() != null) {
                 domiciliario.setDisponible(request.getDisponible());
             }
+            // Actualizar nuevos campos
+            domiciliario.setTelefono(request.getTelefono());
+            domiciliario.setVehiculo(request.getVehiculo());
+            domiciliario.setPlaca(request.getPlaca());
             
             Domiciliario actualizado = domiciliarioService.save(domiciliario);
             return ResponseEntity.ok(actualizado);
@@ -125,5 +133,9 @@ public class DomiciliarioController {
         private String nombre;
         private String cedula;
         private Boolean disponible;
+        // Nuevos campos
+        private String telefono;
+        private String vehiculo;
+        private String placa;
     }
 }

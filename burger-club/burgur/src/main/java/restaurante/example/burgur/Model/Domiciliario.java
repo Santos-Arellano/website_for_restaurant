@@ -19,6 +19,10 @@ public class Domiciliario {
     private String nombre;
     private String cedula;
     private boolean disponible;
+    // Nuevos campos
+    private String telefono;
+    private String vehiculo;
+    private String placa;
 
     //Relaciones BDD
     //1). Relación Domiciliario - Operador (Muchos a 1)
@@ -28,6 +32,7 @@ public class Domiciliario {
 
     //2). Relación Pedido - Domiciliario (Many a 1)
     @OneToMany(mappedBy = "domiciliario")
+    @JsonIgnore
     private List<Pedido> pedidos = new ArrayList<>();
 
     // Constructor vacío
@@ -74,6 +79,30 @@ public class Domiciliario {
         this.disponible = disponible;
     }
 
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getVehiculo() {
+        return vehiculo;
+    }
+
+    public void setVehiculo(String vehiculo) {
+        this.vehiculo = vehiculo;
+    }
+
+    public String getPlaca() {
+        return placa;
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
+    }
+
     public Operador getOperador() {
         return operador;
     }
@@ -82,7 +111,4 @@ public class Domiciliario {
         this.operador = operador;
     }
 
-
-    
-    
 }
