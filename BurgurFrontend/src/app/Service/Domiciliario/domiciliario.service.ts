@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { Domiciliario } from '../../Model/Domiciliario/domiciliario';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -168,20 +168,41 @@ export class DomiciliarioService {
     });
   }
 
-  // Alternar estado activo del domiciliario
+  // Alternar disponibilidad del domiciliario en backend
   toggleDomiciliarioStatus(id: number): Observable<Domiciliario> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      const index = domiciliarios.findIndex((d: Domiciliario) => d.id === id);
-      if (index !== -1) {
-        domiciliarios[index].activo = !domiciliarios[index].activo;
-        this.saveDomiciliariosToStorage(domiciliarios);
-        observer.next(domiciliarios[index]);
-      } else {
-        observer.error('Domiciliario no encontrado');
-      }
-      observer.complete();
-    });
+    return this.getDomiciliarioById(id).pipe(
+      switchMap((dom) => {
+        if (!dom) {
+          throw new Error('Domiciliario no encontrado');
+        }
+        const payload = {
+          nombre: dom.nombre,
+          cedula: dom.cedula,
+          disponible: !dom.disponible,
+          telefono: dom.telefono ?? undefined,
+          vehiculo: dom.vehiculo ?? undefined,
+          placa: dom.placa ?? undefined
+        };
+        return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true }).pipe(
+          map((d: any) => ({
+            id: d.id,
+            nombre: d.nombre,
+            cedula: d.cedula,
+            telefono: d.telefono ?? '',
+            vehiculo: d.vehiculo ?? '',
+            placa: d.placa ?? '',
+            activo: typeof d.activo === 'boolean' ? d.activo : true,
+            disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
+            fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+            pedidosEntregados: d.pedidosEntregados ?? 0,
+            pedidos: d.pedidos ?? []
+          } as Domiciliario)),
+          tap(() => {
+            this.getDomiciliarios().subscribe();
+          })
+        );
+      })
+    );
   }
 
   // Buscar domiciliarios por término
@@ -223,24 +244,21 @@ export class DomiciliarioService {
     );
   }
 
-  // Obtener estadísticas de domiciliarios
+  // Estadísticas básicas
   getEstadisticas(): Observable<{
     totalDomiciliarios: number,
     domiciliariosActivos: number,
     domiciliariosDisponibles: number,
     totalEntregas: number
   }> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      const stats = {
-        totalDomiciliarios: domiciliarios.length,
-        domiciliariosActivos: domiciliarios.filter((d: Domiciliario) => d.activo).length,
-        domiciliariosDisponibles: domiciliarios.filter((d: Domiciliario) => d.activo && d.disponible).length,
-        totalEntregas: domiciliarios.reduce((total: number, d: Domiciliario) => total + d.pedidosEntregados, 0)
-      };
-      observer.next(stats);
-      observer.complete();
-    });
+    return this.getDomiciliarios().pipe(
+      map((doms) => ({
+        totalDomiciliarios: doms.length,
+        domiciliariosActivos: doms.filter(d => d.activo).length,
+        domiciliariosDisponibles: doms.filter(d => d.disponible).length,
+        totalEntregas: doms.reduce((acc, d) => acc + (d.pedidosEntregados || 0), 0)
+      }))
+    );
   }
 
   // Obtener datos mock de domiciliarios
