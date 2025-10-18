@@ -151,6 +151,66 @@ export class AdminPedidosComponent implements OnInit {
       this.toast.warning('No puedes cambiar el estado de un pedido entregado');
       return;
     }
+    // Validar domiciliario antes de enviar
+    if (estado === EstadoPedido.EN_CAMINO) {
+      const domId = this.domSeleccionado[pedido.id] || pedido.domiciliarioId;
+      if (!domId) {
+        this.toast.warning('Selecciona un domiciliario antes de marcar como Enviado');
+        return;
+      }
+      this.accionEnProgreso[pedido.id] = true;
+      // Primero actualizar a Enviado y luego asignar si hacía falta
+      this.pedidoService.updateEstadoPedido(pedido.id!, estado).subscribe({
+        next: (pedidoActualizado) => {
+           if (pedidoActualizado.estado !== EstadoPedido.EN_CAMINO) {
+             this.toast.warning('No se pudo cambiar a Enviado. Intenta de nuevo.');
+             this.accionEnProgreso[pedido.id] = false;
+             return;
+           }
+           if (!pedidoActualizado.domiciliarioId && domId) {
+             this.domiciliarioService.getDomiciliariosDisponibles().subscribe({
+               next: (disponibles) => {
+                 const estaDisponible = (disponibles || []).some(d => d.id === domId);
+                 if (!estaDisponible) {
+                   this.toast.warning('El domiciliario seleccionado no está disponible. Elige otro.');
+                   this.cargarDomiciliarios();
+                   delete this.domSeleccionado[pedido.id];
+                   this.accionEnProgreso[pedido.id] = false;
+                   return;
+                 }
+                 this.pedidoService.asignarDomiciliario(pedido.id!, domId).subscribe({
+                   next: () => {
+                     this.toast.success(`Pedido ${pedido.id} Enviado y domiciliario asignado`);
+                     this.cargarPedidos();
+                     this.cargarDomiciliarios();
+                     this.accionEnProgreso[pedido.id] = false;
+                   },
+                   error: (err) => {
+                     const msg = typeof err?.error === 'string' ? err.error : 'Pedido Enviado pero fallo al asignar domiciliario';
+                     this.toast.error(msg);
+                     this.cargarPedidos();
+                     this.accionEnProgreso[pedido.id] = false;
+                   }
+                 });
+               },
+               error: () => {
+                 this.toast.error('No se pudo verificar disponibilidad del domiciliario');
+                 this.accionEnProgreso[pedido.id] = false;
+               }
+             });
+           } else {
+            this.toast.success(`Estado del pedido ${pedido.id} actualizado a ${estado}`);
+            this.cargarPedidos();
+            this.accionEnProgreso[pedido.id] = false;
+          }
+        },
+        error: () => {
+          this.toast.error('Error al actualizar estado del pedido');
+          this.accionEnProgreso[pedido.id] = false;
+        }
+      });
+      return;
+    }
     this.accionEnProgreso[pedido.id] = true;
     this.pedidoService.updateEstadoPedido(pedido.id!, estado).subscribe({
       next: () => {
@@ -176,15 +236,33 @@ export class AdminPedidosComponent implements OnInit {
       return;
     }
     this.accionEnProgreso[pedido.id] = true;
-    this.pedidoService.asignarDomiciliario(pedido.id, domId).subscribe({
-      next: () => {
-        this.toast.success(`Domiciliario ${domId} asignado al pedido ${pedido.id}`);
-        this.cargarPedidos();
-        this.cargarDomiciliarios();
-        this.accionEnProgreso[pedido.id] = false;
+    // Verificar disponibilidad en backend antes de asignar
+    this.domiciliarioService.getDomiciliariosDisponibles().subscribe({
+      next: (disponibles) => {
+        const estaDisponible = (disponibles || []).some(d => d.id === domId);
+        if (!estaDisponible) {
+          this.toast.warning('El domiciliario seleccionado no está disponible. Elige otro.');
+          this.cargarDomiciliarios();
+          delete this.domSeleccionado[pedido.id];
+          this.accionEnProgreso[pedido.id] = false;
+          return;
+        }
+        this.pedidoService.asignarDomiciliario(pedido.id, domId).subscribe({
+          next: () => {
+            this.toast.success(`Domiciliario ${domId} asignado al pedido ${pedido.id}`);
+            this.cargarPedidos();
+            this.cargarDomiciliarios();
+            this.accionEnProgreso[pedido.id] = false;
+          },
+          error: (err) => {
+            const msg = typeof err?.error === 'string' ? err.error : 'No se pudo asignar el domiciliario';
+            this.toast.error(msg);
+            this.accionEnProgreso[pedido.id] = false;
+          }
+        });
       },
       error: () => {
-        this.toast.error('No se pudo asignar el domiciliario');
+        this.toast.error('No se pudo verificar disponibilidad del domiciliario');
         this.accionEnProgreso[pedido.id] = false;
       }
     });

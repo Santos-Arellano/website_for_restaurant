@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { Domiciliario } from '../../Model/Domiciliario/domiciliario';
+import { map, catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -36,59 +37,119 @@ export class DomiciliarioService {
 
   // Obtener todos los domiciliarios
   getDomiciliarios(): Observable<Domiciliario[]> {
-    return this.domiciliarios$;
+    return this.http.get<any[]>(`${this.apiUrl}`, { withCredentials: true }).pipe(
+      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((d: any) => ({
+        id: d.id,
+        nombre: d.nombre,
+        cedula: d.cedula,
+        telefono: d.telefono ?? '',
+        vehiculo: d.vehiculo ?? '',
+        placa: d.placa ?? '',
+        activo: typeof d.activo === 'boolean' ? d.activo : true,
+        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
+        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+        pedidosEntregados: d.pedidosEntregados ?? 0,
+        pedidos: d.pedidos ?? []
+      } as Domiciliario))),
+      tap((doms) => this.domiciliariosSubject.next(doms)),
+      catchError(() => {
+        const raw = localStorage.getItem('domiciliarios');
+        const parsed: Domiciliario[] = raw ? JSON.parse(raw) : [];
+        return of(Array.isArray(parsed) ? parsed : []);
+      })
+    );
   }
 
   // Obtener domiciliario por ID
   getDomiciliarioById(id: number): Observable<Domiciliario | undefined> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      const domiciliario = domiciliarios.find((d: Domiciliario) => d.id === id);
-      observer.next(domiciliario);
-      observer.complete();
-    });
+    return this.http.get<any>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
+      map((d: any) => {
+        if (!d) return undefined;
+        const mapped: Domiciliario = {
+          id: d.id,
+          nombre: d.nombre,
+          cedula: d.cedula,
+          telefono: d.telefono ?? '',
+          vehiculo: d.vehiculo ?? '',
+          placa: d.placa ?? '',
+          activo: typeof d.activo === 'boolean' ? d.activo : true,
+          disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
+          fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+          pedidosEntregados: d.pedidosEntregados ?? 0,
+          pedidos: d.pedidos ?? []
+        };
+        return mapped;
+      }),
+      catchError(() => {
+        const almacenados = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
+        const encontrado = (Array.isArray(almacenados) ? almacenados : []).find((x: Domiciliario) => x.id === id);
+        return of(encontrado);
+      })
+    );
   }
 
   // Crear nuevo domiciliario
   createDomiciliario(domiciliario: Omit<Domiciliario, 'id' | 'fechaIngreso' | 'pedidosEntregados'>): Observable<Domiciliario> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      
-      // Verificar si el teléfono ya existe
-      const telefonoExiste = domiciliarios.some((d: Domiciliario) => d.telefono === domiciliario.telefono);
-      if (telefonoExiste) {
-        observer.error('El teléfono ya está registrado');
-        return;
-      }
+    const payload = {
+      nombre: domiciliario.nombre,
+      cedula: domiciliario.cedula!,
+      disponible: typeof domiciliario.disponible === 'boolean' ? domiciliario.disponible : true,
+      telefono: domiciliario.telefono ?? '',
+      vehiculo: domiciliario.vehiculo ?? '',
+      placa: domiciliario.placa ?? ''
+    };
 
-      const nuevoDomiciliario: Domiciliario = {
-        ...domiciliario,
-        id: Date.now(),
-        fechaIngreso: new Date(),
-        pedidosEntregados: 0
-      };
-      
-      domiciliarios.push(nuevoDomiciliario);
-      this.saveDomiciliariosToStorage(domiciliarios);
-      observer.next(nuevoDomiciliario);
-      observer.complete();
-    });
+    return this.http.post<any>(`${this.apiUrl}`, payload, { withCredentials: true }).pipe(
+      map((d: any) => ({
+        id: d.id,
+        nombre: d.nombre,
+        cedula: d.cedula,
+        telefono: d.telefono ?? '',
+        vehiculo: d.vehiculo ?? '',
+        placa: d.placa ?? '',
+        activo: typeof d.activo === 'boolean' ? d.activo : true,
+        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
+        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+        pedidosEntregados: d.pedidosEntregados ?? 0,
+        pedidos: d.pedidos ?? []
+      } as Domiciliario)),
+      tap(() => {
+        // Tras crear, refrescar la lista desde backend
+        this.getDomiciliarios().subscribe();
+      })
+    );
   }
 
-  // Actualizar domiciliario
+  // Actualizar domiciliario (usar backend)
   updateDomiciliario(id: number, domiciliario: Partial<Domiciliario>): Observable<Domiciliario> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      const index = domiciliarios.findIndex((d: Domiciliario) => d.id === id);
-      if (index !== -1) {
-        domiciliarios[index] = { ...domiciliarios[index], ...domiciliario };
-        this.saveDomiciliariosToStorage(domiciliarios);
-        observer.next(domiciliarios[index]);
-      } else {
-        observer.error('Domiciliario no encontrado');
-      }
-      observer.complete();
-    });
+    const payload = {
+      nombre: domiciliario.nombre,
+      cedula: domiciliario.cedula,
+      disponible: typeof domiciliario.disponible === 'boolean' ? domiciliario.disponible : undefined,
+      telefono: domiciliario.telefono ?? undefined,
+      vehiculo: domiciliario.vehiculo ?? undefined,
+      placa: domiciliario.placa ?? undefined
+    };
+
+    return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true }).pipe(
+      map((d: any) => ({
+        id: d.id,
+        nombre: d.nombre,
+        cedula: d.cedula,
+        telefono: d.telefono ?? '',
+        vehiculo: d.vehiculo ?? '',
+        placa: d.placa ?? '',
+        activo: typeof d.activo === 'boolean' ? d.activo : true,
+        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
+        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+        pedidosEntregados: d.pedidosEntregados ?? 0,
+        pedidos: d.pedidos ?? []
+      } as Domiciliario)),
+      tap(() => {
+        // Refrescar la lista en memoria tras actualizar
+        this.getDomiciliarios().subscribe();
+      })
+    );
   }
 
   // Eliminar domiciliario
@@ -139,12 +200,27 @@ export class DomiciliarioService {
 
   // Obtener domiciliarios disponibles
   getDomiciliariosDisponibles(): Observable<Domiciliario[]> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      const disponibles = domiciliarios.filter((d: Domiciliario) => d.activo && d.disponible);
-      observer.next(disponibles);
-      observer.complete();
-    });
+    return this.http.get<any[]>(`${this.apiUrl}/disponibles`, { withCredentials: true }).pipe(
+      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((d: any) => ({
+        id: d.id,
+        nombre: d.nombre,
+        cedula: d.cedula,
+        telefono: d.telefono ?? '',
+        vehiculo: d.vehiculo ?? '',
+        placa: d.placa ?? '',
+        activo: typeof d.activo === 'boolean' ? d.activo : true,
+        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
+        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+        pedidosEntregados: d.pedidosEntregados ?? 0,
+        pedidos: d.pedidos ?? []
+      } as Domiciliario))),
+      catchError(() => {
+        const raw = localStorage.getItem('domiciliarios');
+        const parsed: Domiciliario[] = raw ? JSON.parse(raw) : [];
+        const disponibles = (Array.isArray(parsed) ? parsed : []).filter((d: Domiciliario) => d.activo && d.disponible);
+        return of(disponibles);
+      })
+    );
   }
 
   // Obtener estadísticas de domiciliarios
@@ -173,6 +249,7 @@ export class DomiciliarioService {
       {
         id: 1,
         nombre: 'Carlos Rodríguez',
+        cedula: '100000001',
         telefono: '3001234567',
         vehiculo: 'Moto',
         placa: 'ABC123',
@@ -185,6 +262,7 @@ export class DomiciliarioService {
       {
         id: 2,
         nombre: 'María González',
+        cedula: '100000002',
         telefono: '3007654321',
         vehiculo: 'Bicicleta',
         placa: 'BIC001',
@@ -197,6 +275,7 @@ export class DomiciliarioService {
       {
         id: 3,
         nombre: 'Luis Martínez',
+        cedula: '100000003',
         telefono: '3009876543',
         vehiculo: 'Moto',
         placa: 'XYZ789',
@@ -209,6 +288,7 @@ export class DomiciliarioService {
       {
         id: 4,
         nombre: 'Ana López',
+        cedula: '100000004',
         telefono: '3005432109',
         vehiculo: 'Carro',
         placa: 'DEF456',

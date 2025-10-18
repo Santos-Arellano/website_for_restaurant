@@ -198,6 +198,17 @@ export class AdminDomiciliariosComponent implements OnInit {
       this.errorMessage = 'El nombre es requerido';
       return false;
     }
+
+    // En modo edición, solo exigimos nombre (backend acepta nombre/cedula/disponible)
+    if (this.modoEdicion) {
+      return true;
+    }
+
+    // En creación, exigir cédula y datos del formulario
+    if (!this.domiciliarioSeleccionado.cedula?.trim()) {
+      this.errorMessage = 'La cédula es requerida';
+      return false;
+    }
     if (!this.domiciliarioSeleccionado.telefono?.trim()) {
       this.errorMessage = 'El teléfono es requerido';
       return false;
@@ -217,6 +228,7 @@ export class AdminDomiciliariosComponent implements OnInit {
   private crearDomiciliarioVacio(): Partial<Domiciliario> {
     return {
       nombre: '',
+      cedula: '',
       telefono: '',
       vehiculo: '',
       placa: '',

@@ -12,6 +12,8 @@
       <p><strong>ID:</strong> {{ pedido?.id }}</p>
       <p><strong>Estado:</strong> <span [class]="getEstadoBadgeClass(pedido?.estado)">{{ pedido?.estado }}</span></p>
       <p><strong>Entrega:</strong> {{ pedido?.direccionEntrega }}</p>
+      <p><strong>Domiciliario:</strong> <span *ngIf="pedido?.domiciliarioId; else sinDom">#{{ pedido?.domiciliarioId }}</span></p>
+      <ng-template #sinDom>Sin asignar</ng-template>
       <div class="tracking-eta" *ngIf="statusMessage">
         <span><i class="fa-solid fa-motorcycle"></i> {{ statusMessage }}</span>
         <span *ngIf="etaMinutes > 0">• ETA: {{ etaMinutes }} min</span>

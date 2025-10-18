@@ -85,7 +85,7 @@ export class OrderDetailComponent implements OnInit {
   puedeRastrearPedido(): boolean {
     if (!this.pedido) return false;
     const e = this.pedido.estado;
-    return e === EstadoPedido.CONFIRMADO || e === EstadoPedido.LISTO || e === EstadoPedido.EN_CAMINO;
+    return e === EstadoPedido.EN_CAMINO;
   }
 
   private loadProductosForPedido(): void {
@@ -160,9 +160,9 @@ export class OrderDetailComponent implements OnInit {
 
   puedeHacerPedido(): boolean {
     if (!this.pedido) return false;
-    // Solo permite si el estado actual es PENDIENTE o EN_PREPARACION
+    // Solo permite si el estado actual es PENDIENTE
     const estado = this.pedido.estado;
-    return estado === EstadoPedido.PENDIENTE || estado === EstadoPedido.EN_PREPARACION;
+    return estado === EstadoPedido.PENDIENTE;
   }
 
   hacerPedido(): void {
@@ -191,11 +191,11 @@ export class OrderDetailComponent implements OnInit {
           this.placingOrder = false;
           return;
         }
-        // Actualizar estado a CONFIRMADO
-        this.pedidoService.updateEstadoPedido(this.pedido!.id, EstadoPedido.CONFIRMADO).subscribe({
+        // Actualizar estado a EN_PREPARACION
+        this.pedidoService.updateEstadoPedido(this.pedido!.id, EstadoPedido.EN_PREPARACION).subscribe({
           next: (pedidoActualizado) => {
             this.pedido = pedidoActualizado;
-            this.placeOrderSuccess = 'Pedido confirmado. ¡Estamos en ello!';
+            this.placeOrderSuccess = 'Pedido en preparación. ¡Estamos en ello!';
             this.toast.success(this.placeOrderSuccess, 3500);
             // Notificar al historial para refrescar
             document.dispatchEvent(new Event('refreshOrders'));

@@ -578,6 +578,7 @@ export class PedidoService {
   tienePedidoEnProgreso(clienteId: number, excluirPedidoId?: number): Observable<boolean> {
     const enProgresoEstados: EstadoPedido[] = [
       EstadoPedido.CONFIRMADO,
+      EstadoPedido.EN_PREPARACION,
       EstadoPedido.LISTO,
       EstadoPedido.EN_CAMINO
     ];

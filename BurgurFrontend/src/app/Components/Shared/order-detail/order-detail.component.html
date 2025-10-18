@@ -73,7 +73,7 @@
         <i class="fa-solid fa-location-dot"></i>
         <span>Rastrear pedido</span>
       </button>
-      <button class="btn-action hacer-pedido-btn" [disabled]="!puedeHacerPedido() || placingOrder" (click)="openConfirm('confirmar', '¿Confirmar pedido?')">
+      <button type="button" class="btn-action hacer-pedido-btn" *ngIf="puedeHacerPedido()" [disabled]="placingOrder" (click)="hacerPedido()">
         <i class="fa-solid fa-bag-shopping"></i>
         <span>{{ placingOrder ? 'Procesando...' : 'Hacer pedido' }}</span>
       </button>
