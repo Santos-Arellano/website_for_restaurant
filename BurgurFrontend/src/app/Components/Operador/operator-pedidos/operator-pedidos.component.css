@@ -1,6 +1,31 @@
-.operator-pedidos-section { max-width: 960px; margin: 32px auto; padding: 0 16px; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.btn-logout { background: #333; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.operator-pedidos-section { 
+  max-width: 960px; 
+  margin: 32px auto; 
+  padding: 0 16px;
+  padding-top: 100px; /* Espacio para el navbar fijo */
+}
+
+.header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 16px; 
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+}
+
+.btn-logout { 
+  background: #333; 
+  color: #fff; 
+  border: none; 
+  padding: 8px 12px; 
+  border-radius: 6px; 
+  cursor: pointer; 
+}
 .filters { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
 .btn-refresh { background: #1890ff; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
 .lista-pedidos { display: grid; grid-template-columns: 1fr; gap: 12px; }

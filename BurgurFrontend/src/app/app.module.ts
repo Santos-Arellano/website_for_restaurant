@@ -35,6 +35,7 @@ import { LoadingComponent } from './Components/LandingPage/loading/loading.compo
 import { OperatorLoginComponent } from './Components/Operador/operator-login/operator-login.component';
 import { OperatorPedidosComponent } from './Components/Operador/operator-pedidos/operator-pedidos.component';
 import { AdminPedidosComponent } from './Components/Admin/admin-pedidos/admin-pedidos.component';
+import { NavbarOpComponent } from './Components/Operador/navbar-op/navbar-op.component';
 
 @NgModule({
   declarations: [
@@ -64,7 +65,7 @@ import { AdminPedidosComponent } from './Components/Admin/admin-pedidos/admin-pe
     ,ConfirmModalComponent
     ,OperatorLoginComponent
     ,OperatorPedidosComponent
-    ,AdminPedidosComponent
+    ,AdminPedidosComponent, NavbarOpComponent
   ],
   imports: [
     BrowserModule,

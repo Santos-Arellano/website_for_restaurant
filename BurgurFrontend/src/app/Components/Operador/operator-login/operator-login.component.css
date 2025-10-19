@@ -1,8 +1,195 @@
-.operator-login-section { max-width: 520px; margin: 40px auto; padding: 24px; border-radius: 12px; background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-.title { margin: 0 0 8px; font-size: 24px; font-weight: 700; }
-.subtitle { margin: 0 0 16px; color: #666; }
-.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-input { padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-.btn-login { width: 100%; padding: 12px; background: #ff4d4f; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
-.hint { margin-top: 12px; font-size: 12px; color: #888; }
+.operator-login-section {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background);
+  padding: 20px;
+  padding-top: 90px;
+}
+
+.container {
+  background: var(--color-card-bg);
+  /* backdrop-filter: blur(10px); */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 32px 40px;
+  width: 100%;
+  max-width: 450px;
+  animation: slideUp var(--transition-slow) ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-small);
+  font-size: 1rem;
+  transition: all var(--transition-speed) ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-cta-stroke);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.2);
+}
+
+.form-group input:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.form-group input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.btn-login {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: var(--border-radius-small);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-cta-stroke);
+  color: var(--color-background);
+}
+
+.btn-login:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-light);
+  background: var(--color-cta-text);
+}
+
+.btn-login:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none !important;
+}
+
+.hint {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .operator-login-section {
+    padding: 15px;
+    padding-top: 80px;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .container {
+    padding: 28px 20px;
+    margin: 10px;
+    max-width: 420px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group input {
+    padding: 10px 14px;
+  }
+  
+  .btn-login {
+    padding: 12px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .operator-login-section {
+    padding: 10px;
+    padding-top: 70px;
+  }
+
+  .container {
+    padding: 24px 18px;
+    max-width: 100%;
+  }
+  
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+  
+  .form-group input {
+    padding: 10px 12px;
+  }
+  
+  .btn-login {
+    padding: 11px 16px;
+  }
+}
+
+/* Focus states para accesibilidad */
+.btn-login:focus {
+  outline: 2px solid var(--color-cta-stroke);
+  outline-offset: 2px;
+}
+
+.form-group input:focus {
+  outline: 2px solid var(--color-cta-stroke);
+  outline-offset: 2px;
+}
