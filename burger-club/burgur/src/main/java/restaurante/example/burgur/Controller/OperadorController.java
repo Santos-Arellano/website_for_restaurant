@@ -145,7 +145,7 @@ public class OperadorController {
     }
 
     // ==========================================
-    // REQUEST DTOs
+    // CLASE AUXILIAR
     // ==========================================
     @Data
     public static class LoginOperadorRequest {
