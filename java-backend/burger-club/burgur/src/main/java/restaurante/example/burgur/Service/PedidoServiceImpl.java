@@ -80,17 +80,26 @@ public class PedidoServiceImpl implements PedidoService {
         if (nuevoEstado == null || nuevoEstado.isEmpty()) {
             throw new IllegalArgumentException("El nuevo estado no puede ser null o vacío.");
         }
+
+        // Estado anterior para evitar doble conteo
+        String estadoAnteriorUpper = (pedido.getEstado() == null) ? "" : pedido.getEstado().trim().toUpperCase();
+
         // 2) Actualizar estado del pedido
         pedido.setEstado(nuevoEstado);
 
         // Normalizar estado para comparaciones
         String estadoUpper = nuevoEstado.trim().toUpperCase();
 
-        // Si el nuevo estado es "ENTREGADO", se actualiza la fecha de entrega y se libera el domiciliario
+        // Si el nuevo estado es "ENTREGADO": fecha de entrega, liberar y sumar entregas (una vez)
         if (estadoUpper.equals("ENTREGADO")) {
-            pedido.setFechaEntrega(LocalDateTime.now());
+            if (!"ENTREGADO".equals(estadoAnteriorUpper)) {
+                pedido.setFechaEntrega(LocalDateTime.now());
+            }
             Domiciliario dom = pedido.getDomiciliario();
             if (dom != null) {
+                if (!"ENTREGADO".equals(estadoAnteriorUpper)) {
+                    dom.setPedidosEntregados(dom.getPedidosEntregados() + 1);
+                }
                 dom.setDisponible(true);
                 domiciliarioService.save(dom);
             }
@@ -107,6 +116,11 @@ public class PedidoServiceImpl implements PedidoService {
                 asignado.setDisponible(false);
                 domiciliarioService.save(asignado);
                 pedido.setDomiciliario(asignado);
+            } else {
+                // Asegurar que el domiciliario asignado quede no disponible en estados de despacho
+                Domiciliario dom = pedido.getDomiciliario();
+                dom.setDisponible(false);
+                domiciliarioService.save(dom);
             }
         }
 

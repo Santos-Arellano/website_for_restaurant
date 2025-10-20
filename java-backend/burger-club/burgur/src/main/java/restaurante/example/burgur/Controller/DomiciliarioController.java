@@ -3,6 +3,7 @@ package restaurante.example.burgur.Controller;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,13 @@ public class DomiciliarioController {
                 request.getCedula(),
                 request.getDisponible() != null ? request.getDisponible() : true
             );
+            // Mapear atributos adicionales
+            domiciliario.setTelefono(request.getTelefono());
+            domiciliario.setVehiculo(request.getVehiculo());
+            domiciliario.setPlaca(request.getPlaca());
+            domiciliario.setActivo(request.getActivo() != null ? request.getActivo() : true);
+            domiciliario.setFechaIngreso(request.getFechaIngreso() != null ? request.getFechaIngreso() : LocalDateTime.now());
+            domiciliario.setPedidosEntregados(request.getPedidosEntregados() != null ? request.getPedidosEntregados() : 0);
             
             Domiciliario creado = domiciliarioService.save(domiciliario);
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
@@ -77,6 +85,13 @@ public class DomiciliarioController {
             if (request.getDisponible() != null) {
                 domiciliario.setDisponible(request.getDisponible());
             }
+            // Actualizar atributos adicionales
+            if (request.getTelefono() != null) domiciliario.setTelefono(request.getTelefono());
+            if (request.getVehiculo() != null) domiciliario.setVehiculo(request.getVehiculo());
+            if (request.getPlaca() != null) domiciliario.setPlaca(request.getPlaca());
+            if (request.getActivo() != null) domiciliario.setActivo(request.getActivo());
+            if (request.getFechaIngreso() != null) domiciliario.setFechaIngreso(request.getFechaIngreso());
+            if (request.getPedidosEntregados() != null) domiciliario.setPedidosEntregados(request.getPedidosEntregados());
             
             Domiciliario actualizado = domiciliarioService.save(domiciliario);
             return ResponseEntity.ok(actualizado);
@@ -125,5 +140,12 @@ public class DomiciliarioController {
         private String nombre;
         private String cedula;
         private Boolean disponible;
+        // nuevos campos
+        private String telefono;
+        private String vehiculo;
+        private String placa;
+        private Boolean activo;
+        private LocalDateTime fechaIngreso;
+        private Integer pedidosEntregados;
     }
 }

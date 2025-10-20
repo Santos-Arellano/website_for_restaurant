@@ -25,7 +25,7 @@
           <div class="pedido-direccion">Entrega: {{ p.direccionEntrega }}</div>
           <div class="pedido-domiciliario" *ngIf="p.domiciliarioId">Domiciliario: {{ domNombre(p.domiciliarioId) }}</div>
         </div>
-        <div class="pedido-estado">Estado: <strong>{{ p.estado }}</strong></div>
+        <div class="pedido-estado">Estado: <span class="status-badge" [ngClass]="estadoClass(p.estado)">{{ p.estado }}</span></div>
       </div>
 
       <div class="acciones">

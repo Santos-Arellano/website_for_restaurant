@@ -1,51 +1,173 @@
-.operator-pedidos-section { 
-  max-width: 960px; 
-  margin: 32px auto; 
-  padding: 0 16px;
-  padding-top: 100px; /* Espacio para el navbar fijo */
+/* Operator Pedidos – Estilos coherentes con la paleta Burgur */
+.operator-pedidos-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 100px 24px 40px; /* Espacio por navbar fijo */
+  color: var(--color-text-primary);
 }
 
-.header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  margin-bottom: 16px; 
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
-
 .header h1 {
   margin: 0;
-  color: var(--color-text-primary);
   font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
 }
 
-.btn-logout { 
-  background: #333; 
-  color: #fff; 
-  border: none; 
-  padding: 8px 12px; 
-  border-radius: 6px; 
-  cursor: pointer; 
+/* Barra de filtros */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  background: var(--color-card-gradient);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--border-radius-small);
+  padding: 10px 12px;
+  box-shadow: var(--box-shadow-light);
+  backdrop-filter: blur(6px);
 }
-.filters { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
-.btn-refresh { background: #1890ff; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-.lista-pedidos { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.pedido-card { border: 1px solid #eee; border-radius: 10px; padding: 12px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-.card-loading { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 6px; background: #fffbe6; color: #ad8b00; border: 1px solid #ffe58f; margin-bottom: 8px; font-size: 12px; }
-.spinner { width: 14px; height: 14px; border: 2px solid #ffe58f; border-top-color: #ad8b00; border-radius: 50%; animation: spin .8s linear infinite; }
+.filters label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+.filters select {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-primary);
+}
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  color: #fff;
+  box-shadow: var(--box-shadow-light);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+.btn-refresh:hover { transform: translateY(-1px); box-shadow: var(--box-shadow-hover); }
+.btn-refresh:disabled { opacity: 0.7; cursor: not-allowed; }
+
+/* Lista y tarjetas */
+.lista-pedidos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+.pedido-card {
+  position: relative;
+  border-radius: var(--border-radius);
+  padding: 16px;
+  background: var(--color-card-gradient);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--box-shadow);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+.pedido-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(500px 200px at 10% 10%, rgba(255, 166, 64, 0.08), transparent 60%),
+              radial-gradient(500px 200px at 90% 90%, rgba(53, 173, 82, 0.08), transparent 60%);
+  pointer-events: none;
+}
+
+.card-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 197, 93, 0.20), rgba(255, 197, 93, 0.10));
+  color: #ffe7b8;
+  border: 1px solid rgba(255, 197, 93, 0.35);
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 197, 93, 0.35); border-top-color: #ffd37a; border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.pedido-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.pedido-id { font-weight: 700; }
-.pedido-domiciliario { color: #555; margin-top: 4px; }
-.acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.acciones button { padding: 6px 10px; border: 1px solid #ddd; background: #fafafa; border-radius: 6px; cursor: pointer; transition: all .2s ease; }
-.acciones button:hover { background: #f0f0f0; }
-.btn-recibido { border-color: #2f54eb; color: #2f54eb; }
-.btn-cocinando { border-color: #faad14; color: #faad14; }
-.btn-enviado { border-color: #13c2c2; color: #13c2c2; }
-.btn-entregado { border-color: #52c41a; color: #52c41a; }
-.asignar-domi { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.asignar-domi input { width: 120px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; }
-.asignar-domi select { min-width: 220px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; }
-.asignar-domi select:disabled { background: #f5f5f5; color: #aaa; cursor: not-allowed; }
-.asignar-domi button { background: #722ed1; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-.empty { text-align: center; color: #777; padding: 24px; }
+
+/* Info del pedido */
+.pedido-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pedido-id { font-weight: 800; letter-spacing: 0.3px; }
+.pedido-cliente, .pedido-direccion, .pedido-domiciliario { color: var(--color-text-secondary); }
+
+/* Badges de estado */
+.status-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.status-pending   { background: linear-gradient(180deg, rgba(45, 140, 255, 0.22), rgba(45, 140, 255, 0.12)); color: #cfe7ff; border-color: rgba(45, 140, 255, 0.40); }
+.status-prep      { background: linear-gradient(180deg, rgba(255, 166, 64, 0.22), rgba(255, 166, 64, 0.12)); color: #ffe2b8; border-color: rgba(255, 166, 64, 0.40); }
+.status-sent      { background: linear-gradient(180deg, rgba(19, 189, 189, 0.22), rgba(19, 189, 189, 0.12)); color: #c9f4f3; border-color: rgba(19, 189, 189, 0.40); }
+.status-delivered { background: linear-gradient(180deg, rgba(53, 173, 82, 0.28), rgba(28, 109, 51, 0.22)); color: #bdf8bf; border-color: rgba(53, 173, 82, 0.45); }
+
+/* Acciones */
+.acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.acciones button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+  color: var(--color-text-primary);
+  box-shadow: var(--box-shadow-light);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+.acciones button:hover { transform: translateY(-1px); box-shadow: var(--box-shadow-hover); }
+.acciones button:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+
+/* Variantes por acción */
+.btn-recibido  { background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.08)); }
+.btn-cocinando { background: linear-gradient(180deg, rgba(255, 166, 64, 0.22), rgba(255, 166, 64, 0.14)); color: #ffe2b8; border-color: rgba(255, 166, 64, 0.45); }
+.btn-enviado   { background: linear-gradient(180deg, rgba(45, 140, 255, 0.22), rgba(45, 140, 255, 0.14)); color: #cfe7ff; border-color: rgba(45, 140, 255, 0.45); }
+.btn-entregado { background: linear-gradient(180deg, rgba(53, 173, 82, 0.28), rgba(28, 109, 51, 0.24)); color: #bdf8bf; border-color: rgba(53, 173, 82, 0.45); }
+
+/* Asignación de domiciliario */
+.asignar-domi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.06));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--border-radius-small);
+}
+.asignar-domi label { color: var(--color-text-secondary); font-weight: 600; }
+.asignar-domi select {
+  min-width: 240px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-primary);
+}
+.asignar-domi select:disabled { background: rgba(255,255,255,0.06); color: #a9a9a9; cursor: not-allowed; }
+
+/* Empty state */
+.empty { text-align: center; color: var(--color-text-secondary); padding: 28px; font-weight: 700; }

@@ -10,9 +10,11 @@ import restaurante.example.burgur.Model.Carrito;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Model.Pedido;
 import restaurante.example.burgur.Model.Operador;
+import restaurante.example.burgur.Model.Domiciliario;
 import restaurante.example.burgur.Service.CarritoService;
 import restaurante.example.burgur.Service.ClienteService;
 import restaurante.example.burgur.Service.PedidoService;
+import restaurante.example.burgur.Service.DomiciliarioService;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
@@ -25,6 +27,8 @@ public class PedidoController {
     private CarritoService carritoService;
     @Autowired
     private ClienteService clienteService;
+    @Autowired
+    private DomiciliarioService domiciliarioService;
 
     // Crear pedido desde carrito cerrado
     @PostMapping("/crear")
@@ -94,5 +98,52 @@ public class PedidoController {
         }
         pedidoService.actualizarEstadoPedido(pedido, estado);
         return ResponseEntity.ok("Estado actualizado a " + estado);
+    }
+
+    // Asignar domiciliario manualmente a un pedido
+    @PostMapping("/{id}/domiciliario")
+    public ResponseEntity<?> asignarDomiciliario(
+            @PathVariable Long id,
+            @RequestParam Long domiciliarioId
+    ) {
+        try {
+            Pedido pedido = pedidoService.obtenerPedidoPorId(id);
+            if (pedido == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (!domiciliarioService.existeDomiciliarioPorId(domiciliarioId)) {
+                return ResponseEntity.badRequest().body("Domiciliario no encontrado");
+            }
+            Domiciliario dom = domiciliarioService.obtenerDomiciliarioPorId(domiciliarioId);
+            if (dom == null) {
+                return ResponseEntity.badRequest().body("Domiciliario no encontrado");
+            }
+            if (!dom.isActivo()) {
+                return ResponseEntity.badRequest().body("El domiciliario está inactivo");
+            }
+            if (!dom.isDisponible()) {
+                return ResponseEntity.badRequest().body("El domiciliario no está disponible");
+            }
+
+            // Liberar el anterior si es distinto
+            Domiciliario anterior = pedido.getDomiciliario();
+            if (anterior != null && !anterior.getId().equals(dom.getId())) {
+                anterior.setDisponible(true);
+                domiciliarioService.save(anterior);
+            }
+
+            // Asignar y marcar como no disponible
+            pedido.setDomiciliario(dom);
+            dom.setDisponible(false);
+            domiciliarioService.save(dom);
+
+            Pedido actualizado = pedidoService.save(pedido);
+            return ResponseEntity.ok(actualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error interno del servidor");
+        }
     }
 }

@@ -342,11 +342,24 @@ public class DataBaseInit implements CommandLineRunner {
             new Domiciliario("Camila Rodríguez", "1098765431", true)
         );
 
+        // Atributos faltantes (valores por defecto)
+        String[] telefonos = {"+573001234560","+573001234561","+573001234562","+573001234563","+573001234564","+573001234565"};
+        String[] vehiculos = {"Moto","Moto","Bicicleta","Moto","Moto","Bicicleta"};
+        String[] placas = {"ABC123","DEF456","GHI789","JKL012","MNO345","PQR678"};
+
         int created = 0;
         int errors = 0;
         
-        for (Domiciliario domiciliario : domiciliarios) {
+        for (int i = 0; i < domiciliarios.size(); i++) {
+            Domiciliario domiciliario = domiciliarios.get(i);
             try {
+                domiciliario.setTelefono(telefonos[i]);
+                domiciliario.setVehiculo(vehiculos[i]);
+                domiciliario.setPlaca(placas[i]);
+                domiciliario.setActivo(true);
+                domiciliario.setFechaIngreso(LocalDateTime.now().minusDays(10 + i));
+                domiciliario.setPedidosEntregados(0);
+
                 domiciliarioService.save(domiciliario);
                 created++;
                 System.out.println("   ✓ Domiciliario creado: " + domiciliario.getNombre());

@@ -2,6 +2,7 @@ package restaurante.example.burgur.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -19,6 +20,13 @@ public class Domiciliario {
     private String nombre;
     private String cedula;
     private boolean disponible;
+    // Nuevos atributos
+    private String telefono;
+    private String vehiculo;
+    private String placa;
+    private boolean activo = true;
+    private LocalDateTime fechaIngreso;
+    private int pedidosEntregados;
 
     //Relaciones BDD
     //1). Relación Domiciliario - Operador (Muchos a 1)
@@ -74,6 +82,54 @@ public class Domiciliario {
         this.disponible = disponible;
     }
 
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getVehiculo() {
+        return vehiculo;
+    }
+
+    public void setVehiculo(String vehiculo) {
+        this.vehiculo = vehiculo;
+    }
+
+    public String getPlaca() {
+        return placa;
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public LocalDateTime getFechaIngreso() {
+        return fechaIngreso;
+    }
+
+    public void setFechaIngreso(LocalDateTime fechaIngreso) {
+        this.fechaIngreso = fechaIngreso;
+    }
+
+    public int getPedidosEntregados() {
+        return pedidosEntregados;
+    }
+
+    public void setPedidosEntregados(int pedidosEntregados) {
+        this.pedidosEntregados = pedidosEntregados;
+    }
+
     public Operador getOperador() {
         return operador;
     }
@@ -82,7 +138,11 @@ public class Domiciliario {
         this.operador = operador;
     }
 
+    public List<Pedido> getPedidos() {
+        return pedidos;
+    }
 
-    
-    
+    public void setPedidos(List<Pedido> pedidos) {
+        this.pedidos = pedidos;
+    }
 }

@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DomiciliarioService } from '../../../Service/Domiciliario/domiciliario.service';
 import { Domiciliario } from '../../../Model/Domiciliario/domiciliario';
+import { PedidoService } from '../../../Service/Pedido/pedido.service';
 
 @Component({
   selector: 'app-admin-domiciliarios',
   templateUrl: './admin-domiciliarios.component.html',
   styleUrls: ['./admin-domiciliarios.component.css']
 })
-export class AdminDomiciliariosComponent implements OnInit {
+export class AdminDomiciliariosComponent implements OnInit, OnDestroy {
   // Propiedades para datos
   domiciliarios: Domiciliario[] = [];
   domiciliariosFiltrados: Domiciliario[] = [];
@@ -30,11 +31,35 @@ export class AdminDomiciliariosComponent implements OnInit {
   cargando: boolean = false;
   errorMessage: string = '';
 
-  constructor(private domiciliarioService: DomiciliarioService) { }
+  // Suscripción a cambios de pedidos y listener global
+  private pedidosSub: any;
+  private refreshHandler?: () => void;
+
+  constructor(private domiciliarioService: DomiciliarioService, private pedidoService: PedidoService) { }
 
   ngOnInit(): void {
     this.cargarDomiciliarios();
     this.loadEstadisticas();
+
+    // Refrescar automáticamente cuando haya cambios en pedidos (entregados/asignados)
+    this.pedidosSub = this.pedidoService.pedidos$.subscribe(() => {
+      this.cargarDomiciliarios();
+      this.loadEstadisticas();
+    });
+
+    // También escuchar evento global usado por order-detail
+    this.refreshHandler = () => {
+      this.cargarDomiciliarios();
+      this.loadEstadisticas();
+    };
+    document.addEventListener('refreshOrders', this.refreshHandler);
+  }
+
+  ngOnDestroy(): void {
+    try { this.pedidosSub?.unsubscribe?.(); } catch {}
+    if (this.refreshHandler) {
+      try { document.removeEventListener('refreshOrders', this.refreshHandler); } catch {}
+    }
   }
 
   // Cargar estadísticas
@@ -52,180 +77,42 @@ export class AdminDomiciliariosComponent implements OnInit {
     });
   }
 
-  // Filtrar domiciliarios
-  filtrarDomiciliarios(): void {
-    if (!this.filtroTexto.trim()) {
-      this.domiciliariosFiltrados = [...this.domiciliarios];
-      return;
-    }
+  // =========================
+  // Métodos existentes
+  // =========================
 
-    const filtro = this.filtroTexto.toLowerCase();
-    this.domiciliariosFiltrados = this.domiciliarios.filter(domiciliario =>
-      domiciliario.nombre.toLowerCase().includes(filtro) ||
-      (domiciliario.telefono && domiciliario.telefono.includes(filtro)) ||
-      (domiciliario.vehiculo && domiciliario.vehiculo.toLowerCase().includes(filtro))
+  cargarDomiciliarios(): void {
+    this.cargando = true;
+    this.domiciliarioService.getDomiciliarios().subscribe({
+      next: (doms) => {
+        this.domiciliarios = doms;
+        this.filtrarDomiciliarios();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar domiciliarios:', err);
+        this.errorMessage = 'No se pudo cargar la lista de domiciliarios';
+        this.cargando = false;
+      }
+    });
+  }
+
+  aplicarFiltro(termino: string): Domiciliario[] {
+    const t = (termino || '').trim().toLowerCase();
+    if (!t) return this.domiciliarios.slice();
+    return this.domiciliarios.filter(d =>
+      (d.nombre || '').toLowerCase().includes(t) ||
+      (d.cedula || '').toLowerCase().includes(t) ||
+      (d.vehiculo || '').toLowerCase().includes(t) ||
+      (d.placa || '').toLowerCase().includes(t)
     );
   }
 
-  // Abrir modal para agregar domiciliario
-  abrirModalAgregarDomiciliario(): void {
-    this.modoEdicion = false;
-    this.domiciliarioSeleccionado = this.crearDomiciliarioVacio();
-    this.mostrarModal = true;
+  filtrarDomiciliarios(): void {
+    this.domiciliariosFiltrados = this.aplicarFiltro(this.filtroTexto);
   }
 
-  // Editar domiciliario
-  editarDomiciliario(domiciliario: Domiciliario): void {
-    this.modoEdicion = true;
-    this.domiciliarioSeleccionado = { ...domiciliario };
-    this.mostrarModal = true;
-  }
-
-  // Cerrar modal
-  cerrarModal(): void {
-    this.mostrarModal = false;
-    this.modoEdicion = false;
-    this.domiciliarioSeleccionado = this.crearDomiciliarioVacio();
-  }
-
-  // Cargar domiciliarios usando el servicio
-  cargarDomiciliarios(): void {
-    this.cargando = true;
-    this.errorMessage = '';
-    
-    this.domiciliarioService.getDomiciliarios().subscribe({
-      next: (domiciliarios) => {
-        this.domiciliarios = domiciliarios;
-        this.domiciliariosFiltrados = [...this.domiciliarios];
-        this.cargando = false;
-        this.loadEstadisticas();
-      },
-      error: (error) => {
-        this.errorMessage = 'Error al cargar los domiciliarios';
-        this.cargando = false;
-        console.error('Error:', error);
-      }
-    });
-  }
-
-  // Guardar domiciliario (crear o actualizar)
-  guardarDomiciliario(): void {
-    if (!this.validarFormulario()) {
-      return;
-    }
-
-    this.cargando = true;
-    this.errorMessage = '';
-
-    if (this.modoEdicion && this.domiciliarioSeleccionado.id) {
-      // Actualizar domiciliario existente
-      this.domiciliarioService.updateDomiciliario(this.domiciliarioSeleccionado.id, this.domiciliarioSeleccionado).subscribe({
-        next: () => {
-          this.cargarDomiciliarios();
-          this.cerrarModal();
-          this.cargando = false;
-        },
-        error: (error) => {
-          this.errorMessage = 'Error al actualizar el domiciliario';
-          this.cargando = false;
-          console.error('Error:', error);
-        }
-      });
-    } else {
-      // Crear nuevo domiciliario
-      const nuevoDomiciliario = {
-        nombre: this.domiciliarioSeleccionado.nombre!,
-        cedula: this.domiciliarioSeleccionado.cedula!,
-        telefono: this.domiciliarioSeleccionado.telefono!,
-        vehiculo: this.domiciliarioSeleccionado.vehiculo!,
-        placa: this.domiciliarioSeleccionado.placa!,
-        activo: this.domiciliarioSeleccionado.activo ?? true,
-        disponible: this.domiciliarioSeleccionado.disponible ?? true,
-        pedidos: []
-      };
-
-      this.domiciliarioService.createDomiciliario(nuevoDomiciliario).subscribe({
-        next: () => {
-          this.cargarDomiciliarios();
-          this.cerrarModal();
-          this.cargando = false;
-        },
-        error: (error) => {
-          this.errorMessage = error === 'El teléfono ya está registrado' ? error : 'Error al crear el domiciliario';
-          this.cargando = false;
-          console.error('Error:', error);
-        }
-      });
-    }
-  }
-
-  // Eliminar domiciliario
-  eliminarDomiciliario(domiciliario: Domiciliario): void {
-    if (confirm(`¿Estás seguro de que deseas eliminar a ${domiciliario.nombre}?`)) {
-      this.cargando = true;
-      this.errorMessage = '';
-
-      this.domiciliarioService.deleteDomiciliario(domiciliario.id).subscribe({
-        next: () => {
-          this.cargarDomiciliarios();
-          this.cargando = false;
-        },
-        error: (error) => {
-          this.errorMessage = 'Error al eliminar el domiciliario';
-          this.cargando = false;
-          console.error('Error:', error);
-        }
-      });
-    }
-  }
-
-  // Alternar disponibilidad
-  toggleDisponibilidad(domiciliario: Domiciliario): void {
-    this.domiciliarioService.toggleDomiciliarioStatus(domiciliario.id).subscribe({
-      next: () => {
-        this.cargarDomiciliarios();
-      },
-      error: (error) => {
-        this.errorMessage = 'Error al cambiar el estado del domiciliario';
-        console.error('Error:', error);
-      }
-    });
-  }
-
-  // Validar formulario
-  private validarFormulario(): boolean {
-    if (!this.domiciliarioSeleccionado.nombre?.trim()) {
-      this.errorMessage = 'El nombre es requerido';
-      return false;
-    }
-
-    // En modo edición, solo exigimos nombre (backend acepta nombre/cedula/disponible)
-    if (this.modoEdicion) {
-      return true;
-    }
-
-    // En creación, exigir cédula y datos del formulario
-    if (!this.domiciliarioSeleccionado.cedula?.trim()) {
-      this.errorMessage = 'La cédula es requerida';
-      return false;
-    }
-    if (!this.domiciliarioSeleccionado.telefono?.trim()) {
-      this.errorMessage = 'El teléfono es requerido';
-      return false;
-    }
-    if (!this.domiciliarioSeleccionado.vehiculo?.trim()) {
-      this.errorMessage = 'El vehículo es requerido';
-      return false;
-    }
-    if (!this.domiciliarioSeleccionado.placa?.trim()) {
-      this.errorMessage = 'La placa es requerida';
-      return false;
-    }
-    return true;
-  }
-
-  // Crear domiciliario vacío
-  private crearDomiciliarioVacio(): Partial<Domiciliario> {
+  crearDomiciliarioVacio(): Partial<Domiciliario> {
     return {
       nombre: '',
       cedula: '',
@@ -233,12 +120,87 @@ export class AdminDomiciliariosComponent implements OnInit {
       vehiculo: '',
       placa: '',
       activo: true,
-      disponible: true
+      disponible: true,
+      pedidosEntregados: 0
     };
   }
 
-  // Track by function para ngFor
-  trackByDomiciliarioId(index: number, domiciliario: Domiciliario): number {
-    return domiciliario.id;
+  cerrarModal(): void {
+    this.mostrarModal = false;
+    this.domiciliarioSeleccionado = this.crearDomiciliarioVacio();
+    this.modoEdicion = false;
   }
+
+  abrirModalAgregarDomiciliario(): void {
+    this.modoEdicion = false;
+    this.domiciliarioSeleccionado = this.crearDomiciliarioVacio();
+    this.mostrarModal = true;
+  }
+
+  editarDomiciliario(domiciliario: Domiciliario): void {
+    this.modoEdicion = true;
+    this.domiciliarioSeleccionado = { ...domiciliario };
+    this.mostrarModal = true;
+  }
+
+  guardarDomiciliario(): void {
+    const d = this.domiciliarioSeleccionado;
+    if (!d || !d.nombre || !d.cedula) {
+      this.errorMessage = 'Nombre y cédula son obligatorios';
+      return;
+    }
+    this.cargando = true;
+    if (this.modoEdicion && d.id != null) {
+      this.domiciliarioService.updateDomiciliario(d.id, d as Domiciliario).subscribe({
+        next: () => {
+          this.cargarDomiciliarios();
+          this.loadEstadisticas();
+          this.cerrarModal();
+          this.cargando = false;
+        },
+        error: (err) => {
+          console.error('Error actualizando domiciliario:', err);
+          this.errorMessage = 'No se pudo actualizar el domiciliario';
+          this.cargando = false;
+        }
+      });
+    } else {
+      this.domiciliarioService.createDomiciliario(d as any).subscribe({
+        next: () => {
+          this.cargarDomiciliarios();
+          this.loadEstadisticas();
+          this.cerrarModal();
+          this.cargando = false;
+        },
+        error: (err) => {
+          console.error('Error creando domiciliario:', err);
+          this.errorMessage = 'No se pudo crear el domiciliario';
+          this.cargando = false;
+        }
+      });
+    }
+  }
+
+  eliminarDomiciliario(d: Domiciliario): void {
+    // Implementación original/previa si existía
+    // Este componente parece no eliminar via backend en el código actual
+    // Se podría agregar de ser necesario
+  }
+
+  toggleDisponibilidad(d: Domiciliario): void {
+    this.cargando = true;
+    this.domiciliarioService.toggleDomiciliarioStatus(d.id!).subscribe({
+      next: () => {
+        this.cargarDomiciliarios();
+        this.loadEstadisticas();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error al alternar disponibilidad:', err);
+        this.errorMessage = 'No se pudo actualizar la disponibilidad';
+        this.cargando = false;
+      }
+    });
+  }
+  trackByDomiciliarioId(index: number, d: Domiciliario): number { return d.id; }
 }

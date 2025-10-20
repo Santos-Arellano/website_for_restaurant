@@ -294,3 +294,80 @@ html, body {
   .loading-overlay .blob,
   .loading-overlay .progress .bar { animation: none; }
 }
+/* ==========================================
+   Global polish: badges, controls, scrollbars
+   ========================================== */
+
+/* Base status badge (colores se definen por módulo) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
+}
+
+/* Variantes globales de badges */
+.badge-success { background: linear-gradient(180deg, rgba(53, 173, 82, 0.28), rgba(28, 109, 51, 0.22)); color: #bdf8bf; border: 1px solid rgba(53, 173, 82, 0.45); }
+.badge-warning { background: linear-gradient(180deg, rgba(255, 166, 64, 0.22), rgba(255, 166, 64, 0.12)); color: #ffe2b8; border: 1px solid rgba(255, 166, 64, 0.40); }
+.badge-danger  { background: linear-gradient(180deg, rgba(244, 67, 54, 0.28), rgba(244, 67, 54, 0.18)); color: #ffb8b8; border: 1px solid rgba(244, 67, 54, 0.40); }
+.badge-info    { background: linear-gradient(180deg, rgba(45, 140, 255, 0.22), rgba(45, 140, 255, 0.12)); color: #cfe7ff; border: 1px solid rgba(45, 140, 255, 0.40); }
+
+/* Controles: inputs y selects coherentes con el tema */
+select,
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius-small);
+}
+
+select:focus,
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--color-cta-stroke);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(251, 181, 181, 0.2);
+}
+
+/* Focus visible en botones para accesibilidad */
+button:focus-visible {
+  outline: 2px solid var(--color-cta-stroke);
+  outline-offset: 2px;
+}
+
+/* Scrollbar estilizada (WebKit) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.06); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(251, 181, 181, 0.35); border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.12); }
+::-webkit-scrollbar-thumb:hover { background: rgba(251, 181, 181, 0.55); }
+::-webkit-scrollbar-corner { background: rgba(255, 255, 255, 0.06); }
+
+/* Scrollbar para Firefox */
+* { scrollbar-color: rgba(251, 181, 181, 0.35) rgba(255, 255, 255, 0.06); scrollbar-width: thin; }
+.loading-overlay .progress .bar {
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(16px, -10px) scale(1.04); }
+}
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-overlay .spinner-ring,
+  .loading-overlay .blob,
+  .loading-overlay .progress .bar { animation: none; }
+}

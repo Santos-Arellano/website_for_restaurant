@@ -240,6 +240,22 @@ export class OperatorPedidosComponent implements OnInit {
     });
   }
 
+  // Añade clase de estilo por estado para badges
+  estadoClass(estado: EstadoPedido): string {
+    switch (estado) {
+      case EstadoPedido.PENDIENTE:
+        return 'status-pending';
+      case EstadoPedido.EN_PREPARACION:
+        return 'status-prep';
+      case EstadoPedido.EN_CAMINO:
+        return 'status-sent';
+      case EstadoPedido.ENTREGADO:
+        return 'status-delivered';
+      default:
+        return 'status-default';
+    }
+  }
+
   logout(): void {
     this.operadorSession.logout().subscribe(() => {
       this.router.navigateByUrl('/operador/login');
