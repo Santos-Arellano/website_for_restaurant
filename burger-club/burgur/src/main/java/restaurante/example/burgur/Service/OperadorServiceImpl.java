@@ -5,14 +5,23 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import restaurante.example.burgur.Model.Operador;
+import restaurante.example.burgur.Repository.DomiciliarioRepository;
+import restaurante.example.burgur.Repository.PedidoRepository;
 import restaurante.example.burgur.Repository.OperadorRepository;
 
 @Service
 public class OperadorServiceImpl implements OperadorService {
     @Autowired
     private OperadorRepository operadorRepository;
+
+    @Autowired
+    private DomiciliarioRepository domiciliarioRepository;
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
     
         // ==========================================
     // MÉTODOS BÁSICOS CRUD
@@ -35,11 +44,17 @@ public class OperadorServiceImpl implements OperadorService {
     }
 
     @Override
+    @Transactional
     public void eliminarOperador(Long id) {
-        if (!operadorRepository.existsById(id)) {
-            throw new IllegalArgumentException("Operador con ID " + id + " no encontrado");
-        }
-        operadorRepository.deleteById(id);
+        Operador operador = operadorRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Operador con ID " + id + " no encontrado"));
+
+        // Desvincular relaciones mediante UPDATE en bloque para evitar errores de Hibernate
+        domiciliarioRepository.clearOperadorByOperadorId(id);
+        pedidoRepository.clearOperadorByOperadorId(id);
+
+        // Eliminar el operador
+        operadorRepository.delete(operador);
     }
 
     // ==========================================
