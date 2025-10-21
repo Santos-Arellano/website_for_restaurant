@@ -95,6 +95,14 @@ export class OperatorPedidosComponent implements OnInit {
       this.toast.warning('No puedes cambiar el estado de un pedido entregado');
       return;
     }
+
+    // Validar secuencia: no saltar estados
+    const esPermitida = this.esTransicionPermitida(pedido.estado, estado);
+    if (!esPermitida) {
+      this.toast.warning('Transición no permitida. Sigue la secuencia: Recibido → Cocinando → Enviado → Entregado');
+      return;
+    }
+
     // Validar domiciliario antes de enviar
     if (estado === EstadoPedido.EN_CAMINO) {
       const domId = this.domSeleccionado[pedido.id] || pedido.domiciliarioId;
@@ -166,6 +174,23 @@ export class OperatorPedidosComponent implements OnInit {
         this.accionEnProgreso[pedido.id] = false;
       }
     });
+  }
+
+  // Determina si la transición es secuencial y permitida (sin saltos)
+  esTransicionPermitida(actual: EstadoPedido, destino: EstadoPedido): boolean {
+    const nextMap: Record<EstadoPedido, EstadoPedido | null> = {
+      [EstadoPedido.PENDIENTE]: EstadoPedido.EN_PREPARACION,
+      [EstadoPedido.EN_PREPARACION]: EstadoPedido.EN_CAMINO,
+      [EstadoPedido.EN_CAMINO]: EstadoPedido.ENTREGADO,
+      [EstadoPedido.ENTREGADO]: null,
+      // Estados no visibles en portal, por si llegan desde backend
+      [EstadoPedido.CONFIRMADO]: EstadoPedido.EN_PREPARACION,
+      [EstadoPedido.LISTO]: EstadoPedido.EN_CAMINO,
+      [EstadoPedido.CANCELADO]: null
+    };
+    if (actual === destino) return false; // No cambiar al mismo estado
+    const siguiente = nextMap[actual];
+    return siguiente === destino;
   }
 
   cargarDomiciliarios(): void {

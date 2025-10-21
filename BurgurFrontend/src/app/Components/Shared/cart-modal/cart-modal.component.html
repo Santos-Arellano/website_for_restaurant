@@ -24,6 +24,7 @@
               <span class="cart-item-extra-chip" *ngFor="let adi of item.adicionales">
                 <i class="fas fa-plus"></i>
                 {{ getNombreAdicional(adi.adicionalId, item.productoId) }}
+                <span class="extra-qty" *ngIf="adi.cantidad && adi.cantidad > 1">x{{ adi.cantidad }}</span>
                 <span *ngIf="adi.precioUnitario">- {{ adi.precioUnitario | currency:'COP':'symbol':'1.0-0' }}</span>
               </span>
             </div>

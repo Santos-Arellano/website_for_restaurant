@@ -29,10 +29,30 @@
       </div>
 
       <div class="acciones">
-        <button class="btn-recibido" (click)="cambiarEstado(p, EstadoPedido.PENDIENTE)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Recibido</button>
-        <button class="btn-cocinando" (click)="cambiarEstado(p, EstadoPedido.EN_PREPARACION)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Cocinando</button>
-        <button class="btn-enviado" *ngIf="p.estado !== EstadoPedido.EN_CAMINO" (click)="cambiarEstado(p, EstadoPedido.EN_CAMINO)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO || (!domSeleccionado[p.id] && !p.domiciliarioId)">Enviado</button>
-        <button class="btn-entregado" (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)" [disabled]="accionEnProgreso[p.id] || p.estado === EstadoPedido.ENTREGADO">Entregado</button>
+        <!-- Recibido: no permite retroceder; solo habilitado si ya está en Recibido (no-op) -->
+        <button class="btn-recibido"
+                (click)="cambiarEstado(p, EstadoPedido.PENDIENTE)"
+                [disabled]="accionEnProgreso[p.id] || p.estado !== EstadoPedido.PENDIENTE">
+          Recibido
+        </button>
+        <!-- Cocinando: solo si el actual es Recibido -->
+        <button class="btn-cocinando"
+                (click)="cambiarEstado(p, EstadoPedido.EN_PREPARACION)"
+                [disabled]="accionEnProgreso[p.id] || !esTransicionPermitida(p.estado, EstadoPedido.EN_PREPARACION)">
+          Cocinando
+        </button>
+        <!-- Enviado: solo si el actual es Cocinando y hay domiciliario -->
+        <button class="btn-enviado" *ngIf="p.estado !== EstadoPedido.EN_CAMINO"
+                (click)="cambiarEstado(p, EstadoPedido.EN_CAMINO)"
+                [disabled]="accionEnProgreso[p.id] || !esTransicionPermitida(p.estado, EstadoPedido.EN_CAMINO) || (!domSeleccionado[p.id] && !p.domiciliarioId)">
+          Enviado
+        </button>
+        <!-- Entregado: solo si el actual es Enviado -->
+        <button class="btn-entregado"
+                (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)"
+                [disabled]="accionEnProgreso[p.id] || !esTransicionPermitida(p.estado, EstadoPedido.ENTREGADO)">
+          Entregado
+        </button>
       </div>
 
       <div class="asignar-domi" *ngIf="p.estado === EstadoPedido.PENDIENTE || p.estado === EstadoPedido.EN_PREPARACION">

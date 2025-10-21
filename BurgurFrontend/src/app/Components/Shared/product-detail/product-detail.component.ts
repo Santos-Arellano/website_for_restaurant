@@ -16,7 +16,7 @@ import { ProductoPedido } from '../../../Model/Pedido/pedido';
 export class ProductDetailComponent implements OnInit, OnDestroy {
   producto: Producto | null = null;
   cantidad: number = 1;
-  adicionalesSeleccionados: { [key: number]: boolean } = {};
+  adicionalesSeleccionados: { [key: number]: number } = {};
   observaciones: string = '';
   isLoading: boolean = true;
   private subscription: Subscription = new Subscription();
@@ -67,62 +67,73 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   toggleAdicional(adicionalId: number): void {
-    this.adicionalesSeleccionados[adicionalId] = !this.adicionalesSeleccionados[adicionalId];
+    // Convertir toggle a cantidad: si estaba 0, poner 1; si >0, alternar a 0
+    const actual = this.adicionalesSeleccionados[adicionalId] || 0;
+    this.adicionalesSeleccionados[adicionalId] = actual > 0 ? 0 : 1;
+  }
+
+  incrementarAdicional(adicionalId: number): void {
+    const actual = this.adicionalesSeleccionados[adicionalId] || 0;
+    this.adicionalesSeleccionados[adicionalId] = actual + 1;
+  }
+
+  decrementarAdicional(adicionalId: number): void {
+    const actual = this.adicionalesSeleccionados[adicionalId] || 0;
+    const nuevo = Math.max(0, actual - 1);
+    this.adicionalesSeleccionados[adicionalId] = nuevo;
+  }
+
+  getCantidadAdicional(adicionalId: number): number {
+    return this.adicionalesSeleccionados[adicionalId] || 0;
   }
 
   calcularPrecioTotal(): number {
     if (!this.producto) return 0;
-    
-    let precioBase = this.producto.precio * this.cantidad;
-    let precioAdicionales = 0;
-    
+    let precioBasePorUnidad = this.producto.precio;
+    let precioAdicionalesPorUnidad = 0;
+
     if (this.producto.adicionales) {
       this.producto.adicionales.forEach(adicional => {
-        if (this.adicionalesSeleccionados[adicional.id]) {
-          precioAdicionales += adicional.precio * this.cantidad;
+        const qty = this.getCantidadAdicional(adicional.id);
+        if (qty > 0) {
+          precioAdicionalesPorUnidad += adicional.precio * qty;
         }
       });
     }
-    
-    return precioBase + precioAdicionales;
+
+    const precioPorUnidad = precioBasePorUnidad + precioAdicionalesPorUnidad;
+    return precioPorUnidad * this.cantidad;
   }
 
   agregarAlCarrito(): void {
     if (!this.producto) return;
-    // Gate de autenticación
-    const isLogged = !!localStorage.getItem('currentUser');
-    if (!isLogged) {
-      this.toast.warning('Inicia sesión para agregar productos al carrito', 4000);
-      this.router.navigate(['/login']);
-      return;
-    }
-    
-    // Crear array de adicionales seleccionados
-    const adicionalesSeleccionados = this.producto.adicionales?.filter(adicional => 
-      this.adicionalesSeleccionados[adicional.id]
-    ).map(adicional => ({
-      adicionalId: adicional.id,
-      cantidad: this.cantidad,
-      precioUnitario: adicional.precio
-    })) || [];
-    
+    // Permitir carrito para invitados y autenticados; el servicio decide persistencia
+    const adicionalesSeleccionados = this.producto.adicionales?.map(adicional => {
+      const qty = this.getCantidadAdicional(adicional.id);
+      if (qty > 0) {
+        return {
+          adicionalId: adicional.id,
+          cantidad: qty,
+          precioUnitario: adicional.precio
+        };
+      }
+      return null;
+    }).filter(Boolean as any) as any[] || [];
+
+    const precioUnitario = this.producto.precio + adicionalesSeleccionados.reduce((sum, a: any) => sum + (a.precioUnitario * a.cantidad), 0);
+
     const productoPedido: ProductoPedido = {
       productoId: this.producto.id,
       cantidad: this.cantidad,
-      precioUnitario: this.producto.precio, // Precio base del producto
+      precioUnitario,
       adicionales: adicionalesSeleccionados.length > 0 ? adicionalesSeleccionados : undefined,
       observaciones: this.observaciones
     };
-    
+
     this.pedidoService.agregarAlCarrito(productoPedido);
 
-    // Animación: volar imagen al botón del carrito
     this.animateFlyToCart();
-    
-    // Notificación moderna
     this.toast.success(`${this.producto.nombre} agregado al carrito`, 2500);
-    
-    // Navegar de vuelta tras breve retraso para permitir la animación
     setTimeout(() => {
       this.router.navigate(['/menu']);
     }, 400);

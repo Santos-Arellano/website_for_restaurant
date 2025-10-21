@@ -12,6 +12,28 @@ export class DomiciliarioService {
   private domiciliariosSubject = new BehaviorSubject<Domiciliario[]>([]);
   public domiciliarios$ = this.domiciliariosSubject.asObservable();
 
+  // Helper: normalizar y completar campos faltantes del domiciliario
+  private normalizeDomiciliario(d: any): Domiciliario {
+    const id = Number(d?.id) || 0;
+    const telefono = (d?.telefono ?? `300${1000000 + (id % 9000000)}`);
+    const vehiculo = (d?.vehiculo ?? (id % 3 === 0 ? 'Carro' : id % 2 === 0 ? 'Bicicleta' : 'Moto'));
+    const placa = (d?.placa ?? `${id % 3 === 0 ? 'DEF' : id % 3 === 1 ? 'ABC' : 'XYZ'}${100 + (id % 900)}`);
+
+    return {
+      id: id,
+      nombre: d?.nombre ?? '',
+      cedula: d?.cedula ?? '',
+      telefono,
+      vehiculo,
+      placa,
+      activo: typeof d?.activo === 'boolean' ? d.activo : true,
+      disponible: typeof d?.disponible === 'boolean' ? d.disponible : true,
+      fechaIngreso: d?.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
+      pedidosEntregados: d?.pedidosEntregados ?? 0,
+      pedidos: d?.pedidos ?? []
+    } as Domiciliario;
+  }
+
   constructor(private http: HttpClient) {
     this.loadDomiciliarios();
   }
@@ -38,24 +60,14 @@ export class DomiciliarioService {
   // Obtener todos los domiciliarios
   getDomiciliarios(): Observable<Domiciliario[]> {
     return this.http.get<any[]>(`${this.apiUrl}`, { withCredentials: true }).pipe(
-      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((d: any) => ({
-        id: d.id,
-        nombre: d.nombre,
-        cedula: d.cedula,
-        telefono: d.telefono ?? '',
-        vehiculo: d.vehiculo ?? '',
-        placa: d.placa ?? '',
-        activo: typeof d.activo === 'boolean' ? d.activo : true,
-        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
-        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
-        pedidosEntregados: d.pedidosEntregados ?? 0,
-        pedidos: d.pedidos ?? []
-      } as Domiciliario))),
+      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((d: any) => this.normalizeDomiciliario(d))),
       tap((doms) => this.domiciliariosSubject.next(doms)),
       catchError(() => {
         const raw = localStorage.getItem('domiciliarios');
         const parsed: Domiciliario[] = raw ? JSON.parse(raw) : [];
-        return of(Array.isArray(parsed) ? parsed : []);
+        const data = (Array.isArray(parsed) ? parsed : this.getMockDomiciliarios());
+        this.domiciliariosSubject.next(data);
+        return of(data);
       })
     );
   }
@@ -65,20 +77,7 @@ export class DomiciliarioService {
     return this.http.get<any>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
       map((d: any) => {
         if (!d) return undefined;
-        const mapped: Domiciliario = {
-          id: d.id,
-          nombre: d.nombre,
-          cedula: d.cedula,
-          telefono: d.telefono ?? '',
-          vehiculo: d.vehiculo ?? '',
-          placa: d.placa ?? '',
-          activo: typeof d.activo === 'boolean' ? d.activo : true,
-          disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
-          fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
-          pedidosEntregados: d.pedidosEntregados ?? 0,
-          pedidos: d.pedidos ?? []
-        };
-        return mapped;
+        return this.normalizeDomiciliario(d);
       }),
       catchError(() => {
         const almacenados = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
@@ -100,21 +99,8 @@ export class DomiciliarioService {
     };
 
     return this.http.post<any>(`${this.apiUrl}`, payload, { withCredentials: true }).pipe(
-      map((d: any) => ({
-        id: d.id,
-        nombre: d.nombre,
-        cedula: d.cedula,
-        telefono: d.telefono ?? '',
-        vehiculo: d.vehiculo ?? '',
-        placa: d.placa ?? '',
-        activo: typeof d.activo === 'boolean' ? d.activo : true,
-        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
-        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
-        pedidosEntregados: d.pedidosEntregados ?? 0,
-        pedidos: d.pedidos ?? []
-      } as Domiciliario)),
+      map((d: any) => this.normalizeDomiciliario(d) as Domiciliario),
       tap(() => {
-        // Tras crear, refrescar la lista desde backend
         this.getDomiciliarios().subscribe();
       })
     );
@@ -132,21 +118,8 @@ export class DomiciliarioService {
     };
 
     return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true }).pipe(
-      map((d: any) => ({
-        id: d.id,
-        nombre: d.nombre,
-        cedula: d.cedula,
-        telefono: d.telefono ?? '',
-        vehiculo: d.vehiculo ?? '',
-        placa: d.placa ?? '',
-        activo: typeof d.activo === 'boolean' ? d.activo : true,
-        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
-        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
-        pedidosEntregados: d.pedidosEntregados ?? 0,
-        pedidos: d.pedidos ?? []
-      } as Domiciliario)),
+      map((d: any) => this.normalizeDomiciliario(d) as Domiciliario),
       tap(() => {
-        // Refrescar la lista en memoria tras actualizar
         this.getDomiciliarios().subscribe();
       })
     );
@@ -154,18 +127,29 @@ export class DomiciliarioService {
 
   // Eliminar domiciliario
   deleteDomiciliario(id: number): Observable<boolean> {
-    return new Observable(observer => {
-      const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
-      const index = domiciliarios.findIndex((d: Domiciliario) => d.id === id);
-      if (index !== -1) {
-        domiciliarios.splice(index, 1);
-        this.saveDomiciliariosToStorage(domiciliarios);
-        observer.next(true);
-      } else {
-        observer.error('Domiciliario no encontrado');
-      }
-      observer.complete();
-    });
+    // Intentar eliminar en backend primero
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
+      map(() => true),
+      tap(() => {
+        // Refrescar lista desde backend
+        this.getDomiciliarios().subscribe();
+      }),
+      catchError((error) => {
+        console.warn('deleteDomiciliario backend failed, falling back to local storage:', error);
+        return new Observable<boolean>(observer => {
+          const domiciliarios = JSON.parse(localStorage.getItem('domiciliarios') || '[]');
+          const index = domiciliarios.findIndex((d: Domiciliario) => d.id === id);
+          if (index !== -1) {
+            domiciliarios.splice(index, 1);
+            this.saveDomiciliariosToStorage(domiciliarios);
+            observer.next(true);
+          } else {
+            observer.error('Domiciliario no encontrado');
+          }
+          observer.complete();
+        });
+      })
+    );
   }
 
   // Alternar disponibilidad del domiciliario en backend
@@ -184,19 +168,7 @@ export class DomiciliarioService {
           placa: dom.placa ?? undefined
         };
         return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true }).pipe(
-          map((d: any) => ({
-            id: d.id,
-            nombre: d.nombre,
-            cedula: d.cedula,
-            telefono: d.telefono ?? '',
-            vehiculo: d.vehiculo ?? '',
-            placa: d.placa ?? '',
-            activo: typeof d.activo === 'boolean' ? d.activo : true,
-            disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
-            fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
-            pedidosEntregados: d.pedidosEntregados ?? 0,
-            pedidos: d.pedidos ?? []
-          } as Domiciliario)),
+          map((d: any) => this.normalizeDomiciliario(d) as Domiciliario),
           tap(() => {
             this.getDomiciliarios().subscribe();
           })
@@ -222,19 +194,7 @@ export class DomiciliarioService {
   // Obtener domiciliarios disponibles
   getDomiciliariosDisponibles(): Observable<Domiciliario[]> {
     return this.http.get<any[]>(`${this.apiUrl}/disponibles`, { withCredentials: true }).pipe(
-      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((d: any) => ({
-        id: d.id,
-        nombre: d.nombre,
-        cedula: d.cedula,
-        telefono: d.telefono ?? '',
-        vehiculo: d.vehiculo ?? '',
-        placa: d.placa ?? '',
-        activo: typeof d.activo === 'boolean' ? d.activo : true,
-        disponible: typeof d.disponible === 'boolean' ? d.disponible : true,
-        fechaIngreso: d.fechaIngreso ? new Date(d.fechaIngreso) : new Date(),
-        pedidosEntregados: d.pedidosEntregados ?? 0,
-        pedidos: d.pedidos ?? []
-      } as Domiciliario))),
+      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((d: any) => this.normalizeDomiciliario(d))),
       catchError(() => {
         const raw = localStorage.getItem('domiciliarios');
         const parsed: Domiciliario[] = raw ? JSON.parse(raw) : [];

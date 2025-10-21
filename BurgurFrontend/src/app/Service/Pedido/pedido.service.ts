@@ -109,11 +109,35 @@ export class PedidoService {
 
   // Gestión del carrito (backend)
   agregarAlCarrito(producto: ProductoPedido, clienteId?: number, carritoId?: number): void {
-    if (!this.isUserLoggedIn()) return;
+    // Soporte de carrito para invitados: persistencia local sin backend
+    if (!this.isUserLoggedIn()) {
+      const current = this.carritoSubject.value || [];
+      const idx = current.findIndex((it: any) => (
+        it.productoId === producto.productoId &&
+        this.sonAdicionalesIguales(it.adicionales, producto.adicionales) &&
+        ((it.observaciones || '') === (producto.observaciones || ''))
+      ));
+      if (idx !== -1) {
+        const next = current.slice();
+        next[idx] = { ...next[idx], cantidad: (next[idx].cantidad || 0) + (producto.cantidad || 0), precioUnitario: producto.precioUnitario };
+        this.actualizarCarrito(next);
+      } else {
+        const newItem = { ...producto, itemId: Date.now() } as any as ProductoPedido;
+        this.actualizarCarrito([...current, newItem]);
+      }
+      return;
+    }
+
     const currentClienteId = clienteId ?? this.getCurrentClienteIdFromStorage();
     if (!currentClienteId) return;
 
-    const adicionalesIds = (producto.adicionales || []).map(a => a.adicionalId);
+    // Repetir IDs de adicionales según su cantidad
+    const adicionalesIds: number[] = [];
+    (producto.adicionales || []).forEach(a => {
+      const qty = Math.max(1, Number(a?.cantidad ?? 1));
+      for (let i = 0; i < qty; i++) adicionalesIds.push(a.adicionalId);
+    });
+
     const params = new HttpParams()
       .set('clienteId', String(currentClienteId))
       .set('productoId', String(producto.productoId))
@@ -137,16 +161,32 @@ export class PedidoService {
   private sonAdicionalesIguales(adicionales1?: any[], adicionales2?: any[]): boolean {
     if (!adicionales1 && !adicionales2) return true;
     if (!adicionales1 || !adicionales2) return false;
-    if (adicionales1.length !== adicionales2.length) return false;
-    
-    const ids1 = adicionales1.map(a => a.adicionalId).sort();
-    const ids2 = adicionales2.map(a => a.adicionalId).sort();
-    
-    return ids1.every((id, index) => id === ids2[index]);
+    const toCountMap = (arr: any[]) => {
+      const map: Record<string, number> = {};
+      arr.forEach(a => {
+        const id = String(a?.adicionalId);
+        const qty = Math.max(1, Number(a?.cantidad ?? 1));
+        if (!id) return;
+        map[id] = (map[id] || 0) + qty;
+      });
+      return map;
+    };
+    const m1 = toCountMap(adicionales1);
+    const m2 = toCountMap(adicionales2);
+    const k1 = Object.keys(m1).sort();
+    const k2 = Object.keys(m2).sort();
+    if (k1.length !== k2.length) return false;
+    return k1.every((k, i) => k === k2[i] && m1[k] === m2[k]);
   }
 
   eliminarDelCarritoPorItemId(itemId: number): void {
-    if (!this.isUserLoggedIn()) return;
+    // Soporte invitados: eliminar localmente
+    if (!this.isUserLoggedIn()) {
+      const current = this.carritoSubject.value || [];
+      const next = current.filter((p: any) => (p as any).itemId !== itemId && (p as any).productoId !== itemId);
+      this.actualizarCarrito(next);
+      return;
+    }
     const clienteId = this.getCurrentClienteIdFromStorage();
     if (!clienteId) return;
     const params = new HttpParams().set('clienteId', String(clienteId));
@@ -163,8 +203,21 @@ export class PedidoService {
   }
 
   actualizarCantidad(itemId: number, cantidad: number): void {
+    // Invitados: actualizar localmente
+    if (!this.isUserLoggedIn()) {
+      const current = this.carritoSubject.value || [];
+      const next = current.map((p: any) => {
+        const isTarget = ((p as any).itemId === itemId) || ((p as any).productoId === itemId);
+        if (!isTarget) return p;
+        const newQty = Math.max(0, Number(cantidad || 0));
+        if (newQty <= 0) return null as any;
+        return { ...p, cantidad: newQty };
+      }).filter(Boolean as any);
+      this.actualizarCarrito(next as any);
+      return;
+    }
+
     // Serializar: eliminar en backend y luego re-agregar con la nueva cantidad
-    if (!this.isUserLoggedIn()) return;
     const clienteId = this.getCurrentClienteIdFromStorage();
     if (!clienteId) return;
 
@@ -178,7 +231,12 @@ export class PedidoService {
     }
 
     const deleteParams = new HttpParams().set('clienteId', String(clienteId));
-    const adicionalesIds = (item.adicionales || []).map((a: any) => a.adicionalId);
+    // Repetir IDs de adicionales según su cantidad actual
+    const adicionalesIds: number[] = [];
+    (item.adicionales || []).forEach((a: any) => {
+      const qty = Math.max(1, Number(a?.cantidad ?? 1));
+      for (let i = 0; i < qty; i++) adicionalesIds.push(a.adicionalId);
+    });
     const addParams = new HttpParams()
       .set('clienteId', String(clienteId))
       .set('productoId', String(item.productoId))
@@ -201,7 +259,11 @@ export class PedidoService {
   }
 
   limpiarCarrito(): void {
-    if (!this.isUserLoggedIn()) return;
+    // Invitados: limpiar localmente
+    if (!this.isUserLoggedIn()) {
+      this.actualizarCarrito([]);
+      return;
+    }
     const clienteId = this.getCurrentClienteIdFromStorage();
     if (!clienteId) return;
     const params = new HttpParams().set('clienteId', String(clienteId));
@@ -622,11 +684,18 @@ export class PedidoService {
   private mapCarritoToFrontend(apiCarrito: any): ProductoPedido[] {
     const items: any[] = apiCarrito?.carritoItems || [];
     return items.map((it: any) => {
-      const adicionales = (it.adicionalesPorProducto || []).map((x: any) => ({
-        adicionalId: x.adicional?.id || 0,
-        cantidad: 1,
-        precioUnitario: x.adicional?.precio || 0
-      }));
+      const raw = Array.isArray(it?.adicionalesPorProducto) ? it.adicionalesPorProducto : [];
+      const countMap: Record<number, { adicionalId: number; cantidad: number; precioUnitario: number }> = {};
+      raw.forEach((x: any) => {
+        const id = Number(x?.adicional?.id || 0);
+        const price = Number(x?.adicional?.precio || 0);
+        if (!id) return;
+        const current = countMap[id] || { adicionalId: id, cantidad: 0, precioUnitario: price };
+        current.cantidad += 1;
+        current.precioUnitario = price;
+        countMap[id] = current;
+      });
+      const adicionales = Object.values(countMap);
       return {
         productoId: it.producto?.id || 0,
         cantidad: it.cantidad || 1,
@@ -659,12 +728,21 @@ export class PedidoService {
       productoNombre: it?.producto?.nombre ?? undefined,
       cantidad: Number(it?.cantidad ?? 0),
       precioUnitario: Number(it?.precioUnitario ?? 0),
-      adicionales: Array.isArray(it?.adicionalesPorProducto) ? it.adicionalesPorProducto.map((a: any) => ({
-        adicionalId: a?.adicional?.id ?? 0,
-        adicionalNombre: a?.adicional?.nombre ?? undefined,
-        cantidad: 1,
-        precioUnitario: Number(a?.adicional?.precio ?? 0)
-      })) : []
+      adicionales: Array.isArray(it?.adicionalesPorProducto) ? (() => {
+        const raw = it.adicionalesPorProducto;
+        const countMap: Record<number, { adicionalId: number; adicionalNombre?: string; cantidad: number; precioUnitario: number }> = {};
+        raw.forEach((a: any) => {
+          const id = Number(a?.adicional?.id ?? 0);
+          const nombre = a?.adicional?.nombre ?? undefined;
+          const price = Number(a?.adicional?.precio ?? 0);
+          if (!id) return;
+          const current = countMap[id] || { adicionalId: id, adicionalNombre: nombre, cantidad: 0, precioUnitario: price };
+          current.cantidad += 1;
+          current.precioUnitario = price;
+          countMap[id] = current;
+        });
+        return Object.values(countMap);
+      })() : []
     }));
 
     const precioTotal = Number(carrito?.precioTotal ?? 0);

@@ -182,9 +182,23 @@ export class AdminDomiciliariosComponent implements OnInit, OnDestroy {
   }
 
   eliminarDomiciliario(d: Domiciliario): void {
-    // Implementación original/previa si existía
-    // Este componente parece no eliminar via backend en el código actual
-    // Se podría agregar de ser necesario
+    if (!d?.id) return;
+    const confirmar = confirm(`¿Eliminar al domiciliario '${d.nombre}'? Esta acción no se puede deshacer.`);
+    if (!confirmar) return;
+    this.cargando = true;
+    this.domiciliarioService.deleteDomiciliario(d.id!).subscribe({
+      next: () => {
+        // Refrescar datos y estadísticas
+        this.cargarDomiciliarios();
+        this.loadEstadisticas();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error eliminando domiciliario:', err);
+        this.errorMessage = 'No se pudo eliminar el domiciliario';
+        this.cargando = false;
+      }
+    });
   }
 
   toggleDisponibilidad(d: Domiciliario): void {

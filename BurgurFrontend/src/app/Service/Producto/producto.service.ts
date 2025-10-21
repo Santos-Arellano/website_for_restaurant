@@ -66,7 +66,7 @@ export class ProductoService {
 
   // Obtener todos los productos
   getProductos(): Observable<Producto[]> {
-    return this.http.get<any[]>(`${this.apiUrl}`).pipe(
+    return this.http.get<any[]>(`${this.apiUrl}`, { withCredentials: true }).pipe(
       map((items) => items.map((p: any) => this.mapProducto(p))),
       tap((productos) => this.productosSubject.next(productos)),
       catchError((error) => {
@@ -80,7 +80,7 @@ export class ProductoService {
 
   // Obtener producto por ID
   getProductoById(id: number): Observable<Producto | undefined> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
       map((resp) => {
         if (!resp) return undefined;
         // El backend retorna { producto, adicionalesPermitidos }
@@ -106,7 +106,7 @@ export class ProductoService {
   // Obtener productos por categoría
   getProductosByCategoria(categoria: CategoriaProducto): Observable<Producto[]> {
     const backendCat = this.toBackendCategoria(categoria);
-    return this.http.get<any[]>(`${this.apiUrl}/categoria/${backendCat}`).pipe(
+    return this.http.get<any[]>(`${this.apiUrl}/categoria/${backendCat}`, { withCredentials: true }).pipe(
       map((items) => items.map((p: any) => this.mapProducto(p))),
       catchError((error) => {
         console.warn(`getProductosByCategoria(${categoria}) failed, returning empty list:`, error);
@@ -118,7 +118,7 @@ export class ProductoService {
   // Buscar productos
   buscarProductos(termino: string): Observable<Producto[]> {
     const params = new HttpParams().set('nombre', termino);
-    return this.http.get<any[]>(`${this.apiUrl}/search`, { params }).pipe(
+    return this.http.get<any[]>(`${this.apiUrl}/search`, { params, withCredentials: true }).pipe(
       map((items) => items.map((p: any) => this.mapProducto(p))),
       catchError((error) => {
         console.warn(`buscarProductos('${termino}') failed, returning empty list:`, error);
@@ -141,7 +141,7 @@ export class ProductoService {
       nuevo: producto.isNew || false,
       popular: producto.isPopular || false
     };
-    return this.http.post<any>(`${this.apiUrl}`, payload).pipe(
+    return this.http.post<any>(`${this.apiUrl}`, payload, { withCredentials: true }).pipe(
       // El backend retorna { success, message, producto }
       map((resp) => this.mapProducto(resp?.producto ?? resp)),
       tap((created) => {
@@ -169,7 +169,7 @@ export class ProductoService {
       popular: producto.isPopular,
       stock: Math.max(0, Number(producto.stock ?? 0))
     };
-    return this.http.put<any>(`${this.apiUrl}/${id}`, payload).pipe(
+    return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true }).pipe(
       // El backend retorna { success, message, producto }
       map((resp) => this.mapProducto(resp?.producto ?? resp)),
       tap((updated) => {
@@ -192,7 +192,7 @@ export class ProductoService {
 
   // Eliminar producto (para administración)
   deleteProducto(id: number): Observable<boolean> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
       map(() => true),
       tap(() => {
         const current = this.productosSubject.value || [];
@@ -221,7 +221,7 @@ export class ProductoService {
           popular: p?.isPopular,
           stock: Math.max(0, Number(p?.stock ?? 0))
         };
-        return this.http.put<any>(`${this.apiUrl}/${id}`, payload);
+        return this.http.put<any>(`${this.apiUrl}/${id}`, payload, { withCredentials: true });
       }),
       // El backend retorna { success, message, producto }
       map((resp) => this.mapProducto(resp?.producto ?? resp)),
@@ -245,7 +245,7 @@ export class ProductoService {
 
   // Obtener estadísticas de productos (para administración)
   getEstadisticas(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/stats`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/stats`, { withCredentials: true }).pipe(
       catchError((error) => {
         console.warn('getEstadisticas failed, returning empty object:', error);
         return of({});

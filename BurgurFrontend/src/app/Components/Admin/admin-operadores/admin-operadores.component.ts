@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Operador } from '../../../Model/Operador/operador';
 import { OperadorService } from '../../../Service/Operador/operador.service';
+import { Operador } from '../../../Model/Operador/operador';
+import { ToastService } from '../../Shared/toast/toast.service';
 
 @Component({
   selector: 'app-admin-operadores',
@@ -26,12 +27,14 @@ export class AdminOperadoresComponent implements OnInit {
   mostrarDeleteModal: boolean = false;
   operadorSeleccionado!: Operador;
 
-  constructor(private operadorService: OperadorService) {}
+  constructor(
+    private operadorService: OperadorService,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.cargarOperadores();
     this.cargarEstadisticas();
-    // Inicializa el operador seleccionado evitando usar 'this' en el inicializador de propiedad
     this.operadorSeleccionado = this.crearOperadorVacio();
   }
 
@@ -45,8 +48,10 @@ export class AdminOperadoresComponent implements OnInit {
         this.calcularEstadisticas();
         this.cargando = false;
       },
-      error: () => {
+      error: (err: any) => {
         this.cargando = false;
+        this.toast.error('Error al cargar operadores');
+        console.error('Error al cargar operadores:', err);
       }
     });
   }
@@ -60,9 +65,12 @@ export class AdminOperadoresComponent implements OnInit {
         this.operadoresFiltrados = [...ops];
         this.calcularEstadisticas();
         this.cargando = false;
+        this.toast.info('Datos de operadores restablecidos');
       },
-      error: () => {
+      error: (err: any) => {
         this.cargando = false;
+        this.toast.error('No se pudo restablecer los operadores');
+        console.error('Error al resetear operadores:', err);
       }
     });
   }
@@ -73,6 +81,9 @@ export class AdminOperadoresComponent implements OnInit {
       next: (stats: { totalOperadores: number; operadoresDisponibles: number; operadoresNoDisponibles: number }) => {
         this.totalOperadores = stats.totalOperadores;
         this.operadoresDisponibles = stats.operadoresDisponibles;
+      },
+      error: (err: any) => {
+        console.warn('No se pudieron cargar estadísticas de operadores:', err);
       }
     });
   }
@@ -132,10 +143,12 @@ export class AdminOperadoresComponent implements OnInit {
           this.cargarOperadores();
           this.cerrarModal();
           this.cargando = false;
+          this.toast.success('Operador actualizado correctamente');
         },
-        error: (err: unknown) => {
+        error: (err: any) => {
           console.error('Error al actualizar operador:', err);
           this.cargando = false;
+          this.toast.error('No se pudo actualizar el operador');
         }
       });
     } else {
@@ -152,10 +165,12 @@ export class AdminOperadoresComponent implements OnInit {
           this.cargarOperadores();
           this.cerrarModal();
           this.cargando = false;
+          this.toast.success('Operador creado correctamente');
         },
-        error: (err: unknown) => {
+        error: (err: any) => {
           console.error('Error al crear operador:', err);
           this.cargando = false;
+          this.toast.error('No se pudo crear el operador');
         }
       });
     }
@@ -168,10 +183,12 @@ export class AdminOperadoresComponent implements OnInit {
         this.cargarOperadores();
         this.cerrarDeleteModal();
         this.cargando = false;
+        this.toast.success('Operador eliminado correctamente');
       },
-      error: (err: unknown) => {
+      error: (err: any) => {
         console.error('Error al eliminar operador:', err);
         this.cargando = false;
+        this.toast.error('No se pudo eliminar el operador');
       }
     });
   }
@@ -182,10 +199,12 @@ export class AdminOperadoresComponent implements OnInit {
       next: () => {
         this.cargarOperadores();
         this.cargando = false;
+        this.toast.success('Disponibilidad actualizada');
       },
-      error: (err: unknown) => {
+      error: (err: any) => {
         console.error('Error al cambiar disponibilidad:', err);
         this.cargando = false;
+        this.toast.error('No se pudo cambiar la disponibilidad');
       }
     });
   }
@@ -199,7 +218,7 @@ export class AdminOperadoresComponent implements OnInit {
       disponible: true,
       domiciliarios: [],
       pedidos: []
-    };
+    } as Operador;
   }
 
   // trackBy para optimizar *ngFor
