@@ -1,4 +1,4 @@
-package test.java.restaurante.example.burgur.Controller;
+package restaurante.example.burgur.Controller;
 
 import restaurante.example.burgur.Controller.OperadorController;
 

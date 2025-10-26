@@ -1,5 +1,7 @@
 package restaurante.example.burgur.Repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,13 +16,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     // Pedidos activos: estados distintos de ENTREGADO y CANCELADO (case-insensitive)
     @Query("SELECT p FROM Pedido p WHERE UPPER(p.estado) <> 'ENTREGADO' AND UPPER(p.estado) <> 'CANCELADO'")
-    java.util.List<Pedido> findActivos();
+    List<Pedido> findActivos();
 
     // Pedidos por cliente (navegación por relaciones carrito -> cliente)
-    java.util.List<Pedido> findByCarritoClienteId(Long clienteId);
+    List<Pedido> findByCarritoClienteId(Long clienteId);
 
     // Pedidos por operador (para desvincular antes de eliminar operador)
-    java.util.List<Pedido> findByOperadorId(Long operadorId);
+    List<Pedido> findByOperadorId(Long operadorId);
 
     @Modifying
     @Transactional

@@ -108,8 +108,6 @@ public class PedidoServiceImpl implements PedidoService {
                 domiciliarioService.save(dom);
             }
         }
-        // Nota: En estado "ENVIADO" NO auto-asignamos domiciliario, se hace por endpoint dedicado
-
         pedidoRepository.save(pedido);
     }
 

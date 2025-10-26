@@ -50,6 +50,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT SUM(p.stock), AVG(p.stock), MIN(p.stock), MAX(p.stock) FROM Producto p")
     Object[] getStockStats();
 
+    // Para obtener el/los productos con stock mínimo
+    @Query("SELECT p FROM Producto p WHERE p.stock = (SELECT MIN(p2.stock) FROM Producto p2)")
+    List<Producto> findProductosConStockMinimo();
+
+    // Para obtener el/los productos con stock máximo
+    @Query("SELECT p FROM Producto p WHERE p.stock = (SELECT MAX(p2.stock) FROM Producto p2)")
+    List<Producto> findProductosConStockMaximo();
+
     // ==========================================
     // ORDENAMIENTOS
     // ==========================================

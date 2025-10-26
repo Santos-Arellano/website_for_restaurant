@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import restaurante.example.burgur.Model.Adicional;
@@ -20,6 +21,7 @@ import restaurante.example.burgur.Repository.PedidoRepository;
 import restaurante.example.burgur.Service.*;
 
 @Component
+@Profile("default")
 public class DataBaseInit implements CommandLineRunner {
 
 
