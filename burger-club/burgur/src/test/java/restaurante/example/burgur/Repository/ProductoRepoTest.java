@@ -25,8 +25,7 @@ public class ProductoRepoTest {
     
     @BeforeEach
     void setUp() {
-        // Limpiar la base de datos antes de cada prueba
-        productoRepository.deleteAll();
+   
         
         // Inicializar productos de prueba
         producto1 = new Producto();
