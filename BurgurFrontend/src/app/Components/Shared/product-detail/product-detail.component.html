@@ -59,7 +59,7 @@
                    [checked]="getCantidadAdicional(adicional.id) > 0"
                    [disabled]="!adicional.disponible"
                    (change)="toggleAdicional(adicional.id)" type="checkbox">
-            <div class="adicional-content">
+            <div class="adicional-content monitoreoCantAdi">
               <span class="adicional-name">{{ adicional.nombre }}</span>
               <span class="adicional-price">+{{ formatPrice(adicional.precio) }}</span>
               <div class="adicional-qty-controls">
