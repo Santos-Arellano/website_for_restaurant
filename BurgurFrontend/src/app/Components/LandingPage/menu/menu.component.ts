@@ -262,8 +262,30 @@ export class MenuComponent implements OnInit {
   }
 
   onProductAdded(event: any): void {
-    // Handle product added to cart from modal
-    debugLog('Product added from modal:', event);
+    // Convert modal payload to ProductoPedido and add to cart
+    if (!event || !event.product) {
+      return;
+    }
+
+    const adicionalesSeleccionados = (event.adicionales || []).map((adi: any) => ({
+      adicionalId: adi.id,
+      cantidad: Math.max(1, Number(event.quantity || 1)),
+      precioUnitario: Number(adi.precio || 0)
+    }));
+
+    const precioUnitario = Math.round((Number(event.totalPrice || 0)) / Math.max(1, Number(event.quantity || 1)));
+
+    const productoPedido: ProductoPedido = {
+      productoId: event.product.id,
+      cantidad: Math.max(1, Number(event.quantity || 1)),
+      precioUnitario: precioUnitario > 0 ? precioUnitario : Number(event.product.precio || 0),
+      adicionales: adicionalesSeleccionados.length ? adicionalesSeleccionados : undefined,
+      observaciones: ''
+    };
+
+    this.pedidoService.agregarAlCarrito(productoPedido);
+    this.toast.success(`${event.product.nombre} agregado al carrito`, 2500);
+    debugLog('Product added from modal:', productoPedido);
   }
 
   loadAdicionales(): void {
