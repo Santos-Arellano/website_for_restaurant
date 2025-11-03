@@ -178,7 +178,7 @@
                  class="menu-card-img">
             
             <!-- Overlay con información adicional -->
-            <div class="card-overlay" (click)="openProductModal(producto)">
+            <div class="card-overlay" (click)="openProductModal(producto); $event.stopPropagation()">
               <div class="overlay-content">
                 <p class="overlay-text">Ver detalles y adicionales</p>
                 <i class="fas fa-eye overlay-icon"></i>
