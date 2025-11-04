@@ -38,6 +38,14 @@ public class TestCaso1 {
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--disable-notifications");
         chromeOptions.addArguments("--disable-extensions");
+        chromeOptions.addArguments("--headless=new");
+        chromeOptions.addArguments("--remote-allow-origins=*");
+        String chromeBin = System.getenv("CHROME_BIN");
+        if (chromeBin != null && !chromeBin.isBlank()) {
+            chromeOptions.setBinary(chromeBin);
+        } else {
+            chromeOptions.setBinary("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
+        }
 
         this.driver = new ChromeDriver(chromeOptions);
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
