@@ -30,6 +30,15 @@
     "logLevel": "debug",
     "changeOrigin": true
   },
+  "/productos": {
+    "target": "http://localhost:9090",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/productos": "/productos"
+    }
+  },
   "/geocode": {
     "target": "https://nominatim.openstreetmap.org",
     "secure": true,

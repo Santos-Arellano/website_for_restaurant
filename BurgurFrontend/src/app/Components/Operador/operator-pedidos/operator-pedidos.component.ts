@@ -33,6 +33,7 @@ export class OperatorPedidosComponent implements OnInit {
   clientesMap: Record<number, Cliente> = {};
   domTodosMap: Record<number, Domiciliario> = {};
   accionEnProgreso: Record<number, boolean> = {};
+  queuedEstado: Record<number, EstadoPedido | undefined> = {};
 
   constructor(
     private pedidoService: PedidoService,
@@ -91,6 +92,12 @@ export class OperatorPedidosComponent implements OnInit {
   }
 
   cambiarEstado(pedido: Pedido, estado: EstadoPedido): void {
+    // Si hay una acción en progreso para este pedido, encolar la transición solicitada
+    if (this.accionEnProgreso[pedido.id]) {
+      this.queuedEstado[pedido.id] = estado;
+      this.toast.info('Acción en progreso; se aplicará el siguiente estado automáticamente');
+      return;
+    }
     if (pedido.estado === EstadoPedido.ENTREGADO) {
       this.toast.warning('No puedes cambiar el estado de un pedido entregado');
       return;
@@ -135,6 +142,12 @@ export class OperatorPedidosComponent implements OnInit {
                     this.cargarPedidos();
                     this.cargarDomiciliarios();
                     this.accionEnProgreso[pedido.id] = false;
+                    // Aplicar estado encolado si existe
+                    const next = this.queuedEstado[pedido.id];
+                    if (next) {
+                      delete this.queuedEstado[pedido.id];
+                      this.cambiarEstado(pedidoActualizado, next);
+                    }
                   },
                   error: (err) => {
                     const msg = typeof err?.error === 'string' ? err.error : 'Pedido Enviado pero fallo al asignar domiciliario';
@@ -153,6 +166,12 @@ export class OperatorPedidosComponent implements OnInit {
             this.toast.success(`Estado del pedido ${pedido.id} actualizado a ${estado}`);
             this.cargarPedidos();
             this.accionEnProgreso[pedido.id] = false;
+            // Aplicar estado encolado si existe
+            const next = this.queuedEstado[pedido.id];
+            if (next) {
+              delete this.queuedEstado[pedido.id];
+              this.cambiarEstado(pedidoActualizado, next);
+            }
           }
         },
         error: () => {
@@ -168,6 +187,12 @@ export class OperatorPedidosComponent implements OnInit {
         this.toast.success(`Estado del pedido ${pedido.id} actualizado a ${estado}`);
         this.cargarPedidos();
         this.accionEnProgreso[pedido.id] = false;
+        // Aplicar estado encolado si existe
+        const next = this.queuedEstado[pedido.id];
+        if (next) {
+          delete this.queuedEstado[pedido.id];
+          this.cambiarEstado(actualizado, next);
+        }
       },
       error: () => {
         this.toast.error('Error al actualizar estado del pedido');

@@ -39,7 +39,19 @@ export class OperadorSessionService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.currentOperadorSubject.value;
+    if (this.currentOperadorSubject.value) return true;
+    // Intentar cargar desde localStorage si el sujeto está vacío
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && 'id' in parsed) {
+          this.currentOperadorSubject.next(parsed as Operador);
+          return true;
+        }
+      }
+    } catch {}
+    return false;
   }
 
   getCurrentOperador(): Operador | null {
@@ -93,12 +105,14 @@ export class OperadorSessionService {
           this.setCurrentOperador(operador);
           return operador;
         }
-        this.clearCurrentOperador();
-        return null;
+        // No borrar la sesión local si el backend no reconoce sesión;
+        // esto permite operar con la sesión persistida desde localStorage
+        // cuando se usa el fallback de login.
+        return this.currentOperadorSubject.value ?? null;
       }),
       catchError(() => {
-        this.clearCurrentOperador();
-        return of(null);
+        // En caso de error de red, mantener la sesión local existente
+        return of(this.currentOperadorSubject.value ?? null);
       })
     );
   }

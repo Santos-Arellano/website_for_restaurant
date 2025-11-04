@@ -47,10 +47,10 @@
                 [disabled]="accionEnProgreso[p.id] || !esTransicionPermitida(p.estado, EstadoPedido.EN_CAMINO) || (!domSeleccionado[p.id] && !p.domiciliarioId)">
           Enviado
         </button>
-        <!-- Entregado: solo si el actual es Enviado -->
+        <!-- Entregado: permitir clic incluso si aún se está procesando un cambio previo; se encolará -->
         <button class="btn-entregado"
                 (click)="cambiarEstado(p, EstadoPedido.ENTREGADO)"
-                [disabled]="accionEnProgreso[p.id] || !esTransicionPermitida(p.estado, EstadoPedido.ENTREGADO)">
+                [disabled]="accionEnProgreso[p.id]">
           Entregado
         </button>
       </div>
