@@ -8,22 +8,17 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import io.github.bonigarcia.wdm.WebDriverManager;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TestOperadorFlujo {
+ public class TestOperadorFlujo {
 
-    private WebDriver driver;
-    private WebDriverWait wait;
+     private WebDriver driver;
+     private WebDriverWait wait;
 
-    private static final String FRONTEND_URL = System.getProperty("front.url", "http://localhost:4302/");
-    private static final String BACKEND_URL = System.getProperty("back.url", "http://localhost:9090");
+    private static final String FRONTEND_URL = System.getProperty("front.url", "http://localhost:4200/");
     // Usar por defecto un cliente sembrado en BD (todos con password "password123")
     private static final String CLIENT_EMAIL = System.getProperty("cliente.email",
             System.getProperty("clienteEmail", "ana.martinez@email.com"));
@@ -35,15 +30,16 @@ public class TestOperadorFlujo {
     @BeforeEach
     public void setUp() {
         WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        String headlessProp = System.getProperty("headless", "true");
-        if (Boolean.parseBoolean(headlessProp)) {
-            options.addArguments("--headless=new");
+        ChromeOptions chromeOptions = new ChromeOptions();
+        chromeOptions.addArguments("--disable-notifications");
+        chromeOptions.addArguments("--disable-extensions");
+        chromeOptions.addArguments("--remote-allow-origins=*");
+        String chromeBin = System.getenv("CHROME_BIN");
+        if (chromeBin != null && !chromeBin.isBlank()) {
+            chromeOptions.setBinary(chromeBin);
         }
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1280,800");
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     @AfterEach
@@ -303,15 +299,8 @@ public class TestOperadorFlujo {
 
         Assertions.assertTrue(latestId > 0, "No se pudo obtener el ID del pedido");
 
-        // 6) Login operador usando un operador ya existente en BD
+        // 6) Login operador usando solo la UI (sin llamadas directas a API)
         String cedulaOperador = OPERADOR_CEDULA;
-        // Asegurar que el operador exista en BD (crear si falta)
-        try {
-            asegurarOperador(cedulaOperador, "Operador Prueba");
-            System.out.println("[INFO] Operador asegurado en BD: " + cedulaOperador);
-        } catch (Exception e) {
-            System.out.println("[WARN] No se pudo asegurar operador en BD: " + e.getMessage());
-        }
         // Abrir nueva pestaña para el flujo del operador y mantener la pestaña del cliente
         String clienteTab = driver.getWindowHandle();
         ((JavascriptExecutor) driver).executeScript("window.open('about:blank','_blank');");
@@ -324,61 +313,41 @@ public class TestOperadorFlujo {
         driver.findElement(By.cssSelector("button.btn-login")).click();
 
         // 7) Ir a pedidos de operador y avanzar estados hasta ENTREGADO
-        // Intentar esperar la navegación normal post-login
-        try {
-            new WebDriverWait(driver, Duration.ofSeconds(6))
-                    .until(ExpectedConditions.urlContains("/operador/pedidos"));
-        } catch (TimeoutException te) {
-            // Fallback: realizar login vía fetch en el contexto del navegador, persistir en localStorage y navegar con URL absoluta
-            System.out.println("[WARN] Login operador no redirigió, aplicando fallback fetch + localStorage + navegación forzada");
-            String js = "(async function(){\n" +
-                    "  async function doLogin(){\n" +
-                    "    try {\n" +
-                    "      const r = await fetch('/api/operadores/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cedula: '" + cedulaOperador + "'}), credentials:'include'});\n" +
-                    "      const d = await r.json();\n" +
-                    "      if (d && d.success && d.operador) return d.operador;\n" +
-                    "      throw new Error('api login failed');\n" +
-                    "    } catch(e) {\n" +
-                    "      try {\n" +
-                    "        const r2 = await fetch('" + BACKEND_URL + "/operadores/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cedula: '" + cedulaOperador + "'}), credentials:'include'});\n" +
-                    "        const d2 = await r2.json();\n" +
-                    "        if (d2 && d2.success && d2.operador) return d2.operador;\n" +
-                    "      } catch(e2) {}\n" +
-                    "      return null;\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "  const op = await doLogin();\n" +
-                    "  if (op) {\n" +
-                    "    const payload = {id: op.id, nombre: op.nombre, cedula: op.cedula, disponible: !!op.disponible, domiciliarios: [], pedidos: []};\n" +
-                    "    localStorage.setItem('currentOperador', JSON.stringify(payload));\n" +
-                    "    window.location.href = '" + FRONTEND_URL + "operador/pedidos';\n" +
-                    "  }\n" +
-                    "})();";
-            ((JavascriptExecutor) driver).executeScript(js);
-            // Esperar URL correcta y un selector estable de la página de pedidos
-            new WebDriverWait(driver, Duration.ofSeconds(12))
-                    .until(ExpectedConditions.urlContains("/operador/pedidos"));
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".operator-pedidos-section")));
-        }
+        new WebDriverWait(driver, Duration.ofSeconds(8))
+                .until(ExpectedConditions.urlContains("/operador/pedidos"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".operator-pedidos-section")));
 
-        // Ubicar la tarjeta del pedido por ID
+        // Ubicar la tarjeta del pedido por ID y preparar selectores anclados al card
         String xpathCard = "//div[contains(@class,'pedido-card')]//div[contains(@class,'pedido-id') and contains(., '#" + latestId + "')]/ancestor::div[contains(@class,'pedido-card')]";
-        WebElement pedidoCard = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathCard)));
+        By cardBy = By.xpath(xpathCard);
+        By btnCocinandoBy = By.xpath(xpathCard + "//button[contains(@class,'btn-cocinando')]");
+        By selectDomiBy = By.xpath(xpathCard + "//div[contains(@class,'asignar-domi')]//select");
+        By optionListBy = By.xpath(xpathCard + "//div[contains(@class,'asignar-domi')]//select/option");
+        By btnEnviadoBy = By.xpath(xpathCard + "//button[contains(@class,'btn-enviado')]");
+        By btnEntregadoBy = By.xpath(xpathCard + "//button[contains(@class,'btn-entregado')]");
+
+        // Asegurar que el card está visible
+        wait.until(ExpectedConditions.visibilityOfElementLocated(cardBy));
 
         // Cambiar a EN_PREPARACION (Cocinando)
-        pedidoCard.findElement(By.cssSelector("button.btn-cocinando")).click();
-        // Asignar domiciliario (seleccionar la primera opción disponible)
-        WebElement selectDomi = pedidoCard.findElement(By.cssSelector(".asignar-domi select"));
+        safeClick(btnCocinandoBy);
+        // Re-localizar el card tras posible re-render
+        wait.until(ExpectedConditions.visibilityOfElementLocated(cardBy));
+
+        // Asignar domiciliario: localizar select de forma anclada al card y evitar referencias obsoletas
+        WebElement selectDomi = wait.until(ExpectedConditions.elementToBeClickable(selectDomiBy));
         selectDomi.click();
-        List<WebElement> options = selectDomi.findElements(By.tagName("option"));
+        List<WebElement> options = driver.findElements(optionListBy);
         if (options.size() > 1) {
-            options.get(1).click(); // omitir placeholder
+            options.get(1).click();
         }
-        // Cambiar a EN_CAMINO (Enviado)
-        pedidoCard.findElement(By.cssSelector("button.btn-enviado")).click();
+
+        // Cambiar a EN_CAMINO (Enviado) con re-localización
+        safeClick(btnEnviadoBy);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(cardBy));
 
         // Cambiar a ENTREGADO
-        pedidoCard.findElement(By.cssSelector("button.btn-entregado")).click();
+        safeClick(btnEntregadoBy);
 
         // Cerrar pestaña del operador y volver a la del cliente
         driver.close();
@@ -399,47 +368,23 @@ public class TestOperadorFlujo {
         Assertions.assertEquals("ENTREGADO", estadoText, "El estado final del pedido no es ENTREGADO");
     }
 
-    private void asegurarOperador(String cedula, String nombre) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-
-        // Intentar obtener operador por cédula
-        HttpRequest getReq = HttpRequest.newBuilder()
-                .uri(URI.create(BACKEND_URL + "/operadores/cedula/" + cedula))
-                .GET()
-                .build();
-        HttpResponse<String> getResp = client.send(getReq, HttpResponse.BodyHandlers.ofString());
-        if (getResp.statusCode() == 200) {
-            return; // ya existe
+    private void safeClick(By by) {
+        int attempts = 0;
+        while (attempts < 3) {
+            try {
+                WebElement el = new WebDriverWait(driver, Duration.ofSeconds(5))
+                        .until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(by)));
+                el.click();
+                return;
+            } catch (StaleElementReferenceException | ElementClickInterceptedException e) {
+                attempts++;
+                try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+            }
         }
-
-        // Crear operador si no existe
-        String json = String.format("{\"nombre\":\"%s\",\"cedula\":\"%s\",\"disponible\":true}", nombre, cedula);
-        HttpRequest postReq = HttpRequest.newBuilder()
-                .uri(URI.create(BACKEND_URL + "/operadores"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-        HttpResponse<String> postResp = client.send(postReq, HttpResponse.BodyHandlers.ofString());
-        if (postResp.statusCode() != 201 && postResp.statusCode() != 200) {
-            throw new RuntimeException("No se pudo crear el operador: " + postResp.statusCode() + " - " + postResp.body());
-        }
+        WebElement el = wait.until(ExpectedConditions.elementToBeClickable(by));
+        el.click();
     }
 
-    private void asegurarCliente(String nombre, String apellido, String email, String password, String telefono, String direccion) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-        String json = String.format(
-                "{\"nombre\":\"%s\",\"apellido\":\"%s\",\"email\":\"%s\",\"password\":\"%s\",\"confirmPassword\":\"%s\",\"telefono\":\"%s\",\"direccion\":\"%s\"}",
-                nombre, apellido, email, password, password, telefono, direccion);
-        HttpRequest postReq = HttpRequest.newBuilder()
-                .uri(URI.create(BACKEND_URL + "/auth/register"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-        HttpResponse<String> postResp = client.send(postReq, HttpResponse.BodyHandlers.ofString());
-        int sc = postResp.statusCode();
-        // Aceptar creado/ok; si ya existe, permitir 400/409
-        if (!(sc / 100 == 2 || sc == 400 || sc == 409)) {
-            throw new RuntimeException("No se pudo asegurar cliente: " + sc + " - " + postResp.body());
-        }
-    }
 }
+
+   
