@@ -1,0 +1,39 @@
+.admin-cupones-section {
+  padding: 20px;
+}
+.admin-header {
+  margin-bottom: 16px;
+}
+.admin-title { font-size: 1.8rem; margin: 0; }
+.admin-subtitle { color: var(--text-light); margin-top: 6px; }
+.toolbar { display: flex; gap: 10px; margin-bottom: 16px; }
+.toolbar input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: var(--color-text-primary); }
+.btn-primary { padding: 10px 14px; background: var(--color-cta-stroke); color: var(--color-background); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-secondary { padding: 10px 14px; background: var(--color-text-secondary); color: var(--color-background); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-danger { padding: 10px 14px; background: #d9534f; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.add-form { background: rgba(255,255,255,0.06); padding: 14px; border-radius: 10px; margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px; margin-bottom: 10px; }
+.form-row input, .form-row select { padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: var(--color-text-primary); }
+.actions { display: flex; gap: 10px; }
+.table-wrapper { overflow-x: auto; }
+.cupones-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.cupones-table th, .cupones-table td { text-align: left; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: middle; }
+.cupones-table th { font-weight: 600; color: var(--color-text-primary); opacity: 0.9; }
+.cupones-table td input,
+.cupones-table td select {
+  width: 100%;
+  max-width: 280px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: var(--color-text-primary);
+}
+.cupones-table td input[type="number"] { text-align: right; }
+.editing-row td { background: rgba(255,255,255,0.04); }
+.row-actions { display: flex; gap: 8px; }
+.row-actions .btn-primary, .row-actions .btn-secondary, .row-actions .btn-danger { padding: 8px 12px; }
+.badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-weight: 700; }
+.badge-active { background: rgba(78,205,196,0.2); color: var(--color-cta-stroke); }
+.badge-inactive { background: rgba(255,255,255,0.12); color: var(--color-text-secondary); }
+.loading { color: var(--color-text-secondary); }

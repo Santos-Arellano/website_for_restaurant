@@ -24,6 +24,7 @@ import { AdminProductsComponent } from './Components/Admin/admin-products/admin-
 import { AdminClientesComponent } from './Components/Admin/admin-clientes/admin-clientes.component';
 import { AdminDomiciliariosComponent } from './Components/Admin/admin-domiciliarios/admin-domiciliarios.component';
 import { AdminOperadoresComponent } from './Components/Admin/admin-operadores/admin-operadores.component';
+import { AdminCuponesComponent } from './Components/Admin/admin-cupones/admin-cupones.component';
 import { NuestraHistoriaComponent } from './Components/LandingPage/nuestra-historia/nuestra-historia.component';
 import { ResenasComponent } from './Components/LandingPage/resenas/resenas.component';
 import { AdminHeaderComponent } from './Components/Shared/admin-header/admin-header.component';
@@ -68,6 +69,7 @@ import { ChatbotWidgetComponent } from './Components/Shared/chatbot-widget/chatb
     ,OperatorPedidosComponent
     ,AdminPedidosComponent, NavbarOpComponent
     ,ChatbotWidgetComponent
+    ,AdminCuponesComponent
   ],
   imports: [
     BrowserModule,

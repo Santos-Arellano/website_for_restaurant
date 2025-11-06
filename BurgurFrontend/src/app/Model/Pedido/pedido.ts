@@ -4,6 +4,10 @@ export interface Pedido {
     fechaEntrega?: Date;
     estado: EstadoPedido;
     precioTotal: number;
+    // Información de descuento/envío/cupón aplicada en el momento del pedido
+    descuentoAplicado?: number;
+    costoEnvio?: number;
+    cuponCodigo?: string | null;
     clienteId: number;
     operadorId?: number;
     domiciliarioId?: number;

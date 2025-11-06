@@ -16,10 +16,16 @@ import { Producto } from '../../../Model/Producto/producto';
 export class CartComponent implements OnInit, OnDestroy {
   carrito: ProductoPedido[] = [];
   productos: { [key: number]: Producto } = {}; // Cache de productos
-  total: number = 0;
+  total: number = 0; // subtotal
   isLoggedIn: boolean = false;
   currentCliente: Cliente | null = null;
   isLoading: boolean = false;
+  summaryExpanded: boolean = false;
+  // Cupón
+  couponInput: string = '';
+  appliedCoupon: { code: string; description?: string } | null = null;
+  discountAmount: number = 0; // from backend resumen
+  private resumen: { subtotal: number; descuento: number; costoEnvio: number; total: number; cuponCodigo?: string | null } = { subtotal: 0, descuento: 0, costoEnvio: 3000, total: 0, cuponCodigo: null };
   
   private subscriptions: Subscription = new Subscription();
 
@@ -36,6 +42,16 @@ export class CartComponent implements OnInit, OnDestroy {
         this.carrito = carrito;
         this.cargarProductos();
         this.calcularTotal();
+        this.recomputeSubtotal();
+      })
+    );
+
+    this.subscriptions.add(
+      this.pedidoService.carritoResumen$.subscribe(res => {
+        this.resumen = res;
+        this.recomputeSubtotal();
+        this.discountAmount = res.descuento;
+        this.appliedCoupon = res.cuponCodigo ? { code: res.cuponCodigo } : null;
       })
     );
 
@@ -68,13 +84,26 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   calcularTotal(): void {
-    // El backend define precioUnitario como (precio producto + adicionales) por unidad.
-    // Para evitar doble conteo de adicionales, el total es precioUnitario * cantidad.
-    this.total = this.carrito.reduce((sum, item) => {
+    // Subtotal ya viene del backend al suscribir carritoResumen$.
+    // Mantener cálculo como respaldo si no hay resumen aún.
+    if (!this.resumen || typeof this.resumen.subtotal !== 'number') {
+      this.total = this.carrito.reduce((sum, item) => {
+        const unitTotal = item?.precioUnitario || 0;
+        const qty = item?.cantidad || 0;
+        return sum + (unitTotal * qty);
+      }, 0);
+    }
+  }
+
+  private recomputeSubtotal(): void {
+    const localSubtotal = this.carrito.reduce((sum, item) => {
       const unitTotal = item?.precioUnitario || 0;
       const qty = item?.cantidad || 0;
       return sum + (unitTotal * qty);
     }, 0);
+    const backendSubtotal = typeof this.resumen?.subtotal === 'number' ? this.resumen.subtotal : 0;
+    const hasDiscrepancy = Math.abs((backendSubtotal || 0) - (localSubtotal || 0)) > 1;
+    this.total = hasDiscrepancy ? localSubtotal : backendSubtotal;
   }
 
   actualizarCantidad(itemId: number, nuevaCantidad: number): void {
@@ -125,6 +154,10 @@ export class CartComponent implements OnInit, OnDestroy {
     this.router.navigate(['/menu']);
   }
 
+  toggleSummary(): void {
+    this.summaryExpanded = !this.summaryExpanded;
+  }
+
   getProducto(productoId: number): Producto | null {
     return this.productos[productoId] || null;
   }
@@ -140,5 +173,41 @@ export class CartComponent implements OnInit, OnDestroy {
   getNombreProducto(productoId: number): string {
     const producto = this.getProducto(productoId);
     return producto?.nombre || 'Producto';
+  }
+
+  // ====== CUPONES ======
+  applyCoupon(): void {
+    const code = (this.couponInput || '').trim().toUpperCase();
+    if (!code) {
+      this.clearCoupon();
+      return;
+    }
+    this.pedidoService.aplicarCupon(code);
+  }
+
+  clearCoupon(): void {
+    this.pedidoService.quitarCupon();
+  }
+
+  getShipping(): number {
+    return this.resumen?.costoEnvio || 0;
+  }
+
+  getFinalTotal(): number {
+    const localSubtotal = this.total || this.carrito.reduce((sum, item) => {
+      const unitTotal = item?.precioUnitario || 0;
+      const qty = item?.cantidad || 0;
+      return sum + (unitTotal * qty);
+    }, 0);
+    const backendSubtotal = typeof this.resumen?.subtotal === 'number' ? this.resumen.subtotal : 0;
+    const discount = typeof this.resumen?.descuento === 'number' ? this.resumen.descuento : (this.discountAmount || 0);
+    const shipping = this.getShipping();
+    const expectedBackendTotal = Math.max(0, backendSubtotal - discount) + shipping;
+    const hasSubtotalDiscrepancy = Math.abs((backendSubtotal || 0) - (localSubtotal || 0)) > 1;
+    const hasTotalMismatch = typeof this.resumen?.total === 'number' && Math.abs(this.resumen.total - expectedBackendTotal) > 1;
+    if (!hasSubtotalDiscrepancy && !hasTotalMismatch && typeof this.resumen?.total === 'number') {
+      return this.resumen.total;
+    }
+    return Math.max(0, localSubtotal - discount) + shipping;
   }
 }

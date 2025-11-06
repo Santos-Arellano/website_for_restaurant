@@ -18,14 +18,14 @@
           </div>
           
           <div class="cart-item-details">
-            <h4 class="cart-item-name" [title]="getNombreProducto(item.productoId)">{{ getNombreProducto(item.productoId) }}</h4>
+            <h4 class="cart-item-name">{{ getNombreProducto(item.productoId) }}</h4>
             <!-- Adicionales seleccionados -->
             <div class="cart-item-extras" *ngIf="item.adicionales && item.adicionales.length">
               <span class="cart-item-extra-chip" *ngFor="let adi of item.adicionales">
                 <i class="fas fa-plus"></i>
                 {{ getNombreAdicional(adi.adicionalId, item.productoId) }}
                 <span class="extra-qty" *ngIf="adi.cantidad && adi.cantidad > 1">x{{ adi.cantidad }}</span>
-                <span *ngIf="adi.precioUnitario">- {{ adi.precioUnitario | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span *ngIf="adi.precioUnitario">+ {{ adi.precioUnitario | currency:'COP':'symbol':'1.0-0' }}</span>
               </span>
             </div>
             <p class="cart-item-price">${{ getSubtotalItem(item) | number:'1.0-0' }}</p>
@@ -72,9 +72,45 @@
 
     <!-- Footer del Modal -->
     <div class="cart-modal-footer" *ngIf="carrito.length > 0">
+      <div class="summary-header">
+        <button class="summary-toggle-btn" (click)="toggleSummary()">
+          <i class="fas" [ngClass]="summaryExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          {{ summaryExpanded ? 'Ocultar detalles' : 'Ver detalles' }}
+        </button>
+      </div>
+
       <div class="cart-total">
         <span>Total:</span>
-        <span>${{ total | number:'1.0-0' }}</span>
+        <span>${{ getFinalTotal() | number:'1.0-0' }}</span>
+      </div>
+
+      <div class="summary-details" *ngIf="summaryExpanded">
+        <!-- Cupón -->
+        <div class="coupon-section">
+          <label for="couponInputModal">Cupón:</label>
+          <div class="coupon-controls">
+            <input id="couponInputModal" [(ngModel)]="couponInput" type="text" placeholder="Código de cupón (opcional)" class="coupon-input" />
+            <button class="btn-apply-coupon" (click)="applyCoupon()" [disabled]="!couponInput">Aplicar</button>
+            <button class="btn-clear-coupon" *ngIf="appliedCoupon" (click)="clearCoupon()">Quitar</button>
+          </div>
+          <div class="coupon-info" *ngIf="appliedCoupon">
+            <span class="coupon-badge">{{ appliedCoupon.code }}</span>
+            <small class="coupon-desc">{{ appliedCoupon.description }}</small>
+          </div>
+        </div>
+
+        <div class="cart-total">
+          <span>Subtotal:</span>
+          <span>${{ total | number:'1.0-0' }}</span>
+        </div>
+        <div class="cart-total" *ngIf="discountAmount > 0">
+          <span>Descuento:</span>
+          <span>- ${{ discountAmount | number:'1.0-0' }}</span>
+        </div>
+        <div class="cart-total">
+          <span>Domicilio:</span>
+          <span>${{ getShipping() | number:'1.0-0' }}</span>
+        </div>
       </div>
       
       <div class="cart-actions">
@@ -85,7 +121,7 @@
           class="btn-checkout" 
           (click)="procederAlPago()"
           [disabled]="isLoading || carrito.length === 0">
-          <span *ngIf="!isLoading">Proceder al Pago ({{ total | currency:'COP':'symbol':'1.0-0' }})</span>
+          <span *ngIf="!isLoading">Proceder al Pago ({{ getFinalTotal() | currency:'COP':'symbol':'1.0-0' }})</span>
           <span *ngIf="isLoading">
             <i class="fas fa-spinner fa-spin"></i> Procesando...
           </span>

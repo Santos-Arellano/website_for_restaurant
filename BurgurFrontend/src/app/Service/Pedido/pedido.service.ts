@@ -12,6 +12,9 @@ export class PedidoService {
   private carritoApiUrl = '/api/carrito';
   private carritoSubject = new BehaviorSubject<ProductoPedido[]>([]);
   public carrito$ = this.carritoSubject.asObservable();
+  // Resumen del carrito (subtotal, descuento, envío, total y cupón)
+  private carritoResumenSubject = new BehaviorSubject<{ subtotal: number; descuento: number; costoEnvio: number; total: number; cuponCodigo?: string | null }>({ subtotal: 0, descuento: 0, costoEnvio: 3000, total: 0, cuponCodigo: null });
+  public carritoResumen$ = this.carritoResumenSubject.asObservable();
   private pedidosSubject = new BehaviorSubject<Pedido[]>([]);
   public pedidos$ = this.pedidosSubject.asObservable();
   // Ruta mock para seguimiento del domiciliario (coincide con Bogotá aprox.)
@@ -660,19 +663,35 @@ export class PedidoService {
           const parsed = JSON.parse(carritoGuardado);
           const carrito = Array.isArray(parsed) ? parsed : [];
           this.carritoSubject.next(carrito);
+          // Calcular resumen local: subtotal y total con envío base sin descuento
+          const subtotal = carrito.reduce((sum, p) => sum + ((p?.precioUnitario || 0) * (p?.cantidad || 0)), 0);
+          const costoEnvio = 3000;
+          const descuento = 0;
+          const total = Math.max(0, subtotal - descuento) + (subtotal > 0 ? costoEnvio : 0);
+          this.carritoResumenSubject.next({ subtotal, descuento, costoEnvio: subtotal > 0 ? costoEnvio : 0, total, cuponCodigo: null });
         } catch {
           this.carritoSubject.next([]);
+          this.carritoResumenSubject.next({ subtotal: 0, descuento: 0, costoEnvio: 0, total: 0, cuponCodigo: null });
         }
       }
       return;
     }
     this.http.get<any>(`${this.carritoApiUrl}/activo/${clienteId}`).pipe(
+      tap((apiCarrito) => {
+        const resumen = this.extractResumenFromApi(apiCarrito);
+        this.carritoResumenSubject.next(resumen);
+      }),
       map((carrito) => this.mapCarritoToFrontend(carrito)),
       catchError((error) => {
         console.warn('syncCarritoDesdeBackend failed, using local storage:', error);
         const carritoGuardado = localStorage.getItem('carrito');
         const parsed = carritoGuardado ? JSON.parse(carritoGuardado) : [];
-        return of(Array.isArray(parsed) ? parsed : []);
+        const carritoLocal = Array.isArray(parsed) ? parsed : [];
+        const subtotal = carritoLocal.reduce((sum, p) => sum + ((p?.precioUnitario || 0) * (p?.cantidad || 0)), 0);
+        const costoEnvio = subtotal > 0 ? 3000 : 0;
+        const resumenLocal = { subtotal, descuento: 0, costoEnvio, total: Math.max(0, subtotal) + costoEnvio, cuponCodigo: null };
+        this.carritoResumenSubject.next(resumenLocal);
+        return of(carritoLocal);
       })
     ).subscribe((mapped) => {
       this.carritoSubject.next(mapped);
@@ -705,6 +724,65 @@ export class PedidoService {
         // Attach backend item id for delete/update operations
         ...(it.id ? { ['itemId' as any]: it.id } : {})
       } as any as ProductoPedido;
+    });
+  }
+
+  // Extrae el resumen del carrito desde el payload del backend
+  private extractResumenFromApi(apiCarrito: any): { subtotal: number; descuento: number; costoEnvio: number; total: number; cuponCodigo?: string | null } {
+    const items: any[] = apiCarrito?.carritoItems || [];
+    const subtotal = items.reduce((sum, it: any) => sum + (Number(it?.precioUnitario || 0) * Number(it?.cantidad || 0)), 0);
+    const descuento = Number(apiCarrito?.descuentoAplicado || 0);
+    const costoEnvio = Number(apiCarrito?.costoEnvio || 0);
+    const total = Number(apiCarrito?.precioTotal || Math.max(0, subtotal - descuento) + costoEnvio);
+    const cuponCodigo = apiCarrito?.cuponCodigo ?? null;
+    return { subtotal, descuento, costoEnvio, total, cuponCodigo };
+  }
+
+  // Aplicar cupón via backend
+  aplicarCupon(codigo: string): void {
+    const clienteId = this.getCurrentClienteIdFromStorage();
+    if (!clienteId) {
+      console.warn('aplicarCupon: usuario no logueado, operación ignorada');
+      return;
+    }
+    const params = new HttpParams().set('clienteId', String(clienteId)).set('codigo', (codigo || '').toUpperCase());
+    this.http.post<any>(`${this.carritoApiUrl}/cupon/aplicar`, null, { params }).pipe(
+      tap((apiCarrito) => {
+        const resumen = this.extractResumenFromApi(apiCarrito);
+        this.carritoResumenSubject.next(resumen);
+      }),
+      map((apiCarrito) => this.mapCarritoToFrontend(apiCarrito)),
+      catchError((error) => {
+        console.error('aplicarCupon failed:', error);
+        return of(this.carritoSubject.value);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
+    });
+  }
+
+  // Quitar cupón via backend
+  quitarCupon(): void {
+    const clienteId = this.getCurrentClienteIdFromStorage();
+    if (!clienteId) {
+      console.warn('quitarCupon: usuario no logueado, operación ignorada');
+      return;
+    }
+    const params = new HttpParams().set('clienteId', String(clienteId));
+    this.http.post<any>(`${this.carritoApiUrl}/cupon/quitar`, null, { params }).pipe(
+      tap((apiCarrito) => {
+        const resumen = this.extractResumenFromApi(apiCarrito);
+        this.carritoResumenSubject.next(resumen);
+      }),
+      map((apiCarrito) => this.mapCarritoToFrontend(apiCarrito)),
+      catchError((error) => {
+        console.error('quitarCupon failed:', error);
+        return of(this.carritoSubject.value);
+      })
+    ).subscribe((mapped) => {
+      this.carritoSubject.next(mapped);
+      localStorage.setItem('carrito', JSON.stringify(mapped));
     });
   }
 
@@ -746,6 +824,9 @@ export class PedidoService {
     }));
 
     const precioTotal = Number(carrito?.precioTotal ?? 0);
+    const descuentoAplicado = Number(carrito?.descuentoAplicado ?? 0);
+    const costoEnvio = Number(carrito?.costoEnvio ?? 0);
+    const cuponCodigo = carrito?.cuponCodigo ?? null;
 
     return {
       id: Number(apiPedido?.id ?? 0),
@@ -753,6 +834,9 @@ export class PedidoService {
       fechaEntrega: apiPedido?.fechaEntrega ? new Date(apiPedido.fechaEntrega) : undefined,
       estado,
       precioTotal,
+      descuentoAplicado,
+      costoEnvio,
+      cuponCodigo,
       clienteId: carrito?.cliente?.id ?? 0,
       operadorId: apiPedido?.operador?.id,
       domiciliarioId: apiPedido?.domiciliario?.id,

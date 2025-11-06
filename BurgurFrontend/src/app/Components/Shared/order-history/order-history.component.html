@@ -75,6 +75,18 @@
           </div>
 
           <div class="order-summary">
+            <div class="summary-row" *ngIf="pedido.cuponCodigo">
+              <span>Cupón aplicado:</span>
+              <span class="coupon-code">{{ pedido.cuponCodigo }}</span>
+            </div>
+            <div class="summary-row" *ngIf="pedido.descuentoAplicado && pedido.descuentoAplicado > 0">
+              <span>Descuento:</span>
+              <span class="discount-amount">- ${{ pedido.descuentoAplicado | number:'1.0-0' }}</span>
+            </div>
+            <div class="summary-row" *ngIf="pedido.costoEnvio && pedido.costoEnvio > 0">
+              <span>Envío:</span>
+              <span class="shipping-amount">${{ pedido.costoEnvio | number:'1.0-0' }}</span>
+            </div>
             <div class="summary-row">
               <span>Método de pago:</span>
               <span>{{ pedido.metodoPago }}</span>

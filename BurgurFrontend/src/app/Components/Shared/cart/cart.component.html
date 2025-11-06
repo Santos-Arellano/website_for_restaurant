@@ -42,19 +42,47 @@
     </div>
     
     <div class="cart-summary">
-      <div class="summary-row">
-        <span>Subtotal:</span>
-        <span>${{ total | number:'1.0-0' }}</span>
+      <div class="summary-header">
+        <button class="summary-toggle-btn" (click)="toggleSummary()">
+          <i class="fas" [ngClass]="summaryExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          {{ summaryExpanded ? 'Ocultar detalles' : 'Ver detalles' }}
+        </button>
       </div>
-      <div class="summary-row">
-        <span>Domicilio:</span>
-        <span>$3,000</span>
-      </div>
+
       <div class="summary-row total-row">
         <span>Total:</span>
-        <span>${{ (total + 3000) | number:'1.0-0' }}</span>
+        <span>${{ getFinalTotal() | number:'1.0-0' }}</span>
       </div>
-      
+
+      <div class="summary-details" *ngIf="summaryExpanded">
+        <!-- Cupón -->
+        <div class="coupon-section">
+          <label for="couponInput">Cupón:</label>
+          <div class="coupon-controls">
+            <input id="couponInput" [(ngModel)]="couponInput" type="text" placeholder="Código de cupón (opcional)" class="coupon-input" />
+            <button class="btn-apply-coupon" (click)="applyCoupon()" [disabled]="!couponInput">Aplicar</button>
+            <button class="btn-clear-coupon" *ngIf="appliedCoupon" (click)="clearCoupon()">Quitar</button>
+          </div>
+          <div class="coupon-info" *ngIf="appliedCoupon">
+            <span class="coupon-badge">{{ appliedCoupon.code }}</span>
+            <small class="coupon-desc">{{ appliedCoupon.description }}</small>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <span>${{ total | number:'1.0-0' }}</span>
+        </div>
+        <div class="summary-row" *ngIf="discountAmount > 0">
+          <span>Descuento:</span>
+          <span>- ${{ discountAmount | number:'1.0-0' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Domicilio:</span>
+          <span>${{ getShipping() | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
       <div class="cart-actions">
         <button class="btn-clear" (click)="limpiarCarrito()">
           Limpiar Carrito

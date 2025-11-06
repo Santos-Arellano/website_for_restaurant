@@ -1,0 +1,120 @@
+<section class="admin-cupones-section">
+  <div class="container">
+    <div class="admin-header">
+      <h1 class="admin-title">Cupones</h1>
+      <p class="admin-subtitle">Crear, editar y eliminar cupones de descuento</p>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por código, tipo o descripción" />
+      <button class="btn-primary" (click)="toggleAddForm()">{{ showAddForm ? 'Cerrar' : 'Nuevo Cupón' }}</button>
+    </div>
+
+    <div class="add-form" *ngIf="showAddForm">
+      <div class="form-row">
+        <label>Código</label>
+        <input [(ngModel)]="nuevoCupon.codigo" placeholder="BURGER10" />
+      </div>
+      <div class="form-row">
+        <label>Tipo</label>
+        <select [(ngModel)]="nuevoCupon.tipo">
+          <option value="PERCENT">PERCENT</option>
+          <option value="FLAT">FLAT</option>
+          <option value="FREE_SHIPPING">FREE_SHIPPING</option>
+        </select>
+      </div>
+      <div class="form-row" *ngIf="nuevoCupon.tipo !== 'FREE_SHIPPING'">
+        <label>Valor</label>
+        <input type="number" [(ngModel)]="nuevoCupon.valor" />
+      </div>
+      <div class="form-row">
+        <label>Descripción</label>
+        <input [(ngModel)]="nuevoCupon.descripcion" />
+      </div>
+      <div class="form-row">
+        <label>Activo</label>
+        <input type="checkbox" [(ngModel)]="nuevoCupon.activo" />
+      </div>
+      <div class="actions">
+        <button class="btn-primary" (click)="crear()">Crear</button>
+        <button class="btn-secondary" (click)="toggleAddForm()">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoading; else loadingTpl">
+      <table class="cupones-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Descripción</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of filtered" [class.editing-row]="showEditId === c.id">
+            <td>{{ c.id }}</td>
+            <td>
+              <ng-container *ngIf="showEditId === c.id; else viewCodigo">
+                <input [(ngModel)]="c.codigo" placeholder="BURGER10" />
+              </ng-container>
+              <ng-template #viewCodigo>{{ c.codigo }}</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="showEditId === c.id; else viewTipo">
+                <select [(ngModel)]="c.tipo">
+                  <option value="PERCENT">PERCENT</option>
+                  <option value="FLAT">FLAT</option>
+                  <option value="FREE_SHIPPING">FREE_SHIPPING</option>
+                </select>
+              </ng-container>
+              <ng-template #viewTipo>{{ c.tipo }}</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="showEditId === c.id; else viewValor">
+                <ng-container *ngIf="c.tipo !== 'FREE_SHIPPING'; else valorDisabled">
+                  <input type="number" [(ngModel)]="c.valor" min="0" step="100" placeholder="0" />
+                </ng-container>
+                <ng-template #valorDisabled>
+                  <input type="text" value="—" disabled />
+                </ng-template>
+              </ng-container>
+              <ng-template #viewValor>{{ c.tipo === 'FREE_SHIPPING' ? '—' : (c.valor || 0) }}</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="showEditId === c.id; else viewDesc">
+                <input [(ngModel)]="c.descripcion" placeholder="Descripción del cupón" />
+              </ng-container>
+              <ng-template #viewDesc>{{ c.descripcion }}</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="showEditId === c.id; else viewActivo">
+                <input type="checkbox" [(ngModel)]="c.activo" />
+              </ng-container>
+              <ng-template #viewActivo>
+                <span class="badge" [class.badge-active]="c.activo" [class.badge-inactive]="!c.activo">{{ c.activo ? 'Activo' : 'Inactivo' }}</span>
+              </ng-template>
+            </td>
+            <td class="row-actions">
+              <ng-container *ngIf="showEditId === c.id; else rowButtons">
+                <button class="btn-primary" (click)="guardar(c)">Guardar</button>
+                <button class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
+              </ng-container>
+              <ng-template #rowButtons>
+                <button class="btn-primary" (click)="editar(c)">Editar</button>
+                <button class="btn-danger" (click)="eliminar(c.id)">Eliminar</button>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loadingTpl>
+      <div class="loading">Cargando cupones…</div>
+    </ng-template>
+  </div>
+</section>
