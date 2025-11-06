@@ -17,6 +17,7 @@ import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Model.Domiciliario;
 import restaurante.example.burgur.Model.Pedido;
 import restaurante.example.burgur.Model.Producto;
+import restaurante.example.burgur.Model.Cupon;
 import restaurante.example.burgur.Repository.PedidoRepository;
 import restaurante.example.burgur.Service.*;
 
@@ -42,6 +43,9 @@ public class DataBaseInit implements CommandLineRunner {
 
     @Autowired
     private CarritoService carritoService;
+
+    @Autowired
+    private CuponService cuponService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -69,6 +73,9 @@ public class DataBaseInit implements CommandLineRunner {
             // Crear domiciliarios
             createDomiciliarios();
 
+            // Crear cupones por defecto
+            createCupones();
+
             // Crear Carritos y Pedidos
             createCarrYPedi();
 
@@ -83,6 +90,7 @@ public class DataBaseInit implements CommandLineRunner {
             System.out.println("   - Productos: " + productoService.countTotal());
             System.out.println("   - Clientes: " + clienteService.obtenerTodosLosClientes().size());
             System.out.println("   - Adicionales: " + adicionalService.findAll().size());
+            System.out.println("   - Cupones: " + cuponService.listar().size());
             System.out.println("   - Relaciones producto-adicional: " + relacionesCreadas);
             
         } catch (Exception e) {
@@ -132,6 +140,40 @@ public class DataBaseInit implements CommandLineRunner {
         }
         
         System.out.println("   📈 Adicionales creados: " + created + ", Errores: " + errors);
+    }
+
+    private void createCupones() {
+        System.out.println("🎟️ Creando cupones por defecto...");
+
+        List<Cupon> cupones = Arrays.asList(
+            new Cupon(null, "BURGER10", "PERCENT", 10.0, "10% de descuento en el total", true),
+            new Cupon(null, "BURGER20", "PERCENT", 20.0, "20% de descuento en órdenes grandes", true),
+            new Cupon(null, "FLAT5000", "FLAT", 5000.0, "$5.000 de descuento fijo", true),
+            new Cupon(null, "FREESHIP", "FREE_SHIPPING", 0.0, "Envío gratis", true),
+            new Cupon(null, "COMBO15", "PERCENT", 15.0, "15% de descuento en combos", true)
+        );
+
+        int created = 0;
+        int errors = 0;
+
+        for (Cupon cupon : cupones) {
+            try {
+                // Evitar duplicados por código
+                boolean exists = cuponService.obtenerPorCodigo(cupon.getCodigo()).isPresent();
+                if (exists) {
+                    System.out.println("   ↺ Cupón ya existente: " + cupon.getCodigo());
+                    continue;
+                }
+                cuponService.crear(cupon);
+                created++;
+                System.out.println("   ✓ Cupón creado: " + cupon.getCodigo());
+            } catch (Exception e) {
+                errors++;
+                System.err.println("   ✗ Error creando cupón " + cupon.getCodigo() + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("   📈 Cupones creados: " + created + ", Errores: " + errors);
     }
 
     private void createProductos() {

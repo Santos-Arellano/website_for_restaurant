@@ -20,6 +20,9 @@ public class Carrito {
     private Long id;
     private boolean estado; // true = activo, false = inactivo
     private double precioTotal;
+    private String cuponCodigo;
+    private double descuentoAplicado;
+    private double costoEnvio;
 
     //Relaciones BDD
     //1). Relación Pedido-Carrito (Uno a Uno)
@@ -67,6 +70,30 @@ public class Carrito {
 
     public void setPrecioTotal(double precioTotal) {
         this.precioTotal = precioTotal;
+    }
+
+    public String getCuponCodigo() {
+        return cuponCodigo;
+    }
+
+    public void setCuponCodigo(String cuponCodigo) {
+        this.cuponCodigo = cuponCodigo;
+    }
+
+    public double getDescuentoAplicado() {
+        return descuentoAplicado;
+    }
+
+    public void setDescuentoAplicado(double descuentoAplicado) {
+        this.descuentoAplicado = descuentoAplicado;
+    }
+
+    public double getCostoEnvio() {
+        return costoEnvio;
+    }
+
+    public void setCostoEnvio(double costoEnvio) {
+        this.costoEnvio = costoEnvio;
     }
 
     public Pedido getPedido() {

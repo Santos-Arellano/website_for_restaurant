@@ -16,6 +16,8 @@ import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Model.Carrito;
 import restaurante.example.burgur.Model.CarritoItem;
 import restaurante.example.burgur.Model.Cliente;
+import restaurante.example.burgur.Model.Cupon;
+import restaurante.example.burgur.Service.CuponService;
 
 @Service
 public class CarritoServiceImpl implements CarritoService {
@@ -27,6 +29,8 @@ public class CarritoServiceImpl implements CarritoService {
     private CarritoItemRepository carritoItemRepository;
     @Autowired
     private CarritoRepository carritoRepository;
+    @Autowired
+    private CuponService cuponService;
     
     @Override
     @Transactional
@@ -115,8 +119,8 @@ public class CarritoServiceImpl implements CarritoService {
         // Asociar el item al carrito
         prodYAdiPedido.setCarrito(carrito);
         
-        // Guardar costo en Carrito
-        carrito.setPrecioTotal((carrito.getPrecioTotal() + prodYAdiPedido.getPrecioUnitario()) * cantidad);
+        // Guardar costo en Carrito: sumar precio unitario * cantidad
+        carrito.setPrecioTotal(carrito.getPrecioTotal() + (prodYAdiPedido.getPrecioUnitario() * cantidad));
 
         // 7. Guardar el item para generar ID
         CarritoItem savedCarritoItem = carritoItemRepository.save(prodYAdiPedido);
@@ -146,6 +150,8 @@ public class CarritoServiceImpl implements CarritoService {
         items.add(savedCarritoItem);
         carrito.setCarritoItems(items);
 
+        // Recalcular totales considerando cupones y costo de envío
+        recalculateTotals(carrito);
         carritoRepository.save(carrito);
 
         return carrito;
@@ -204,11 +210,8 @@ public class CarritoServiceImpl implements CarritoService {
         }
         carrito.setCarritoItems(items);
 
-        // 6. Actualizar el precio total del carrito
-        double precioTotalActual = carrito.getPrecioTotal();
-        double precioItem = persistedItem.getPrecioUnitario() * persistedItem.getCantidad();
-
-        carrito.setPrecioTotal(precioTotalActual - precioItem);
+        // 6. Recalcular el precio total del carrito
+        recalculateTotals(carrito);
 
         // 7. Guardar los cambios en el carrito
         carritoRepository.save(carrito);
@@ -234,8 +237,11 @@ public class CarritoServiceImpl implements CarritoService {
             items.clear(); // Esto eliminará todos los items gracias a orphanRemoval = true
         }
 
-        // 3. Resetear el precio total del carrito
+        // 3. Resetear el precio total, cupón y envío del carrito
         carrito.setPrecioTotal(0);
+        carrito.setDescuentoAplicado(0);
+        carrito.setCuponCodigo(null);
+        carrito.setCostoEnvio(0);
 
         // 4. Guardar los cambios en el carrito
         carritoRepository.save(carrito);
@@ -276,5 +282,89 @@ public class CarritoServiceImpl implements CarritoService {
             throw new IllegalArgumentException("No hay carritos cerrados pendientes de pedido para el cliente.");
         }
         return ultimo;
+    }
+
+    // ==========================================
+    // Cupones
+    // ==========================================
+    @Override
+    @Transactional
+    public Carrito aplicarCupon(Carrito carrito, String codigo) {
+        if (carrito == null || carrito.getId() == null) {
+            throw new IllegalArgumentException("El Carrito no puede ser null.");
+        }
+        if (!carrito.getEstado()) {
+            throw new IllegalStateException("El carrito está cerrado y no se puede modificar.");
+        }
+        Cupon cupon = cuponService.obtenerPorCodigo(codigo)
+            .orElseThrow(() -> new IllegalArgumentException("Cupón no encontrado"));
+        if (!cupon.isActivo()) {
+            throw new IllegalArgumentException("El cupón no está activo");
+        }
+        carrito.setCuponCodigo(cupon.getCodigo());
+        // Recalcular totales con el cupón
+        recalculateTotals(carrito);
+        return carritoRepository.save(carrito);
+    }
+
+    @Override
+    @Transactional
+    public Carrito quitarCupon(Carrito carrito) {
+        if (carrito == null || carrito.getId() == null) {
+            throw new IllegalArgumentException("El Carrito no puede ser null.");
+        }
+        if (!carrito.getEstado()) {
+            throw new IllegalStateException("El carrito está cerrado y no se puede modificar.");
+        }
+        carrito.setCuponCodigo(null);
+        carrito.setDescuentoAplicado(0);
+        // Si se aplicó envío gratis, restaurar costo de envío a 0 (no calculamos envío aquí)
+        carrito.setCostoEnvio(carrito.getCostoEnvio());
+        recalculateTotals(carrito);
+        return carritoRepository.save(carrito);
+    }
+
+    // Helper: recalcular subtotal, descuento y total final
+    private void recalculateTotals(Carrito carrito) {
+        double subtotal = 0;
+        List<CarritoItem> items = carrito.getCarritoItems();
+        if (items != null) {
+            for (CarritoItem it : items) {
+                double unit = it.getPrecioUnitario();
+                int qty = it.getCantidad();
+                subtotal += unit * qty;
+            }
+        }
+
+        double descuento = 0;
+        double costoEnvio = carrito.getCostoEnvio();
+        String codigo = carrito.getCuponCodigo();
+        if (codigo != null && !codigo.isBlank()) {
+            Cupon cupon = cuponService.obtenerPorCodigo(codigo).orElse(null);
+            if (cupon != null && cupon.isActivo()) {
+                String tipo = cupon.getTipo() == null ? "" : cupon.getTipo().toUpperCase();
+                double valor = cupon.getValor() == null ? 0 : cupon.getValor();
+                switch (tipo) {
+                    case "PERCENT":
+                        descuento = Math.max(0, Math.min(subtotal, subtotal * (valor / 100.0)));
+                        break;
+                    case "FLAT":
+                        descuento = Math.max(0, Math.min(subtotal, valor));
+                        break;
+                    case "FREE_SHIPPING":
+                        // No aplica descuento directo; envío gratis
+                        costoEnvio = 0;
+                        break;
+                    default:
+                        // Tipo desconocido, no aplicar descuento
+                        break;
+                }
+            }
+        }
+
+        carrito.setDescuentoAplicado(descuento);
+        carrito.setCostoEnvio(costoEnvio);
+        double total = Math.max(0, subtotal - descuento + costoEnvio);
+        carrito.setPrecioTotal(total);
     }
 }

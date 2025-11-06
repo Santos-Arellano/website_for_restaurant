@@ -15,6 +15,7 @@ import restaurante.example.burgur.Service.CarritoService;
 import restaurante.example.burgur.Service.ClienteService;
 import restaurante.example.burgur.Service.ProductoService;
 import restaurante.example.burgur.Service.AdicionalService;
+import restaurante.example.burgur.Repository.CarritoRepository;
 
 @RestController
 @RequestMapping("/carrito")
@@ -28,6 +29,8 @@ public class CarritoController {
     private ProductoService productoService;
     @Autowired
     private AdicionalService adicionalService;
+    @Autowired
+    private CarritoRepository carritoRepository;
 
     // Obtener carrito activo del cliente
     @GetMapping("/activo/{clienteId}")
@@ -98,5 +101,28 @@ public class CarritoController {
         Carrito carrito = carritoService.carritoActivoCliente(cliente);
         Carrito cerrado = carritoService.enviarCarritoAPedido(carrito);
         return ResponseEntity.ok(cerrado);
+    }
+
+    // Aplicar cupón al carrito activo del cliente
+    @PostMapping("/cupon/aplicar")
+    public ResponseEntity<Carrito> aplicarCupon(
+            @RequestParam Long clienteId,
+            @RequestParam String codigo
+    ) {
+        Cliente cliente = clienteService.obtenerClientePorId(clienteId);
+        Carrito carrito = carritoService.carritoActivoCliente(cliente);
+        Carrito actualizado = carritoService.aplicarCupon(carrito, codigo);
+        return ResponseEntity.ok(actualizado);
+    }
+
+    // Quitar cupón del carrito activo del cliente
+    @PostMapping("/cupon/quitar")
+    public ResponseEntity<Carrito> quitarCupon(
+            @RequestParam Long clienteId
+    ) {
+        Cliente cliente = clienteService.obtenerClientePorId(clienteId);
+        Carrito carrito = carritoService.carritoActivoCliente(cliente);
+        Carrito actualizado = carritoService.quitarCupon(carrito);
+        return ResponseEntity.ok(actualizado);
     }
 }

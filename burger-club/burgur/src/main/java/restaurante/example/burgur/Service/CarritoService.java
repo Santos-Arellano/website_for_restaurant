@@ -38,5 +38,11 @@ public interface CarritoService {
     
     // Último carrito cerrado sin pedido del cliente
     Carrito ultimoCarritoCerradoSinPedido(Cliente cliente);
+
+    // ==========================================
+    // Cupones
+    // ==========================================
+    Carrito aplicarCupon(Carrito carrito, String codigo);
+    Carrito quitarCupon(Carrito carrito);
     
 }
