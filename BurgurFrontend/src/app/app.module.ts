@@ -36,6 +36,7 @@ import { OperatorLoginComponent } from './Components/Operador/operator-login/ope
 import { OperatorPedidosComponent } from './Components/Operador/operator-pedidos/operator-pedidos.component';
 import { AdminPedidosComponent } from './Components/Admin/admin-pedidos/admin-pedidos.component';
 import { NavbarOpComponent } from './Components/Operador/navbar-op/navbar-op.component';
+import { ChatbotWidgetComponent } from './Components/Shared/chatbot-widget/chatbot-widget.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { NavbarOpComponent } from './Components/Operador/navbar-op/navbar-op.com
     ,OperatorLoginComponent
     ,OperatorPedidosComponent
     ,AdminPedidosComponent, NavbarOpComponent
+    ,ChatbotWidgetComponent
   ],
   imports: [
     BrowserModule,
