@@ -11,7 +11,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WindowType;
-import org.openqa.selenium.By.ByClassName;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -21,7 +20,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import junit.framework.Assert;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
@@ -38,14 +36,6 @@ public class TestCaso1 {
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--disable-notifications");
         chromeOptions.addArguments("--disable-extensions");
-        chromeOptions.addArguments("--headless=new");
-        chromeOptions.addArguments("--remote-allow-origins=*");
-        String chromeBin = System.getenv("CHROME_BIN");
-        if (chromeBin != null && !chromeBin.isBlank()) {
-            chromeOptions.setBinary(chromeBin);
-        } else {
-            chromeOptions.setBinary("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
-        }
 
         this.driver = new ChromeDriver(chromeOptions);
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));

@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
         }
     }
 
-    @Test
+        @Test
     public void flujoCompletoClienteOperador() throws Exception {
         // 1) Login de cliente (usar usuario existente en BD)
         driver.get(FRONTEND_URL + "login");
@@ -97,50 +97,22 @@ import java.util.regex.Pattern;
             // Re-localizar las tarjetas en cada iteración para evitar referencias obsoletas
             List<WebElement> cards = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector(".menu-grid .menu-card")));
             WebElement card = cards.get(i);
-            // Preferir click en la tarjeta (navega a detalle). Si no abre navegación, usar overlay como fallback.
-            boolean navegoADetalle = false;
+            // Clic determinista en el contenedor de la tarjeta, sin ramas condicionales.
             try {
-                new org.openqa.selenium.interactions.Actions(driver)
-                        .moveToElement(card)
-                        .pause(Duration.ofMillis(150))
-                        .click(card)
-                        .perform();
-                // Esperar a que aparezca el componente de detalle o se cambie la URL a /product/
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", card);
+                new WebDriverWait(driver, Duration.ofSeconds(5)).until(ExpectedConditions.elementToBeClickable(card)).click();
                 WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
                 shortWait.until(ExpectedConditions.or(
                         ExpectedConditions.urlContains("/product/"),
                         ExpectedConditions.presenceOfElementLocated(By.cssSelector("app-product-detail"))
                 ));
-                navegoADetalle = true;
-            } catch (Exception ignored) { }
-
-            if (!navegoADetalle) {
-                // Navegación programática a detalle usando el data-id de la tarjeta
-                try {
-                    String prodId = card.getAttribute("data-id");
-                    System.out.println("[DEBUG] data-id de producto seleccionado index=" + i + " => " + prodId);
-                    if (prodId != null && !prodId.isBlank()) {
-                        String detalleUrl = FRONTEND_URL + "product/" + prodId;
-                        System.out.println("[INFO] Fallback navegando a URL de detalle: " + detalleUrl);
-                        driver.get(detalleUrl);
-                        new WebDriverWait(driver, Duration.ofSeconds(12))
-                                .until(ExpectedConditions.or(
-                                        ExpectedConditions.urlMatches(".*/product/\\d+.*"),
-                                        ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".product-detail-overlay.active"))
-                                ));
-                        navegoADetalle = driver.getCurrentUrl().contains("/product/");
-                        System.out.println("[DEBUG] URL tras navegación directa: " + driver.getCurrentUrl());
-                    } else {
-                        System.out.println("[WARN] La tarjeta no tiene atributo data-id, no se puede navegar directo.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("[WARN] Error navegando directo a detalle: " + e.getMessage());
-                }
+            } catch (Exception e) {
+                throw new AssertionError("No se pudo navegar a detalle clickeando la tarjeta del producto", e);
             }
 
-            // Usar siempre la página de detalle para seleccionar adicionales
-            boolean enPaginaDetalle = driver.getCurrentUrl().contains("/product/") || !driver.findElements(By.cssSelector("app-product-detail")).isEmpty();
-            if (enPaginaDetalle) {
+            // Navegación al detalle realizada vía anchor; se elimina el fallback programático.
+
+            // Usar siempre la página de detalle para seleccionar adicionales (sin condición)
                 // Esperar overlay del detalle activo y contenedor visible
                 WebElement overlayDetalle = new WebDriverWait(driver, Duration.ofSeconds(10))
                         .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".product-detail-overlay.active")));
@@ -185,80 +157,7 @@ import java.util.regex.Pattern;
                     driver.get(FRONTEND_URL + "menu");
                     wait.until(ExpectedConditions.urlContains("/menu"));
                 }
-            } else {
-                // Fallback: abrir modal de detalle desde la tarjeta en el menú
-                try {
-                    org.openqa.selenium.interactions.Actions actions = new org.openqa.selenium.interactions.Actions(driver);
-                    actions.moveToElement(card).pause(Duration.ofMillis(150)).perform();
-                    try { Thread.sleep(150); } catch (InterruptedException ignored) {}
-                    WebElement imageEl = card.findElement(By.cssSelector(".menu-card-image"));
-                    actions.moveToElement(imageEl).pause(Duration.ofMillis(200)).perform();
-                    try { Thread.sleep(200); } catch (InterruptedException ignored) {}
-                    WebElement overlayEl = new WebDriverWait(driver, Duration.ofSeconds(10))
-                            .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".menu-card-image .card-overlay")));
-                    System.out.println("[DEBUG] Clic forzado en overlay de tarjeta para abrir modal (index=" + i + ")");
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", overlayEl);
-
-                    // Esperar overlay y contenido del modal de detalle
-                    WebElement overlayModal = new WebDriverWait(driver, Duration.ofSeconds(12))
-                            .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal-overlay")));
-                    WebElement contModal = new WebDriverWait(driver, Duration.ofSeconds(12))
-                            .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal-content")));
-
-                    // Seleccionar hasta 2 adicionales en el overlay de detalle
-                    int seleccionados = 0;
-                    try {
-                        WebElement secAdic = new WebDriverWait(driver, Duration.ofSeconds(10))
-                                .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".adicionales-section")));
-                        List<WebElement> labels = secAdic.findElements(By.cssSelector(".adicionales-list .adicional-item label.adicional-checkbox"));
-                        for (WebElement label : labels) {
-                            if (seleccionados >= 2) break;
-                            try {
-                                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", label);
-                                WebElement checkbox = label.findElement(By.cssSelector("input[type='checkbox']"));
-                                if (checkbox.isSelected()) { seleccionados++; continue; }
-                                new WebDriverWait(driver, Duration.ofSeconds(5))
-                                        .until(ExpectedConditions.elementToBeClickable(label)).click();
-                                new WebDriverWait(driver, Duration.ofSeconds(5))
-                                        .until(d -> { try { return checkbox.isSelected(); } catch (StaleElementReferenceException e) { return false; } });
-                                seleccionados++;
-                            } catch (Exception ignored) { }
-                        }
-                    } catch (Exception ignored) { }
-
-                    // Agregar al carrito y cerrar modal/volver atrás
-                    WebElement addBtn = new WebDriverWait(driver, Duration.ofSeconds(12))
-                            .until(ExpectedConditions.elementToBeClickable(By.cssSelector(".add-to-cart-btn")));
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", addBtn);
-                    addBtn.click();
-
-                    try {
-                        WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(10))
-                                .until(ExpectedConditions.elementToBeClickable(By.cssSelector(".close-button")));
-                        closeBtn.click();
-                        wait.until(ExpectedConditions.urlContains("/menu"));
-                    } catch (Exception ignored) {
-                        // Si no hay botón, asegurarse de estar en el menú
-                        driver.get(FRONTEND_URL + "menu");
-                        wait.until(ExpectedConditions.urlContains("/menu"));
-                    }
-                } catch (Exception e) {
-                    // Último recurso: agregar directamente desde la tarjeta del menú
-                    try {
-                        WebElement addQuickBtn = card.findElement(By.cssSelector(".menu-card-content .btn-add-cart"));
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", addQuickBtn);
-                        new WebDriverWait(driver, Duration.ofSeconds(5))
-                                .until(ExpectedConditions.elementToBeClickable(addQuickBtn)).click();
-                        // Esperar a que desaparezca cualquier toast de confirmación
-                        try {
-                            new WebDriverWait(driver, Duration.ofSeconds(2))
-                                    .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector("div.toast")));
-                        } catch (Exception ignored) {}
-                    } catch (Exception ex) {
-                        throw new TimeoutException("No se pudo abrir el modal ni agregar el producto directamente desde la tarjeta.");
-                    }
-                }
-            }
+            // Sin fallback: la selección de producto ocurre exclusivamente desde la página de detalle.
 
             // (flujo modal y detalle manejados arriba)
         }
