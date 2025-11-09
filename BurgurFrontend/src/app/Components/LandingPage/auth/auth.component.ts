@@ -47,6 +47,13 @@ export class AuthComponent implements OnInit {
       const path = segments[segments.length - 1]?.path;
       this.isLoginMode = path === 'login';
     });
+
+    // Si ya hay sesión activa, redirigir según rol
+    const current = this.clienteService.getCurrentCliente();
+    if (current) {
+      const isAdmin = this.clienteService.isAdmin(current);
+      this.router.navigate([isAdmin ? '/admin' : '/']);
+    }
   }
 
   toggleMode(): void {
@@ -83,9 +90,8 @@ export class AuthComponent implements OnInit {
           debugLog('Login exitoso:', cliente);
           this.toast.success('Sesión iniciada correctamente', 3000);
           
-          // Redirección: si es admin por correo, ir a /admin
-          // Caso contrario, ir a la página principal
-          const isAdmin = cliente.correo?.toLowerCase() === 'admin@burgerclub.com';
+          // Redirección según rol usando helper centralizado
+          const isAdmin = this.clienteService.isAdmin(cliente);
           this.router.navigate([isAdmin ? '/admin' : '/']);
         } else {
           this.errorMessage = 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.';
@@ -125,7 +131,7 @@ export class AuthComponent implements OnInit {
         this.isLoading = false;
         debugLog('Registro exitoso:', cliente);
         this.toast.success('Registro exitoso. ¡Bienvenido a BurGur!', 3500);
-        const isAdmin = cliente.correo?.toLowerCase() === 'admin@burgerclub.com';
+        const isAdmin = this.clienteService.isAdmin(cliente);
         this.router.navigate([isAdmin ? '/admin' : '/']);
       },
       error: (error: any) => {

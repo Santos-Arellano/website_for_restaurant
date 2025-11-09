@@ -8,7 +8,7 @@ export class AdminGuard implements CanActivate {
 
   canActivate(): boolean | UrlTree {
     const current = this.clienteService.getCurrentCliente();
-    const isAdmin = (current?.correo ?? '').toLowerCase() === 'admin@burgerclub.com';
+    const isAdmin = this.clienteService.isAdmin(current);
     if (isAdmin) return true;
     return this.router.parseUrl('/login');
   }

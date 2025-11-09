@@ -16,6 +16,6 @@ export class NavbarOpComponent {
     localStorage.removeItem('operadorCedula');
     
     // Redirigir al login de operador
-    this.router.navigate(['/operator-login']);
+    this.router.navigate(['/operador/login']);
   }
 }

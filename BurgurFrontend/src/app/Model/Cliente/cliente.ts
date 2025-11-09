@@ -3,6 +3,7 @@ export interface Cliente {
     nombre: string;
     apellido: string;
     correo: string;
+    role?: 'ADMIN' | 'CLIENTE';
     contrasena?: string; // Opcional para no exponer en frontend
     telefono: string;
     direccion: string;

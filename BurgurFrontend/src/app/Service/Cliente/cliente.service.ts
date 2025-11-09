@@ -40,6 +40,7 @@ export class ClienteService {
           direccion: parsed.direccion,
           fechaRegistro: parsed.fechaRegistro ? new Date(parsed.fechaRegistro) : new Date(),
           activo: typeof parsed.activo === 'boolean' ? parsed.activo : true,
+          role: parsed.role,
           pedidos: parsed.pedidos ?? []
         };
         this.currentClienteSubject.next(mapped);
@@ -63,6 +64,7 @@ export class ClienteService {
           direccion: src.direccion,
           fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
           activo: typeof src.activo === 'boolean' ? src.activo : true,
+          role: src.role ?? (((src.correo ?? src.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
           pedidos: src.pedidos ?? []
         };
         return mapped;
@@ -89,6 +91,7 @@ export class ClienteService {
                 direccion: parsed.direccion,
                 fechaRegistro: parsed.fechaRegistro ? new Date(parsed.fechaRegistro) : new Date(),
                 activo: typeof parsed.activo === 'boolean' ? parsed.activo : true,
+                role: parsed.role,
                 pedidos: parsed.pedidos ?? []
               };
               this.currentClienteSubject.next(mapped);
@@ -121,6 +124,14 @@ export class ClienteService {
     // Mantener sincronizado el estado de autenticación con el subject del cliente
     this.isLoggedInSubject.next(!!this.currentClienteSubject.value);
     this.currentCliente$.subscribe(cli => this.isLoggedInSubject.next(!!cli));
+  }
+
+  // Determinar si el cliente actual es administrador
+  public isAdmin(cliente: Cliente | null = this.currentClienteSubject.value): boolean {
+    if (!cliente) return false;
+    if (cliente.role === 'ADMIN') return true;
+    const email = (cliente.correo ?? '').toLowerCase();
+    return email === 'admin@burgerclub.com';
   }
 
   // Helper seguro para parsear JSON desde localStorage con fallback
@@ -191,6 +202,7 @@ export class ClienteService {
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
           activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          role: cli.role ?? (((cli.correo ?? cli.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
           pedidos: cli.pedidos ?? []
         };
         return mapped;
@@ -209,6 +221,7 @@ export class ClienteService {
             direccion: src.direccion,
             fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
             activo: typeof src.activo === 'boolean' ? src.activo : true,
+            role: src.role ?? (((src.correo ?? src.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
             pedidos: src.pedidos ?? []
           };
           return full;
@@ -251,6 +264,7 @@ export class ClienteService {
           direccion: nuevo.direccion,
           fechaRegistro: new Date(nuevo.fechaRegistro),
           activo: true,
+          role: (nuevo.correo?.toLowerCase() === 'admin@burgerclub.com' ? 'ADMIN' : 'CLIENTE'),
           pedidos: []
         };
         this.currentClienteSubject.next(mapped);
@@ -280,6 +294,7 @@ export class ClienteService {
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
           activo: typeof cli.activo === 'boolean' ? cli.activo : true,
+          role: cli.role ?? (((cli.correo ?? cli.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
           pedidos: cli.pedidos ?? []
         };
         return mapped;
@@ -291,20 +306,21 @@ export class ClienteService {
           map((cli: any) => {
             const src = cli?.cliente ?? cli?.user ?? cli;
             if (!src) return mapped;
-            const full: Cliente = {
-              id: src.id,
-              nombre: src.nombre,
-              apellido: src.apellido,
-              correo: src.correo ?? src.email,
-              telefono: src.telefono,
-              direccion: src.direccion,
-              fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
-              activo: typeof src.activo === 'boolean' ? src.activo : true,
-              pedidos: src.pedidos ?? []
-            };
-            return full;
-          }),
-          catchError(() => of(mapped))
+          const full: Cliente = {
+            id: src.id,
+            nombre: src.nombre,
+            apellido: src.apellido,
+            correo: src.correo ?? src.email,
+            telefono: src.telefono,
+            direccion: src.direccion,
+            fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
+            activo: typeof src.activo === 'boolean' ? src.activo : true,
+            role: src.role ?? (((src.correo ?? src.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
+            pedidos: src.pedidos ?? []
+          };
+          return full;
+        }),
+        catchError(() => of(mapped))
         );
       }),
       tap((finalCliente: Cliente | null) => {
@@ -583,6 +599,7 @@ export class ClienteService {
           direccion: cliente.direccion,
           fechaRegistro: cliente.fechaRegistro,
           activo: cliente.activo,
+          role: cliente.role,
           pedidos: cliente.pedidos
         };
         localStorage.setItem('currentUser', JSON.stringify(plain));
@@ -601,6 +618,7 @@ export class ClienteService {
         nombre: 'Admin',
         apellido: 'BurgerClub',
         correo: 'admin@burgerclub.com',
+        role: 'ADMIN',
         contrasena: 'admin123',
         telefono: '3000000000',
         direccion: 'Oficina Central',
