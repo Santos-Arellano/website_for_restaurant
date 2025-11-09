@@ -98,6 +98,7 @@ public class OperadorController {
             session.setAttribute("operador", operador);
             session.setAttribute("operadorId", operador.getId());
             session.setAttribute("operadorNombre", operador.getNombre());
+            session.setAttribute("role", "OPERADOR");
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -106,7 +107,8 @@ public class OperadorController {
                     "id", operador.getId(),
                     "nombre", operador.getNombre(),
                     "cedula", operador.getCedula(),
-                    "disponible", operador.isDisponible()
+                    "disponible", operador.isDisponible(),
+                    "role", "OPERADOR"
                 )
             ));
         } catch (IllegalArgumentException e) {
@@ -130,6 +132,7 @@ public class OperadorController {
     @GetMapping("/current")
     public ResponseEntity<Map<String, Object>> currentOperador(HttpSession session) {
         Operador operador = (Operador) session.getAttribute("operador");
+        String role = (String) session.getAttribute("role");
         if (operador == null) {
             return ResponseEntity.ok(Map.of("authenticated", false));
         }
@@ -139,7 +142,8 @@ public class OperadorController {
                 "id", operador.getId(),
                 "nombre", operador.getNombre(),
                 "cedula", operador.getCedula(),
-                "disponible", operador.isDisponible()
+                "disponible", operador.isDisponible(),
+                "role", role != null ? role : "OPERADOR"
             )
         ));
     }

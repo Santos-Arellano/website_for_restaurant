@@ -44,6 +44,9 @@ public class AuthController {
             session.setAttribute("cliente", cliente);
             session.setAttribute("clienteId", cliente.getId());
             session.setAttribute("clienteNombre", cliente.getNombre());
+            // Determinar rol (ADMIN si correo coincide, de lo contrario CLIENTE)
+            String role = (cliente.getCorreo() != null && cliente.getCorreo().equalsIgnoreCase("admin@burgerclub.com")) ? "ADMIN" : "CLIENTE";
+            session.setAttribute("role", role);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -52,7 +55,8 @@ public class AuthController {
                     "id", cliente.getId(),
                     "nombre", cliente.getNombre(),
                     "apellido", cliente.getApellido(),
-                    "correo", cliente.getCorreo()
+                    "correo", cliente.getCorreo(),
+                    "role", role
                 )
             ));
             
@@ -118,6 +122,8 @@ public class AuthController {
             session.setAttribute("cliente", clienteGuardado);
             session.setAttribute("clienteId", clienteGuardado.getId());
             session.setAttribute("clienteNombre", clienteGuardado.getNombre());
+            String role = (clienteGuardado.getCorreo() != null && clienteGuardado.getCorreo().equalsIgnoreCase("admin@burgerclub.com")) ? "ADMIN" : "CLIENTE";
+            session.setAttribute("role", role);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -126,7 +132,8 @@ public class AuthController {
                     "id", clienteGuardado.getId(),
                     "nombre", clienteGuardado.getNombre(),
                     "apellido", clienteGuardado.getApellido(),
-                    "correo", clienteGuardado.getCorreo()
+                    "correo", clienteGuardado.getCorreo(),
+                    "role", role
                 )
             ));
             
@@ -161,6 +168,7 @@ public class AuthController {
     @GetMapping("/current")
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
         Cliente cliente = (Cliente) session.getAttribute("cliente");
+        String role = (String) session.getAttribute("role");
         
         if (cliente == null) {
             return ResponseEntity.ok(Map.of("authenticated", false));
@@ -174,7 +182,8 @@ public class AuthController {
                 "apellido", cliente.getApellido(),
                 "correo", cliente.getCorreo(),
                 "telefono", cliente.getTelefono(),
-                "direccion", cliente.getDireccion()
+                "direccion", cliente.getDireccion(),
+                "role", role != null ? role : ((cliente.getCorreo() != null && cliente.getCorreo().equalsIgnoreCase("admin@burgerclub.com")) ? "ADMIN" : "CLIENTE")
             )
         ));
     }
