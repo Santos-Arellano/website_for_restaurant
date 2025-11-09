@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.h2.engine.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -15,10 +16,15 @@ import restaurante.example.burgur.Model.Adicional;
 import restaurante.example.burgur.Model.Carrito;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Model.Domiciliario;
+import restaurante.example.burgur.Model.Operador;
 import restaurante.example.burgur.Model.Pedido;
 import restaurante.example.burgur.Model.Producto;
+import restaurante.example.burgur.Model.Rol;
+import restaurante.example.burgur.Model.UserEntity;
 import restaurante.example.burgur.Model.Cupon;
 import restaurante.example.burgur.Repository.PedidoRepository;
+import restaurante.example.burgur.Repository.RolRepository;
+import restaurante.example.burgur.Repository.UserRepository;
 import restaurante.example.burgur.Service.*;
 
 @Component
@@ -39,6 +45,9 @@ public class DataBaseInit implements CommandLineRunner {
     private DomiciliarioService domiciliarioService;
 
     @Autowired
+    private OperadorService operadorService;
+
+    @Autowired
     private PedidoService pedidoService;
 
     @Autowired
@@ -47,6 +56,12 @@ public class DataBaseInit implements CommandLineRunner {
     @Autowired
     private CuponService cuponService;
 
+    @Autowired
+    private RolRepository rolRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @Override
     public void run(String... args) throws Exception {
         // Solo inicializar si la base de datos está vacía
@@ -54,13 +69,28 @@ public class DataBaseInit implements CommandLineRunner {
             initializeData();
         } else {
             System.out.println("✅ Base de datos ya contiene datos. Saltando inicialización.");
+            System.out.println("💡 Si quieres reinicializar, borra la carpeta 'target' y reinicia la aplicación.");
+            System.out.println("📊 Estadísticas actuales:");
+            System.out.println("   - Productos: " + productoService.countTotal());
+            System.out.println("   - Clientes: " + clienteService.obtenerTodosLosClientes().size());
+            System.out.println("   - Usuarios en BD: " + userRepository.count());
         }
     }
 
     private void initializeData() {
         try {
             System.out.println("🚀 Inicializando base de datos...");
-            
+
+            // Crear roles por defecto
+            System.out.println("👤 Creando roles...");
+            Rol rolAdmin = new Rol("ADMIN");            
+            Rol rolCliente = new Rol("CLIENTE");
+            Rol rolDomiciliario = new Rol("OPERADOR");
+            rolRepository.save(rolAdmin);
+            rolRepository.save(rolCliente);
+            rolRepository.save(rolDomiciliario);
+            System.out.println("   ✓ Roles creados: ADMIN, CLIENTE, OPERADOR");
+
             // Crear adicionales primero
             createAdicionales();
             
@@ -70,17 +100,14 @@ public class DataBaseInit implements CommandLineRunner {
             // Crear clientes
             createClientes();
             
+            // Crear operadores
+            createOperadores();
+            
             // Crear domiciliarios
             createDomiciliarios();
 
             // Crear cupones por defecto
             createCupones();
-
-            // Crear Carritos y Pedidos
-            createCarrYPedi();
-
-            //Crear CarritosYPedidos
-            //createCarritosYPedidos();
 
             // Vincular adicionales con productos
             int relacionesCreadas = productoService.rebuildAdicionalesDeTodosLosProductos();
@@ -92,6 +119,7 @@ public class DataBaseInit implements CommandLineRunner {
             System.out.println("   - Adicionales: " + adicionalService.findAll().size());
             System.out.println("   - Cupones: " + cuponService.listar().size());
             System.out.println("   - Relaciones producto-adicional: " + relacionesCreadas);
+            System.out.println("   - 👥 USUARIOS CREADOS: " + userRepository.count());
             
         } catch (Exception e) {
             System.err.println("❌ Error al inicializar base de datos: " + e.getMessage());
@@ -378,12 +406,36 @@ public class DataBaseInit implements CommandLineRunner {
         System.out.println("🚚 Creando domiciliarios...");
         
         List<Domiciliario> domiciliarios = Arrays.asList(
-            new Domiciliario("Carlos Ramírez", "1098765432", true),
-            new Domiciliario("Laura Mendoza", "1076543210", true),
-            new Domiciliario("Andrés Gómez", "1054321098", true),
-            new Domiciliario("Juliana Vargas", "1032109876", true),
-            new Domiciliario("Roberto Sánchez", "1010987654", false),
-            new Domiciliario("Camila Rodríguez", "1098765431", true)
+            Domiciliario.builder()
+                .nombre("Carlos Ramírez")
+                .cedula("1098765432")
+                .disponible(true)
+                .build(),
+            Domiciliario.builder()
+                .nombre("Laura Mendoza")
+                .cedula("1076543210")
+                .disponible(true)
+                .build(),
+            Domiciliario.builder()
+                .nombre("Andrés Gómez")
+                .cedula("1054321098")
+                .disponible(true)
+                .build(),
+            Domiciliario.builder()
+                .nombre("Juliana Vargas")
+                .cedula("1032109876")
+                .disponible(true)
+                .build(),
+            Domiciliario.builder()
+                .nombre("Roberto Sánchez")
+                .cedula("1010987654")
+                .disponible(false)
+                .build(),
+            Domiciliario.builder()
+                .nombre("Camila Rodríguez")
+                .cedula("1098765431")
+                .disponible(true)
+                .build()
         );
 
         int created = 0;
@@ -405,166 +457,165 @@ public class DataBaseInit implements CommandLineRunner {
     
     private void createClientes() {
         System.out.println("👥 Creando clientes...");
-        
-        List<Cliente> clientes = Arrays.asList(
-            new Cliente(null,"Juan", "Pérez", "juan.perez@email.com", "password123", 
-                       "+573001234567", "Carrera 15 #45-67, Bogotá", true, null),
-            
-            new Cliente(null,"María", "González", "maria.gonzalez@email.com", "password123", 
-                       "+573109876543", "Calle 80 #12-34, Bogotá", true, null),
-            
-            new Cliente(null,"Carlos", "Rodríguez", "carlos.rodriguez@email.com", "password123", 
-                       "+573204567890", "Avenida 68 #23-45, Bogotá", true, null),
-            
-            new Cliente(null,"Ana", "Martínez", "ana.martinez@email.com", "password123", 
-                       "+573152345678", "Carrera 7 #56-78, Bogotá", true, null),
-            
-            new Cliente(null,"Luis", "García", "luis.garcia@email.com", "password123", 
-                       "+573056789012", "Calle 100 #34-56, Bogotá", true, null),
-            
-            new Cliente(null,"Carmen", "López", "carmen.lopez@email.com", "password123", 
-                       "+573187654321", "Transversal 45 #67-89, Bogotá", true, null),
-            
-            new Cliente(null,"Diego", "Herrera", "diego.herrera@email.com", "password123", 
-                       "+573098765432", "Calle 127 #45-67, Bogotá", true, null),
-            
-            new Cliente(null,"Sofía", "Torres", "sofia.torres@email.com", "password123", 
-                       "+573123456789", "Carrera 30 #78-90, Bogotá", true, null),
-            new Cliente(null,"Miguel", "Vásquez", "miguel.vasquez@email.com", "password123", 
-                       "+573234567890", "Avenida 19 #12-34, Bogotá", true, null),
-            new Cliente(null,"Admin", "Burger", "admin@burgerclub.com", "admin123", 
-                       "+573999999999", "Oficina Central Burger Club", true, null)
-        );
 
+        Cliente clienteSave;
+        UserEntity userEntity;
         int created = 0;
-        int errors = 0;
-        
-        for (Cliente cliente : clientes) {
-            try {
-                clienteService.save(cliente);
-                created++;
-                System.out.println("   ✓ Cliente creado: " + cliente.getNombre() + " " + cliente.getApellido());
-            } catch (Exception e) {
-                errors++;
-                System.err.println("   ✗ Error creando cliente " + cliente.getNombre() + ": " + e.getMessage());
-            }
-        }
-        
-        System.out.println("   📈 Clientes creados: " + created + ", Errores: " + errors);
+
+        // Cliente 1: Juan Pérez
+        clienteSave = new Cliente(null, "Juan", "Pérez", "juan.perez@email.com", "password123", 
+                                  "+573001234567", "Carrera 15 #45-67, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 2: María González
+        clienteSave = new Cliente(null, "María", "González", "maria.gonzalez@email.com", "password123", 
+                                  "+573109876543", "Calle 80 #12-34, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 3: Carlos Rodríguez
+        clienteSave = new Cliente(null, "Carlos", "Rodríguez", "carlos.rodriguez@email.com", "password123", 
+                                  "+573204567890", "Avenida 68 #23-45, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 4: Ana Martínez
+        clienteSave = new Cliente(null, "Ana", "Martínez", "ana.martinez@email.com", "password123", 
+                                  "+573152345678", "Carrera 7 #56-78, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 5: Luis García
+        clienteSave = new Cliente(null, "Luis", "García", "luis.garcia@email.com", "password123", 
+                                  "+573056789012", "Calle 100 #34-56, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 6: Carmen López
+        clienteSave = new Cliente(null, "Carmen", "López", "carmen.lopez@email.com", "password123", 
+                                  "+573187654321", "Transversal 45 #67-89, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 7: Diego Herrera
+        clienteSave = new Cliente(null, "Diego", "Herrera", "diego.herrera@email.com", "password123", 
+                                  "+573098765432", "Calle 127 #45-67, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 8: Sofía Torres
+        clienteSave = new Cliente(null, "Sofía", "Torres", "sofia.torres@email.com", "password123", 
+                                  "+573123456789", "Carrera 30 #78-90, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 9: Miguel Vásquez
+        clienteSave = new Cliente(null, "Miguel", "Vásquez", "miguel.vasquez@email.com", "password123", 
+                                  "+573234567890", "Avenida 19 #12-34, Bogotá", true, null);
+        userEntity = saveUserCliente(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        // Cliente 10: Admin Burger (con rol ADMIN)
+        clienteSave = new Cliente(null, "Admin", "Burger", "admin@burgerclub.com", "admin123", 
+                                  "+573999999999", "Oficina Central Burger Club", true, null);
+        userEntity = saveUserAdmin(clienteSave);
+        clienteSave.setUser(userEntity);
+        clienteService.save(clienteSave);
+        created++;
+        System.out.println("   ✓ Admin creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
+
+        System.out.println("   📈 Clientes creados: " + created);
     }
 
-    private void createCarritos(){
-        System.out.println("🛒 Creando carritos para cada cliente...");
+    // Crear Operadores
+    private void createOperadores() {
+        System.out.println("👷 Creando operadores...");
+
+        Operador operadorSave;
+        UserEntity userEntity;
+        int created = 0;
+
+        // Operador 1: María Rodríguez
+        operadorSave = new Operador("María Rodríguez", "1087654321", true);
+        userEntity = saveUserOperador(operadorSave);
+        operadorSave.setUser(userEntity);
+        operadorService.save(operadorSave);
+        created++;
+        System.out.println("   ✓ Operador creado: " + operadorSave.getNombre());
+
+        // Operador 2: Carlos Mendoza
+        operadorSave = new Operador("Carlos Mendoza", "1076543219", true);
+        userEntity = saveUserOperador(operadorSave);
+        operadorSave.setUser(userEntity);
+        operadorService.save(operadorSave);
+        created++;
+        System.out.println("   ✓ Operador creado: " + operadorSave.getNombre());
+
+        System.out.println("   📈 Operadores creados: " + created);
+    }
+
+    private UserEntity saveUserOperador(Operador operador){
+        UserEntity user = new UserEntity();
+        user.setUsername(operador.getCedula()); // Usar cédula como username
+        user.setPassword("operador123"); // Contraseña por defecto
         
-        List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
-        int carritosCreados = 0;
-        int errores = 0;
-
-        List <Adicional> adicionales = new ArrayList<>();
-        Adicional adicional1 = adicionalService.findById(1L); // Bacon
-        adicionales.add(adicional1);
-        Adicional adicional2 = adicionalService.findById(2L); // Queso extra
-        adicionales.add(adicional2);
-
-        for (Cliente cliente : clientes) {
-            try {
-                    carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), adicionales, 1, null, cliente); // Añadir un producto inicial para activar el carrito
-                    carritoService.añadirProductoAlCarrito(productoService.findById(2L).get(), null, 1, null, cliente); // Añadir un producto inicial para activar el carrito
-                    carritosCreados++;
-                    System.out.println("   ✓ Carrito creado para: " + cliente.getNombre() + " " + cliente.getApellido());
-            } catch (Exception e) {
-                errores++;
-                System.err.println("   ✗ Error creando carrito para " + cliente.getNombre() + ": " + e.getMessage());
-            }
-        }
-
-        System.out.println("   📈 Carritos creados: " + carritosCreados + ", Errores: " + errores);
-    }
-
-    private void createCarritosYPedidos(){
-        List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
-        List <Adicional> adicionales = new ArrayList<>();
-        Adicional adicional1 = adicionalService.findById(1L); // Bacon
-        adicionales.add(adicional1);
-        Adicional adicional2 = adicionalService.findById(2L); // Queso extra
-        adicionales.add(adicional2);
+        Rol rol = rolRepository.findByName("OPERADOR");
+        user.setRoles(new ArrayList<>(List.of(rol)));
         
-        // Creamos 10 Carritos y 10 Pedidos asociados
-        Carrito carrito1 = carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), adicionales, 1, null, clienteService.obtenerClientePorId(1L));
-        carrito1 = carritoService.añadirProductoAlCarrito(productoService.findById(2L).get(), adicionales, 1, carrito1, clienteService.obtenerClientePorId(1L));
-        carritoService.enviarCarritoAPedido(carrito1);
-        pedidoService.crearPedido(carrito1);
-
-        Carrito carrito2 = carritoService.añadirProductoAlCarrito(productoService.findById(2L).get(), adicionales, 1, null, clienteService.obtenerClientePorId(2L));
-        carritoService.enviarCarritoAPedido(carrito2);
-        pedidoService.crearPedido(carrito2);
-
-        Carrito carrito3 = carritoService.añadirProductoAlCarrito(productoService.findById(3L).get(), adicionales, 1, null, clienteService.obtenerClientePorId(3L));
-        carritoService.enviarCarritoAPedido(carrito3);
-        pedidoService.crearPedido(carrito3);
-
-        Carrito carrito4 = carritoService.añadirProductoAlCarrito(productoService.findById(4L).get(), null, 1, null, clienteService.obtenerClientePorId(4L));
-        carritoService.enviarCarritoAPedido(carrito4);
-        pedidoService.crearPedido(carrito4);
-
-        Carrito carrito5 = carritoService.añadirProductoAlCarrito(productoService.findById(5L).get(), null, 1, null, clienteService.obtenerClientePorId(5L));
-        carritoService.enviarCarritoAPedido(carrito5);
-        pedidoService.crearPedido(carrito5);
-
-        Carrito carrito6 = carritoService.añadirProductoAlCarrito(productoService.findById(6L).get(), null, 1, null, clienteService.obtenerClientePorId(6L));
-        carritoService.enviarCarritoAPedido(carrito6);
-        pedidoService.crearPedido(carrito6);
-
-        Carrito carrito7 = carritoService.añadirProductoAlCarrito(productoService.findById(7L).get(), null, 1, null, clienteService.obtenerClientePorId(7L));
-        carritoService.enviarCarritoAPedido(carrito7);
-        pedidoService.crearPedido(carrito7);
-
-        Carrito carrito8 = carritoService.añadirProductoAlCarrito(productoService.findById(8L).get(), null, 1, null, clienteService.obtenerClientePorId(8L));
-        carritoService.enviarCarritoAPedido(carrito8);
-        pedidoService.crearPedido(carrito8);
-
-        Carrito carrito9 = carritoService.añadirProductoAlCarrito(productoService.findById(9L).get(), null, 1, null, clienteService.obtenerClientePorId(9L));
-        carritoService.enviarCarritoAPedido(carrito9);
-        pedidoService.crearPedido(carrito9);
-
-        Carrito carrito10 = carritoService.añadirProductoAlCarrito(productoService.findById(10L).get(), null, 1, null, clienteService.obtenerClientePorId(10L));
-        carritoService.enviarCarritoAPedido(carrito10);
-        pedidoService.crearPedido(carrito10);
-
-        System.out.println("   📈 Carritos y Pedidos creados: 10");
-
+        return userRepository.save(user);
     }
 
-    private void createCarrYPedi(){
-        // List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
-        // List <Adicional> adicionales = new ArrayList<>();
-        // Adicional adicional1 = adicionalService.findById(1L); // Bacon
-        // adicionales.add(adicional1);
-        // Adicional adicional2 = adicionalService.findById(2L); // Queso extra
-        // adicionales.add(adicional2);
-
-        // // //Cremos 1 Carrito y 1 Pedido asociado a el primer cliente
-        // // Carrito carrito1 = carritoService.carritoActivoCliente(clienteService.obtenerClientePorId(1L));
-        // // carrito1 = carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), adicionales, 1, carrito1, clienteService.obtenerClientePorId(1L));
-        // // carritoService.enviarCarritoAPedido(carrito1);
-        // // pedidoService.crearPedido(carrito1);
-        // // // Creamos otro pedido para el mismo cliente
-        // // carrito1 = carritoService.carritoActivoCliente(clienteService.obtenerClientePorId(1L));
-        // // carrito1 = carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), null, 1, carrito1, clienteService.obtenerClientePorId(1L));
-        // // carritoService.enviarCarritoAPedido(carrito1);
-        // // pedidoService.crearPedido(carrito1);
-
-        // // //Cremamos otro pedido para el segundo cliente
-        // // Carrito carrito2 = carritoService.carritoActivoCliente(clienteService.obtenerClientePorId(2L));
-        // // carrito2 = carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), null, 1, carrito2, clienteService.obtenerClientePorId(2L));
-        // // carrito2 = carritoService.añadirProductoAlCarrito(productoService.findById(2L).get(), null, 1, carrito2, clienteService.obtenerClientePorId(2L));
-        // //carritoService.enviarCarritoAPedido(carrito2);
-        // //pedidoService.crearPedido(carrito2);
-
-        // // //Cremamos otro pedido para el segundo cliente
-        // // carrito1 = carritoService.carritoActivoCliente(clienteService.obtenerClientePorId(2L));
-        // // carrito1 = carritoService.añadirProductoAlCarrito(productoService.findById(1L).get(), null, 1, carrito1, clienteService.obtenerClientePorId(2L));
-        // // carritoService.enviarCarritoAPedido(carrito1);
-        // // pedidoService.crearPedido(carrito1);
+    private UserEntity saveUserCliente(Cliente cliente){
+        UserEntity user = new UserEntity();
+        user.setUsername(cliente.getCorreo());
+        user.setPassword(cliente.getContrasena());
+        
+        Rol rol = rolRepository.findByName("CLIENTE");
+        user.setRoles(new ArrayList<>(List.of(rol)));
+        
+        return userRepository.save(user);
     }
+
+    private UserEntity saveUserAdmin(Cliente cliente){
+        UserEntity user = new UserEntity();
+        user.setUsername(cliente.getCorreo());
+        user.setPassword(cliente.getContrasena());
+        
+        Rol rol = rolRepository.findByName("ADMIN");
+        user.setRoles(new ArrayList<>(List.of(rol)));
+        
+        return userRepository.save(user);
+    }
+
+
+
+
 }

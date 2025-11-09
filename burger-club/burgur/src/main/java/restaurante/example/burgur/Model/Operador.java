@@ -3,12 +3,15 @@ package restaurante.example.burgur.Model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Operador {
@@ -27,6 +30,11 @@ public class Operador {
     //2). Relación Pedido - Operador (1 a muchos)
     @OneToMany(mappedBy = "operador", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<Pedido> pedidos = new ArrayList<>();
+
+    //3). Relación Operador- UserEntity (1 a 1)
+    @OneToOne(cascade = CascadeType.MERGE)
+    @JsonIgnore
+    private UserEntity user;
 
     //Constructor vacio
     public Operador() {
@@ -88,6 +96,12 @@ public class Operador {
         this.pedidos = pedidos;
     }
 
-    
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
+    }
     
 }

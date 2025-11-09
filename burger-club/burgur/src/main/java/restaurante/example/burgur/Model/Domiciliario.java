@@ -10,8 +10,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 @Entity
+@Builder
+@AllArgsConstructor
 public class Domiciliario {
     @Id
     @GeneratedValue

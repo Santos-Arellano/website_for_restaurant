@@ -10,8 +10,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -36,8 +39,29 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente",
            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
            orphanRemoval = false)
+        
     @JsonIgnore
+    //2). Relación Cliente- Carrito (1 a muchos)
     private List<Carrito> carritos = new ArrayList<>();
+
+    //3). Relación Cliente- UserEntity (1 a 1)
+    @OneToOne(cascade = CascadeType.MERGE)
+    @JsonIgnore
+    private UserEntity user;
+
+    //Constructor con Builder sin UserEntity
+    @Builder
+    public Cliente(Long id, String nombre, String apellido, String correo, String contrasena, String telefono, String direccion, boolean activo, List<Carrito> carritos) {
+        this.id = id;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.correo = correo;
+        this.contrasena = contrasena;
+        this.telefono = telefono;
+        this.direccion = direccion;
+        this.activo = activo;
+        this.carritos = carritos;
+    }
 
     //Getters y Setters
     public Long getId() {

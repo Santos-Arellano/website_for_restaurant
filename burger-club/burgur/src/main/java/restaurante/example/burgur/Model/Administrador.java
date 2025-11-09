@@ -1,9 +1,13 @@
 package restaurante.example.burgur.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Administrador {
@@ -12,6 +16,11 @@ public class Administrador {
     private Long id;
     private String correo;
     private String contrasena;
+
+    //1). Relación Administrador- UserEntity (1 a 1)
+    @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    private UserEntity user;
 
     //Constructor vacio
     public Administrador() {
