@@ -21,10 +21,12 @@ import restaurante.example.burgur.Model.Pedido;
 import restaurante.example.burgur.Model.Producto;
 import restaurante.example.burgur.Model.Rol;
 import restaurante.example.burgur.Model.UserEntity;
+import restaurante.example.burgur.Model.Administrador;
 import restaurante.example.burgur.Model.Cupon;
 import restaurante.example.burgur.Repository.PedidoRepository;
 import restaurante.example.burgur.Repository.RolRepository;
 import restaurante.example.burgur.Repository.UserRepository;
+import restaurante.example.burgur.Repository.AdministradorRepository;
 import restaurante.example.burgur.Service.*;
 
 @Component
@@ -62,6 +64,9 @@ public class DataBaseInit implements CommandLineRunner {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AdministradorRepository administradorRepository;
+
     @Override
     public void run(String... args) throws Exception {
         // Solo inicializar si la base de datos está vacía
@@ -74,6 +79,8 @@ public class DataBaseInit implements CommandLineRunner {
             System.out.println("   - Productos: " + productoService.countTotal());
             System.out.println("   - Clientes: " + clienteService.obtenerTodosLosClientes().size());
             System.out.println("   - Usuarios en BD: " + userRepository.count());
+            // Asegurar que el administrador no esté en la tabla CLIENTE en bases ya pobladas
+            migrateAdminClienteToAdministrador();
         }
     }
 
@@ -91,6 +98,9 @@ public class DataBaseInit implements CommandLineRunner {
             rolRepository.save(rolDomiciliario);
             System.out.println("   ✓ Roles creados: ADMIN, CLIENTE, OPERADOR");
 
+            // Migrar admin creado como Cliente en bases previas, si aplica
+            migrateAdminClienteToAdministrador();
+
             // Crear adicionales primero
             createAdicionales();
             
@@ -99,6 +109,9 @@ public class DataBaseInit implements CommandLineRunner {
             
             // Crear clientes
             createClientes();
+
+            // Crear administrador principal (no como Cliente)
+            createAdministrador();
             
             // Crear operadores
             createOperadores();
@@ -543,15 +556,6 @@ public class DataBaseInit implements CommandLineRunner {
         created++;
         System.out.println("   ✓ Cliente creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
 
-        // Cliente 10: Admin Burger (con rol ADMIN)
-        clienteSave = new Cliente(null, "Admin", "Burger", "admin@burgerclub.com", "admin123", 
-                                  "+573999999999", "Oficina Central Burger Club", true, null);
-        userEntity = saveUserAdmin(clienteSave);
-        clienteSave.setUser(userEntity);
-        clienteService.save(clienteSave);
-        created++;
-        System.out.println("   ✓ Admin creado: " + clienteSave.getNombre() + " " + clienteSave.getApellido());
-
         System.out.println("   📈 Clientes creados: " + created);
     }
 
@@ -613,6 +617,76 @@ public class DataBaseInit implements CommandLineRunner {
         user.setRoles(new ArrayList<>(List.of(rol)));
         
         return userRepository.save(user);
+    }
+
+    private UserEntity saveUserAdminFromAdministrador(Administrador admin){
+        UserEntity user = new UserEntity();
+        user.setUsername(admin.getCorreo());
+        user.setPassword(admin.getContrasena());
+
+        Rol rol = rolRepository.findByName("ADMIN");
+        user.setRoles(new ArrayList<>(List.of(rol)));
+
+        return userRepository.save(user);
+    }
+
+    private void createAdministrador() {
+        System.out.println("👑 Creando administrador principal...");
+        // Evitar duplicados si ya existe el usuario admin
+        String adminEmail = "admin@burgerclub.com";
+        String adminPassword = "admin123";
+        try {
+            Administrador admin = administradorRepository.findByCorreoIgnoreCase(adminEmail);
+            if (admin == null) {
+                admin = new Administrador(adminEmail, adminPassword);
+                // Reutilizar el UserEntity si existe
+                UserEntity userEntity;
+                try {
+                    userEntity = userRepository.findByUsername(adminEmail);
+                } catch (Exception e) {
+                    userEntity = null;
+                }
+                if (userEntity == null) {
+                    userEntity = saveUserAdminFromAdministrador(admin);
+                }
+                admin.setUser(userEntity);
+                administradorRepository.save(admin);
+                System.out.println("   ✓ Administrador creado en tabla ADMINISTRADOR: " + adminEmail);
+            } else {
+                System.out.println("   ↺ Administrador ya existente: " + adminEmail);
+            }
+        } catch (Exception e) {
+            System.err.println("   ✗ Error creando administrador: " + e.getMessage());
+        }
+    }
+
+    private void migrateAdminClienteToAdministrador() {
+        String adminEmail = "admin@burgerclub.com";
+        try {
+            // Si existe un Cliente con correo del admin, migrarlo a ADMINISTRADOR
+            Cliente existingAdminAsCliente = clienteService.obtenerClientePorCorreo(adminEmail);
+            if (existingAdminAsCliente != null) {
+                System.out.println("🔁 Detectado Admin en tabla CLIENTE, migrando a ADMINISTRADOR...");
+                // Crear/asegurar Administrador
+                Administrador admin = administradorRepository.findByCorreoIgnoreCase(adminEmail);
+                if (admin == null) {
+                    admin = new Administrador(adminEmail, existingAdminAsCliente.getContrasena());
+                    UserEntity ue;
+                    try { ue = userRepository.findByUsername(adminEmail);} catch(Exception e){ ue = null; }
+                    if (ue == null) {
+                        ue = saveUserAdminFromAdministrador(admin);
+                    }
+                    admin.setUser(ue);
+                    administradorRepository.save(admin);
+                    System.out.println("   ✓ Administrador creado durante migración.");
+                }
+                // Eliminar cliente duplicado
+                clienteService.eliminarCliente(existingAdminAsCliente.getId());
+                System.out.println("   ✓ Cliente (admin) eliminado tras migración. ID: " + existingAdminAsCliente.getId());
+            }
+        } catch (Exception e) {
+            System.err.println("   ⚠️ Error en migración de admin: " + e.getMessage());
+        }
     }
 
 

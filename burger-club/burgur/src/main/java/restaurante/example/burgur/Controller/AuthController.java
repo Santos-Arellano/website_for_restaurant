@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import restaurante.example.burgur.Model.Cliente;
 import restaurante.example.burgur.Model.Rol;
+import restaurante.example.burgur.Model.Administrador;
 import restaurante.example.burgur.Model.UserEntity;
 import restaurante.example.burgur.Service.ClienteService;
 import restaurante.example.burgur.Repository.RolRepository;
 import restaurante.example.burgur.Repository.UserRepository;
+import restaurante.example.burgur.Repository.AdministradorRepository;
 import lombok.Data;
 
 @RestController
@@ -38,6 +40,9 @@ public class AuthController {
 
     @Autowired
     private RolRepository rolRepository;
+
+    @Autowired
+    private AdministradorRepository administradorRepository;
     // ==========================================
     // API REST DE AUTENTICACIÓN
     // ==========================================
@@ -66,31 +71,47 @@ public class AuthController {
             // Generar JWT
             String token = jwtTokenProvider.generateToken(authentication);
 
-            // Cargar cliente para devolver datos de perfil (si existe)
-            Cliente cliente = clienteService.iniciarSesion(request.getEmail(), request.getPassword());
-
-            // Guardar datos mínimos en sesión para compatibilidad con endpoints existentes
-            session.setAttribute("cliente", cliente);
-            session.setAttribute("clienteId", cliente.getId());
-            session.setAttribute("clienteNombre", cliente.getNombre());
-
             String role = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst().orElse("CLIENTE");
             session.setAttribute("role", role);
 
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Inicio de sesión exitoso",
-                "token", token,
-                "cliente", Map.of(
-                    "id", cliente.getId(),
-                    "nombre", cliente.getNombre(),
-                    "apellido", cliente.getApellido(),
-                    "correo", cliente.getCorreo(),
-                    "role", role
-                )
-            ));
+            if ("ADMIN".equals(role)) {
+                // Para ADMIN, responder como 'user' y no exigir existencia en tabla Cliente
+                Administrador admin = administradorRepository.findByCorreoIgnoreCase(request.getEmail());
+                session.setAttribute("user", admin);
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Inicio de sesión exitoso",
+                    "token", token,
+                    "user", Map.of(
+                        "id", admin != null ? admin.getId() : 0,
+                        "nombre", "Admin",
+                        "apellido", "",
+                        "correo", request.getEmail(),
+                        "role", role
+                    )
+                ));
+            } else {
+                // Cargar cliente para devolver datos de perfil
+                Cliente cliente = clienteService.iniciarSesion(request.getEmail(), request.getPassword());
+                // Guardar datos mínimos en sesión para compatibilidad con endpoints existentes
+                session.setAttribute("cliente", cliente);
+                session.setAttribute("clienteId", cliente.getId());
+                session.setAttribute("clienteNombre", cliente.getNombre());
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Inicio de sesión exitoso",
+                    "token", token,
+                    "cliente", Map.of(
+                        "id", cliente.getId(),
+                        "nombre", cliente.getNombre(),
+                        "apellido", cliente.getApellido(),
+                        "correo", cliente.getCorreo(),
+                        "role", role
+                    )
+                ));
+            }
             
         } catch (IllegalArgumentException e) {
             return handleBadRequest(e.getMessage());
@@ -216,42 +237,72 @@ public class AuthController {
             String role = contextAuth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst().orElse("CLIENTE");
-
-            Cliente cliente = clienteService.obtenerClientePorCorreo(username);
-            if (cliente != null) {
+            if ("ADMIN".equals(role)) {
+                Administrador admin = administradorRepository.findByCorreoIgnoreCase(username);
                 return ResponseEntity.ok(Map.of(
                     "authenticated", true,
-                    "cliente", Map.of(
-                        "id", cliente.getId(),
-                        "nombre", cliente.getNombre(),
-                        "apellido", cliente.getApellido(),
-                        "correo", cliente.getCorreo(),
-                        "telefono", cliente.getTelefono(),
-                        "direccion", cliente.getDireccion(),
+                    "user", Map.of(
+                        "id", admin != null ? admin.getId() : 0,
+                        "nombre", "Admin",
+                        "apellido", "",
+                        "correo", username,
                         "role", role
                     )
                 ));
+            } else {
+                Cliente cliente = clienteService.obtenerClientePorCorreo(username);
+                if (cliente != null) {
+                    return ResponseEntity.ok(Map.of(
+                        "authenticated", true,
+                        "cliente", Map.of(
+                            "id", cliente.getId(),
+                            "nombre", cliente.getNombre(),
+                            "apellido", cliente.getApellido(),
+                            "correo", cliente.getCorreo(),
+                            "telefono", cliente.getTelefono(),
+                            "direccion", cliente.getDireccion(),
+                            "role", role
+                        )
+                    ));
+                }
             }
         }
 
         // Fallback a sesión HTTP para compatibilidad
-        Cliente cliente = (Cliente) session.getAttribute("cliente");
         String role = (String) session.getAttribute("role");
-        if (cliente == null) {
-            return ResponseEntity.ok(Map.of("authenticated", false));
+        if ("ADMIN".equals(role)) {
+            Administrador admin = (Administrador) session.getAttribute("user");
+            if (admin == null) {
+                return ResponseEntity.ok(Map.of("authenticated", false));
+            }
+            return ResponseEntity.ok(Map.of(
+                "authenticated", true,
+                "user", Map.of(
+                    "id", admin.getId(),
+                    "nombre", "Admin",
+                    "apellido", "",
+                    "correo", admin.getCorreo(),
+                    "role", "ADMIN"
+                )
+            ));
+        } else {
+            Cliente cliente = (Cliente) session.getAttribute("cliente");
+            if (cliente == null) {
+                return ResponseEntity.ok(Map.of("authenticated", false));
+            }
+            return ResponseEntity.ok(Map.of(
+                "authenticated", true,
+                "cliente", Map.of(
+                    "id", cliente.getId(),
+                    "nombre", cliente.getNombre(),
+                    "apellido", cliente.getApellido(),
+                    "correo", cliente.getCorreo(),
+                    "telefono", cliente.getTelefono(),
+                    "direccion", cliente.getDireccion(),
+                    "role", role != null ? role : "CLIENTE"
+                )
+            ));
         }
-        return ResponseEntity.ok(Map.of(
-            "authenticated", true,
-            "cliente", Map.of(
-                "id", cliente.getId(),
-                "nombre", cliente.getNombre(),
-                "apellido", cliente.getApellido(),
-                "correo", cliente.getCorreo(),
-                "telefono", cliente.getTelefono(),
-                "direccion", cliente.getDireccion(),
-                "role", role != null ? role : "CLIENTE"
-            )
-        ));
     }
     
     // ==========================================
