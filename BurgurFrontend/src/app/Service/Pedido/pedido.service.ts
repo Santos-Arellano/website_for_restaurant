@@ -654,6 +654,30 @@ export class PedidoService {
 
   // Sync carrito from backend on service init
   private syncCarritoDesdeBackend(): void {
+    // Si no es CLIENTE (ADMIN/OPERADOR/invitado), no consultar backend y usar almacenamiento local
+    const role = (() => { try { return JSON.parse(localStorage.getItem('currentUser') || 'null')?.role; } catch { return null; } })();
+    if (!role || role !== 'CLIENTE') {
+      const carritoGuardado = localStorage.getItem('carrito');
+      if (carritoGuardado) {
+        try {
+          const parsed = JSON.parse(carritoGuardado);
+          const carritoLocal = Array.isArray(parsed) ? parsed : [];
+          this.carritoSubject.next(carritoLocal);
+          const subtotal = carritoLocal.reduce((sum, p) => sum + ((p?.precioUnitario || 0) * (p?.cantidad || 0)), 0);
+          const costoEnvio = subtotal > 0 ? 3000 : 0;
+          const resumenLocal = { subtotal, descuento: 0, costoEnvio, total: Math.max(0, subtotal) + costoEnvio, cuponCodigo: null };
+          this.carritoResumenSubject.next(resumenLocal);
+        } catch {
+          this.carritoSubject.next([]);
+          this.carritoResumenSubject.next({ subtotal: 0, descuento: 0, costoEnvio: 0, total: 0, cuponCodigo: null });
+        }
+      } else {
+        this.carritoSubject.next([]);
+        this.carritoResumenSubject.next({ subtotal: 0, descuento: 0, costoEnvio: 0, total: 0, cuponCodigo: null });
+      }
+      return;
+    }
+
     const clienteId = this.getCurrentClienteIdFromStorage();
     if (!clienteId) {
       // fallback to local storage

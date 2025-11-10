@@ -11,7 +11,12 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const isApi = req.url.startsWith('/api');
-    const cloned = isApi ? req.clone({ withCredentials: true }) : req;
+    let cloned = req;
+    if (isApi) {
+      const token = (() => { try { return localStorage.getItem('jwtToken'); } catch { return null; } })();
+      const headers = token ? req.headers.set('Authorization', `Bearer ${token}`) : req.headers;
+      cloned = req.clone({ withCredentials: true, headers });
+    }
     return next.handle(cloned).pipe(
       catchError((error: any) => {
         if (error instanceof HttpErrorResponse && error.status === 401) {

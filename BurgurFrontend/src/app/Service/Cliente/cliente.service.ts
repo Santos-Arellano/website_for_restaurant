@@ -20,12 +20,6 @@ export class ClienteService {
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Inicializar desde backend: clientes y sesión actual
-    this.getAllClientes().subscribe({
-      next: (clientes) => this.clientesSubject.next(clientes),
-      error: () => this.clientesSubject.next([])
-    });
-
     // Hidratar sesión desde localStorage inmediatamente (fallback rápido)
     try {
       const raw = localStorage.getItem('currentUser');
@@ -44,6 +38,13 @@ export class ClienteService {
           pedidos: parsed.pedidos ?? []
         };
         this.currentClienteSubject.next(mapped);
+        // Si ya sabemos que es ADMIN desde localStorage, precargar lista de clientes
+        if (this.isAdmin(mapped)) {
+          this.getAllClientes().subscribe({
+            next: (clientes) => this.clientesSubject.next(clientes),
+            error: () => this.clientesSubject.next([])
+          });
+        }
       }
     } catch {}
 
@@ -64,7 +65,7 @@ export class ClienteService {
           direccion: src.direccion,
           fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
           activo: typeof src.activo === 'boolean' ? src.activo : true,
-          role: src.role ?? (((src.correo ?? src.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
+          role: src.role ?? 'CLIENTE',
           pedidos: src.pedidos ?? []
         };
         return mapped;
@@ -74,6 +75,16 @@ export class ClienteService {
         this.currentClienteSubject.next(cliente);
         this.isLoggedInSubject.next(!!cliente);
         this.persistCurrentUser(cliente);
+        // Tras conocer el rol desde backend, cargar clientes sólo si es ADMIN
+        if (this.isAdmin(cliente)) {
+          this.getAllClientes().subscribe({
+            next: (clientes) => this.clientesSubject.next(clientes),
+            error: () => this.clientesSubject.next([])
+          });
+        } else {
+          // Asegurar que no mostramos datos sensibles a roles no admin
+          this.clientesSubject.next([]);
+        }
       },
       error: (err) => {
         // Si el backend no responde (timeout, network error), conservar la sesión local
@@ -112,6 +123,13 @@ export class ClienteService {
         const current = this.currentClienteSubject.value;
         if (current) {
           this.isLoggedInSubject.next(true);
+          // Si el usuario en memoria es ADMIN, intentar cargar clientes
+          if (this.isAdmin(current)) {
+            this.getAllClientes().subscribe({
+              next: (clientes) => this.clientesSubject.next(clientes),
+              error: () => this.clientesSubject.next([])
+            });
+          }
           return;
         }
         // Sin sesión local ni en memoria: estado desconectado
@@ -129,9 +147,7 @@ export class ClienteService {
   // Determinar si el cliente actual es administrador
   public isAdmin(cliente: Cliente | null = this.currentClienteSubject.value): boolean {
     if (!cliente) return false;
-    if (cliente.role === 'ADMIN') return true;
-    const email = (cliente.correo ?? '').toLowerCase();
-    return email === 'admin@burgerclub.com';
+    return cliente.role === 'ADMIN';
   }
 
   // Helper seguro para parsear JSON desde localStorage con fallback
@@ -202,7 +218,7 @@ export class ClienteService {
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
           activo: typeof cli.activo === 'boolean' ? cli.activo : true,
-          role: cli.role ?? (((cli.correo ?? cli.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
+          role: cli.role ?? 'CLIENTE',
           pedidos: cli.pedidos ?? []
         };
         return mapped;
@@ -221,7 +237,7 @@ export class ClienteService {
             direccion: src.direccion,
             fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
             activo: typeof src.activo === 'boolean' ? src.activo : true,
-            role: src.role ?? (((src.correo ?? src.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
+            role: src.role ?? 'CLIENTE',
             pedidos: src.pedidos ?? []
           };
           return full;
@@ -264,7 +280,7 @@ export class ClienteService {
           direccion: nuevo.direccion,
           fechaRegistro: new Date(nuevo.fechaRegistro),
           activo: true,
-          role: (nuevo.correo?.toLowerCase() === 'admin@burgerclub.com' ? 'ADMIN' : 'CLIENTE'),
+          role: 'CLIENTE',
           pedidos: []
         };
         this.currentClienteSubject.next(mapped);
@@ -283,6 +299,10 @@ export class ClienteService {
     };
     return this.http.post<any>(`${this.authUrl}/login`, payload, { withCredentials: true }).pipe(
       map((res: any) => {
+        const token: string | undefined = res?.token;
+        if (token) {
+          try { localStorage.setItem('jwtToken', token); } catch {}
+        }
         const cli = res?.cliente ?? res?.user ?? res;
         if (!cli) return null;
         const mapped: Cliente = {
@@ -294,7 +314,7 @@ export class ClienteService {
           direccion: cli.direccion,
           fechaRegistro: cli.fechaRegistro ? new Date(cli.fechaRegistro) : new Date(),
           activo: typeof cli.activo === 'boolean' ? cli.activo : true,
-          role: cli.role ?? (((cli.correo ?? cli.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
+          role: cli.role ?? 'CLIENTE',
           pedidos: cli.pedidos ?? []
         };
         return mapped;
@@ -315,7 +335,7 @@ export class ClienteService {
             direccion: src.direccion,
             fechaRegistro: src.fechaRegistro ? new Date(src.fechaRegistro) : new Date(),
             activo: typeof src.activo === 'boolean' ? src.activo : true,
-            role: src.role ?? (((src.correo ?? src.email)?.toLowerCase() === 'admin@burgerclub.com') ? 'ADMIN' : 'CLIENTE'),
+            role: src.role ?? 'CLIENTE',
             pedidos: src.pedidos ?? []
           };
           return full;
@@ -327,6 +347,7 @@ export class ClienteService {
         if (finalCliente) {
           this.currentClienteSubject.next(finalCliente);
           this.persistCurrentUser(finalCliente);
+          this.isLoggedInSubject.next(true);
         }
       }),
       catchError((err) => {
@@ -342,7 +363,7 @@ export class ClienteService {
 
   // Obtener todos los clientes (backend)
   getAllClientes(): Observable<Cliente[]> {
-    return this.http.get<Cliente[]>(`${this.apiUrl}/list`).pipe(
+    return this.http.get<Cliente[]>(`${this.apiUrl}/list`, { withCredentials: true }).pipe(
       map((lista: any[]) => (Array.isArray(lista) ? lista : []).map((cli: any) => ({
         id: cli.id,
         nombre: cli.nombre,
@@ -581,6 +602,8 @@ export class ClienteService {
       map(() => {
         this.currentClienteSubject.next(null);
         this.persistCurrentUser(null);
+        try { localStorage.removeItem('jwtToken'); } catch {}
+        this.isLoggedInSubject.next(false);
         return true;
       })
     );

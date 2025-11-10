@@ -1,40 +1,43 @@
 {
   "/api": {
-    "target": "http://localhost:8080",
+    "target": "http://127.0.0.1:8080",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true,
+    "proxyTimeout": 120000,
     "pathRewrite": {
       "^/api": ""
     }
   }
   ,
   "/auth": {
-    "target": "http://localhost:8080",
+    "target": "http://127.0.0.1:8080",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true,
+    "proxyTimeout": 120000,
     "pathRewrite": {
       "^/auth": "/auth"
     }
   },
   "/css": {
-    "target": "http://localhost:8080",
+    "target": "http://127.0.0.1:8080",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
   "/images": {
-    "target": "http://localhost:8080",
+    "target": "http://127.0.0.1:8080",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
   "/productos": {
-    "target": "http://localhost:8080",
+    "target": "http://127.0.0.1:8080",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true,
+    "proxyTimeout": 120000,
     "pathRewrite": {
       "^/productos": "/productos"
     }
