@@ -93,6 +93,15 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteRepository.existsById(id);
     }
 
+    // Obtener Cliente por correo (case-insensitive)
+    @Override
+    public Cliente obtenerClientePorCorreo(String correo) {
+        if (correo == null) return null;
+        String normalizado = correo.trim().toLowerCase();
+        if (normalizado.isEmpty()) return null;
+        return clienteRepository.findByCorreoIgnoreCase(normalizado);
+    }
+
     
     // ==========================================
     // VALIDACIONES

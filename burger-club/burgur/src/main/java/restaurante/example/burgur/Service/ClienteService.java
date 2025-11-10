@@ -23,6 +23,8 @@ public interface ClienteService {
     List<Cliente> obtenerTodosLosClientes();
     // Verificar si un Cliente existe por ID
     boolean existeClientePorId(Long id);
+    // Obtener Cliente por correo (case-insensitive)
+    Cliente obtenerClientePorCorreo(String correo);
     // Inicio de Sesión
     Cliente iniciarSesion(String email, String password);
 

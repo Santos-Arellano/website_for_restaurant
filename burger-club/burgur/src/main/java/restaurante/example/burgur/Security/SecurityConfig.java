@@ -47,6 +47,8 @@ public class SecurityConfig {
                 // Rutas públicas (login, catálogo, H2)
                 .requestMatchers("/h2/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/images/**").permitAll()
+                .requestMatchers("/Images/**").permitAll()
                 .requestMatchers("/productos/**").permitAll() // catálogo visible
                 .requestMatchers("/adicionales/**").permitAll()
                 // Rutas para CLIENTE (carrito, pedidos, perfil)

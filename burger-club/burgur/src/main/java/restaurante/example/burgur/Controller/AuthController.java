@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
@@ -163,7 +164,7 @@ public class AuthController {
             session.setAttribute("cliente", clienteGuardado);
             session.setAttribute("clienteId", clienteGuardado.getId());
             session.setAttribute("clienteNombre", clienteGuardado.getNombre());
-            String role = (clienteGuardado.getCorreo() != null && clienteGuardado.getCorreo().equalsIgnoreCase("admin@burgerclub.com")) ? "ADMIN" : "CLIENTE";
+            String role = "CLIENTE";
             session.setAttribute("role", role);
             
             return ResponseEntity.ok(Map.of(
@@ -208,13 +209,37 @@ public class AuthController {
     
     @GetMapping("/current")
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
+        // Primero intento obtener autenticación desde JWT
+        var contextAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (contextAuth != null && contextAuth.isAuthenticated()) {
+            String username = contextAuth.getName();
+            String role = contextAuth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst().orElse("CLIENTE");
+
+            Cliente cliente = clienteService.obtenerClientePorCorreo(username);
+            if (cliente != null) {
+                return ResponseEntity.ok(Map.of(
+                    "authenticated", true,
+                    "cliente", Map.of(
+                        "id", cliente.getId(),
+                        "nombre", cliente.getNombre(),
+                        "apellido", cliente.getApellido(),
+                        "correo", cliente.getCorreo(),
+                        "telefono", cliente.getTelefono(),
+                        "direccion", cliente.getDireccion(),
+                        "role", role
+                    )
+                ));
+            }
+        }
+
+        // Fallback a sesión HTTP para compatibilidad
         Cliente cliente = (Cliente) session.getAttribute("cliente");
         String role = (String) session.getAttribute("role");
-        
         if (cliente == null) {
             return ResponseEntity.ok(Map.of("authenticated", false));
         }
-        
         return ResponseEntity.ok(Map.of(
             "authenticated", true,
             "cliente", Map.of(
@@ -224,7 +249,7 @@ public class AuthController {
                 "correo", cliente.getCorreo(),
                 "telefono", cliente.getTelefono(),
                 "direccion", cliente.getDireccion(),
-                "role", role != null ? role : ((cliente.getCorreo() != null && cliente.getCorreo().equalsIgnoreCase("admin@burgerclub.com")) ? "ADMIN" : "CLIENTE")
+                "role", role != null ? role : "CLIENTE"
             )
         ));
     }
