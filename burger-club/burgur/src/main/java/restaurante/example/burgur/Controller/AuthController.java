@@ -4,11 +4,19 @@ package restaurante.example.burgur.Controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import restaurante.example.burgur.Model.Cliente;
+import restaurante.example.burgur.Model.Rol;
+import restaurante.example.burgur.Model.UserEntity;
 import restaurante.example.burgur.Service.ClienteService;
+import restaurante.example.burgur.Repository.RolRepository;
+import restaurante.example.burgur.Repository.UserRepository;
 import lombok.Data;
 
 @RestController
@@ -17,6 +25,18 @@ public class AuthController {
     
     @Autowired
     private ClienteService clienteService;     
+    
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private restaurante.example.burgur.Security.JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RolRepository rolRepository;
     // ==========================================
     // API REST DE AUTENTICACIÓN
     // ==========================================
@@ -37,20 +57,31 @@ public class AuthController {
                     "message", "La contraseña es requerida"
                 ));
             }
-            
+            // Autenticar contra Spring Security (UserEntity)
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+
+            // Generar JWT
+            String token = jwtTokenProvider.generateToken(authentication);
+
+            // Cargar cliente para devolver datos de perfil (si existe)
             Cliente cliente = clienteService.iniciarSesion(request.getEmail(), request.getPassword());
-            
-            // Guardar cliente en sesión
+
+            // Guardar datos mínimos en sesión para compatibilidad con endpoints existentes
             session.setAttribute("cliente", cliente);
             session.setAttribute("clienteId", cliente.getId());
             session.setAttribute("clienteNombre", cliente.getNombre());
-            // Determinar rol (ADMIN si correo coincide, de lo contrario CLIENTE)
-            String role = (cliente.getCorreo() != null && cliente.getCorreo().equalsIgnoreCase("admin@burgerclub.com")) ? "ADMIN" : "CLIENTE";
+
+            String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst().orElse("CLIENTE");
             session.setAttribute("role", role);
-            
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Inicio de sesión exitoso",
+                "token", token,
                 "cliente", Map.of(
                     "id", cliente.getId(),
                     "nombre", cliente.getNombre(),
@@ -117,6 +148,16 @@ public class AuthController {
             nuevoCliente.setActivo(true);
             
             Cliente clienteGuardado = clienteService.save(nuevoCliente);
+
+            // Crear usuario de seguridad (UserEntity) con rol CLIENTE
+            if (!userRepository.existsByUsername(clienteGuardado.getCorreo())) {
+                UserEntity user = new UserEntity();
+                user.setUsername(clienteGuardado.getCorreo());
+                user.setPassword(clienteGuardado.getContrasena());
+                Rol rol = rolRepository.findByName("CLIENTE");
+                user.setRoles(java.util.List.of(rol));
+                userRepository.save(user);
+            }
             
             // Iniciar sesión automáticamente
             session.setAttribute("cliente", clienteGuardado);
