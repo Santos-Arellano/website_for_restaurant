@@ -27,6 +27,7 @@ import restaurante.example.burgur.Repository.PedidoRepository;
 import restaurante.example.burgur.Repository.RolRepository;
 import restaurante.example.burgur.Repository.UserRepository;
 import restaurante.example.burgur.Repository.AdministradorRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import restaurante.example.burgur.Service.*;
 
 @Component
@@ -67,11 +68,16 @@ public class DataBaseInit implements CommandLineRunner {
     @Autowired
     private AdministradorRepository administradorRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
         // Solo inicializar si la base de datos está vacía
         if (productoService.countTotal() == 0) {
             initializeData();
+            // Asegurar que todas las contraseñas queden encriptadas tras la inicialización
+            migratePasswordsToBCrypt();
         } else {
             System.out.println("✅ Base de datos ya contiene datos. Saltando inicialización.");
             System.out.println("💡 Si quieres reinicializar, borra la carpeta 'target' y reinicia la aplicación.");
@@ -80,6 +86,8 @@ public class DataBaseInit implements CommandLineRunner {
             System.out.println("   - Clientes: " + clienteService.obtenerTodosLosClientes().size());
             System.out.println("   - Usuarios en BD: " + userRepository.count());
             System.out.println("   - Administradores en BD: " + administradorRepository.count());
+            // Migrar contraseñas existentes en texto plano a BCrypt
+            migratePasswordsToBCrypt();
         }
     }
 
@@ -463,6 +471,66 @@ public class DataBaseInit implements CommandLineRunner {
         
         System.out.println("   📈 Domiciliarios creados: " + created + ", Errores: " + errors);
     }
+
+    /**
+     * Migración idempotente: encripta contraseñas en texto plano para CLIENTE, ADMINISTRADOR y USERENTITY.
+     * Evita doble encriptación si ya están en formato BCrypt ($2a$, $2b$, $2y$).
+     */
+    private void migratePasswordsToBCrypt() {
+        System.out.println("🔐 Ejecutando migración de contraseñas a BCrypt...");
+        try {
+            // 1) Clientes: actualizar campo contrasena y su UserEntity
+            List<Cliente> clientes = clienteService.obtenerTodosLosClientes();
+            for (Cliente c : clientes) {
+                String pwd = c.getContrasena();
+                if (pwd != null && !(pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$"))) {
+                    String encoded = passwordEncoder.encode(pwd);
+                    c.setContrasena(encoded);
+                    try { clienteService.save(c); } catch (Exception ignore) { }
+                    // Sincronizar UserEntity del cliente
+                    userRepository.findByUsername(c.getCorreo()).ifPresent(u -> {
+                        u.setPassword(encoded);
+                        userRepository.save(u);
+                    });
+                }
+            }
+
+            // 2) Administradores: actualizar campo contrasena y su UserEntity
+            List<Administrador> admins = administradorRepository.findAll();
+            for (Administrador a : admins) {
+                String pwd = a.getContrasena();
+                if (pwd != null && !(pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$"))) {
+                    String encoded = passwordEncoder.encode(pwd);
+                    a.setContrasena(encoded);
+                    try { administradorRepository.save(a); } catch (Exception ignore) { }
+                    userRepository.findByUsername(a.getCorreo()).ifPresent(u -> {
+                        u.setPassword(encoded);
+                        userRepository.save(u);
+                    });
+                }
+            }
+
+            // 3) UserEntity genérico: si queda alguno en texto plano (p.ej. OPERADOR), encriptar según rol
+            List<UserEntity> users = userRepository.findAll();
+            for (UserEntity u : users) {
+                String pwd = u.getPassword();
+                if (pwd != null && !(pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$"))) {
+                    boolean isOperador = u.getRoles() != null && u.getRoles().stream().anyMatch(r -> "OPERADOR".equals(r.getName()));
+                    if (isOperador) {
+                        u.setPassword(passwordEncoder.encode("operador123"));
+                    } else {
+                        // Fallback: encriptar la contraseña existente
+                        u.setPassword(passwordEncoder.encode(pwd));
+                    }
+                    userRepository.save(u);
+                }
+            }
+
+            System.out.println("   ✓ Migración de contraseñas completada.");
+        } catch (Exception e) {
+            System.err.println("   ✗ Error en migración de contraseñas: " + e.getMessage());
+        }
+    }
     
     private void createClientes() {
         System.out.println("👥 Creando clientes...");
@@ -585,7 +653,8 @@ public class DataBaseInit implements CommandLineRunner {
     private UserEntity saveUserOperador(Operador operador){
         UserEntity user = new UserEntity();
         user.setUsername(operador.getCedula()); // Usar cédula como username
-        user.setPassword("operador123"); // Contraseña por defecto
+        // Contraseña por defecto encriptada
+        user.setPassword(passwordEncoder.encode("operador123"));
         
         Rol rol = rolRepository.findByName("OPERADOR");
         user.setRoles(new ArrayList<>(List.of(rol)));
@@ -596,7 +665,12 @@ public class DataBaseInit implements CommandLineRunner {
     private UserEntity saveUserCliente(Cliente cliente){
         UserEntity user = new UserEntity();
         user.setUsername(cliente.getCorreo());
-        user.setPassword(cliente.getContrasena());
+        String pwd = cliente.getContrasena();
+        if (pwd != null && (pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$"))) {
+            user.setPassword(pwd);
+        } else {
+            user.setPassword(passwordEncoder.encode(pwd != null ? pwd : ""));
+        }
         
         Rol rol = rolRepository.findByName("CLIENTE");
         user.setRoles(new ArrayList<>(List.of(rol)));
@@ -607,7 +681,12 @@ public class DataBaseInit implements CommandLineRunner {
     private UserEntity saveUserAdminFromAdministrador(Administrador admin){
         UserEntity user = new UserEntity();
         user.setUsername(admin.getCorreo());
-        user.setPassword(admin.getContrasena());
+        String pwd = admin.getContrasena();
+        if (pwd != null && (pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$"))) {
+            user.setPassword(pwd);
+        } else {
+            user.setPassword(passwordEncoder.encode(pwd != null ? pwd : ""));
+        }
 
         Rol rol = rolRepository.findByName("ADMIN");
         user.setRoles(new ArrayList<>(List.of(rol)));
@@ -629,7 +708,8 @@ public class DataBaseInit implements CommandLineRunner {
             }
             
             // Crear nuevo administrador (igual que los clientes)
-            Administrador admin = new Administrador(adminEmail, adminPassword);
+            // Almacenar contraseña del administrador encriptada
+            Administrador admin = new Administrador(adminEmail, passwordEncoder.encode(adminPassword));
             UserEntity userEntity = saveUserAdminFromAdministrador(admin);
             admin.setUser(userEntity);
             administradorRepository.save(admin);

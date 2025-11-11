@@ -15,10 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import restaurante.example.burgur.Model.Cliente;
-import restaurante.example.burgur.Model.Rol;
 import restaurante.example.burgur.Model.UserEntity;
-import restaurante.example.burgur.Repository.RolRepository;
 import restaurante.example.burgur.Repository.UserRepository;
 
 @Service
@@ -27,8 +24,7 @@ public class CustomUserDetailService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private RolRepository rolRepository;
+    // No dependencies beyond UserRepository to avoid circular references
 
 
     @Override
@@ -49,30 +45,8 @@ public class CustomUserDetailService implements UserDetailsService {
     }
 
     //PAsar de roles a GrantedAuthoritys
-    private Collection<GrantedAuthority> mapRolesToAuthorities(List<Rol> roles) {
+    private Collection<GrantedAuthority> mapRolesToAuthorities(List<restaurante.example.burgur.Model.Rol> roles) {
         return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
-    }
-
-    private UserEntity ClienteToUserEntity(Cliente cliente){
-        UserEntity user = new UserEntity();
-        user.setUsername(cliente.getCorreo());
-        user.setPassword(cliente.getContrasena());
-        
-        Rol rol = rolRepository.findByName("CLIENTE");
-        user.setRoles(new ArrayList<>(List.of(rol)));
-        
-        return userRepository.save(user);
-    }
-
-    private UserEntity AdminToUserEntity(Cliente cliente){
-        UserEntity user = new UserEntity();
-        user.setUsername(cliente.getCorreo());
-        user.setPassword(cliente.getContrasena());
-        
-        Rol rol = rolRepository.findByName("ADMIN");
-        user.setRoles(new ArrayList<>(List.of(rol)));
-        
-        return userRepository.save(user);
     }
     
 }

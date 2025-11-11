@@ -4,6 +4,7 @@ package restaurante.example.burgur.Service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import restaurante.example.burgur.Model.Cliente;
@@ -14,6 +15,9 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     // ==========================================
     // MÉTODOS BÁSICOS CRUD
     // ==========================================
@@ -38,7 +42,16 @@ public class ClienteServiceImpl implements ClienteService {
                 throw new IllegalArgumentException("Ya existe otro cliente con el correo: " + cliente.getCorreo());
             }
         }
-        // 3) JPA decide INSERT/UPDATE
+        // 3) Encriptar contraseña si viene en texto plano
+        if (cliente.getContrasena() != null && !cliente.getContrasena().isBlank()) {
+            String pwd = cliente.getContrasena();
+            // Evitar doble encriptado si ya está en formato BCrypt ($2a/$2b/$2y)
+            if (!(pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$"))) {
+                cliente.setContrasena(passwordEncoder.encode(pwd));
+            }
+        }
+
+        // 4) JPA decide INSERT/UPDATE
         return clienteRepository.save(cliente);
     }
 
@@ -57,7 +70,8 @@ public class ClienteServiceImpl implements ClienteService {
         if (cliente == null) {
             throw new IllegalArgumentException("No existe un cliente con el correo: " + correo);
         }
-        if (!cliente.getContrasena().equals(password)) {
+        // Validar usando PasswordEncoder para hashes BCrypt
+        if (!passwordEncoder.matches(password, cliente.getContrasena())) {
             throw new IllegalArgumentException("Contraseña incorrecta");
         }
         return cliente;
