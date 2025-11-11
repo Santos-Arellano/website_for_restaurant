@@ -7,6 +7,7 @@ import { Operador } from '../../Model/Operador/operador';
 interface LoginResponse {
   success: boolean;
   message?: string;
+  token?: string;
   operador?: {
     id: number;
     nombre: string;
@@ -70,6 +71,9 @@ export class OperadorSessionService {
             domiciliarios: [],
             pedidos: []
           };
+          if (res.token) {
+            try { localStorage.setItem('jwtToken', res.token); } catch {}
+          }
           this.setCurrentOperador(op);
           return op;
         }
@@ -124,6 +128,10 @@ export class OperadorSessionService {
 
   private clearCurrentOperador(): void {
     localStorage.removeItem(this.storageKey);
+    try { localStorage.removeItem('jwtToken'); } catch {}
+    // Limpieza defensiva de claves heredadas
+    try { localStorage.removeItem('operadorId'); } catch {}
+    try { localStorage.removeItem('operadorCedula'); } catch {}
     this.currentOperadorSubject.next(null);
   }
 }

@@ -47,6 +47,9 @@ export class OperatorLoginComponent {
       });
       const data = await resp.json().catch(() => null);
       if (data && data.success && data.operador) {
+        if (data.token) {
+          try { localStorage.setItem('jwtToken', data.token); } catch {}
+        }
         const payload = {
           id: data.operador.id,
           nombre: data.operador.nombre,
@@ -75,6 +78,9 @@ export class OperatorLoginComponent {
       });
       const data2 = await resp2.json().catch(() => null);
       if (data2 && data2.success && data2.operador) {
+        if (data2.token) {
+          try { localStorage.setItem('jwtToken', data2.token); } catch {}
+        }
         const payload2 = {
           id: data2.operador.id,
           nombre: data2.operador.nombre,
@@ -100,6 +106,7 @@ export class OperatorLoginComponent {
         domiciliarios: [],
         pedidos: []
       };
+      try { localStorage.removeItem('jwtToken'); } catch {}
       localStorage.setItem('currentOperador', JSON.stringify(forcedPayload));
       this.operadorSession.refreshCurrent().subscribe(() => {
         this.loading = false;
@@ -116,6 +123,7 @@ export class OperatorLoginComponent {
         domiciliarios: [],
         pedidos: []
       };
+      try { localStorage.removeItem('jwtToken'); } catch {}
       localStorage.setItem('currentOperador', JSON.stringify(forcedPayload));
       this.operadorSession.refreshCurrent().subscribe(() => {
         this.loading = false;

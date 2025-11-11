@@ -2,8 +2,10 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, NavigationEnd, NavigationStart, NavigationCancel, NavigationError } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ClienteService } from './Service/Cliente/cliente.service';
+import { OperadorSessionService } from './Service/Operador/operador-session.service';
 import { ToastService } from './Components/Shared/toast/toast.service';
 import { Subscription } from 'rxjs';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -23,7 +25,13 @@ export class AppComponent implements OnInit, OnDestroy {
   private loaderHideTimeout?: any;
   private isLoggedInSubscription?: Subscription;
 
-  constructor(private router: Router, private clienteService: ClienteService, private toast: ToastService) {}
+  constructor(
+    private router: Router,
+    private clienteService: ClienteService,
+    private toast: ToastService,
+    private location: Location,
+    private operadorSession: OperadorSessionService
+  ) {}
 
   ngOnInit(): void {
     // Suscribir estado de sesión
@@ -45,6 +53,31 @@ export class AppComponent implements OnInit, OnDestroy {
     // Activar loader al inicio para primera carga
     this.isRouteLoading = true;
     this.loadingStartTime = performance.now();
+
+    // Redirección basada en rol si hay JWT en almacenamiento al iniciar
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const currentUrl = this.router.url || this.location.path() || '';
+      if (token) {
+        const payload = this.decodeJwt(token);
+        const rolesRaw: string = (payload && payload['roles']) || '';
+        const roles = rolesRaw ? rolesRaw.split(',') : [];
+        if (roles.includes('ADMIN') && !currentUrl.startsWith('/admin')) {
+          this.router.navigateByUrl('/admin');
+        } else if (roles.includes('OPERADOR') && !currentUrl.startsWith('/operador')) {
+          this.router.navigateByUrl('/operador/pedidos');
+        } else if (roles.includes('CLIENTE') && currentUrl === '/login') {
+          this.router.navigateByUrl('/');
+        }
+      } else {
+        // Fallback: si no hay JWT pero hay sesión de operador, redirigir al portal
+        const isOperadorLogged = this.operadorSession.isAuthenticated();
+        const currentUrl = this.router.url || this.location.path() || '';
+        if (isOperadorLogged && !currentUrl.startsWith('/operador')) {
+          this.router.navigateByUrl('/operador/pedidos');
+        }
+      }
+    } catch {}
 
     // Detectar rutas admin y mostrar loader en cambios de navegación
     this.router.events.subscribe((event) => {
@@ -83,5 +116,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onCloseCartModal(): void {
     this.showCartModal = false;
+  }
+
+  private decodeJwt(token: string): any | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      const payload = parts[1];
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      return decoded;
+    } catch {
+      return null;
+    }
   }
 }
