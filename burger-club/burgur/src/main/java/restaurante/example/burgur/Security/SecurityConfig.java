@@ -3,6 +3,7 @@ package restaurante.example.burgur.Security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -37,20 +38,27 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Desactivo CSRF porque trabajamos con JWT en header (sin cookies)
+
             .csrf(AbstractHttpConfigurer::disable)
-            // Permito que la consola H2 funcione en desarrollo
+         
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             // Modo stateless: cada request trae su propio JWT, no usamos sesión
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas (login, catálogo, H2)
+                // Rutas públicas (login, catálogo, H2, recursos estáticos)
                 .requestMatchers("/h2/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/images/**").permitAll()
-                .requestMatchers("/Images/**").permitAll()
-                .requestMatchers("/productos/**").permitAll() // catálogo visible
-                .requestMatchers("/adicionales/**").permitAll()
+                // Permitir acceso a recursos estáticos (imágenes)
+                .requestMatchers("/images/**", "/Images/**", "/css/**", "/js/**", "/static/**").permitAll()
+                // Catálogo visible en lectura pública, escritura solo ADMIN
+                .requestMatchers(HttpMethod.GET, "/productos/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/productos/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/productos/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/productos/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/adicionales/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/adicionales/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/adicionales/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/adicionales/**").hasAuthority("ADMIN")
                 // Rutas para CLIENTE (carrito, pedidos, perfil)
                 .requestMatchers("/carrito/**").hasAuthority("CLIENTE")
                 .requestMatchers("/pedidos/**").hasAnyAuthority("CLIENTE","OPERADOR","ADMIN")

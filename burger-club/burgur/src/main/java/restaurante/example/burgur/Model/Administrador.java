@@ -8,7 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-
+import lombok.Data;
+@Data
 @Entity
 public class Administrador {
     @Id
@@ -18,7 +19,7 @@ public class Administrador {
     private String contrasena;
 
     //1). Relación Administrador- UserEntity (1 a 1)
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.MERGE})
     @JsonIgnore
     private UserEntity user;
 

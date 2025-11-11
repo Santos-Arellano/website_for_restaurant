@@ -4,11 +4,16 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
 import restaurante.example.burgur.Model.Operador;
 import restaurante.example.burgur.Service.OperadorService;
+import restaurante.example.burgur.Security.JwtTokenProvider;
 import lombok.Data;
 
 @RestController
@@ -17,6 +22,12 @@ public class OperadorController {
 
     @Autowired
     private OperadorService operadorService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     // ==========================================
     // ENDPOINTS BÁSICOS CRUD
@@ -95,26 +106,41 @@ public class OperadorController {
                 ));
             }
 
+            // Autenticar contra Spring Security usando cédula como username
+            // Los operadores usan la cédula como username y password "operador123"
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getCedula(), "operador123")
+            );
+
+            // Generar JWT
+            String token = jwtTokenProvider.generateToken(authentication);
+
+            // Obtener el rol
+            String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst().orElse("OPERADOR");
+            
+            session.setAttribute("role", role);
             session.setAttribute("operador", operador);
             session.setAttribute("operadorId", operador.getId());
             session.setAttribute("operadorNombre", operador.getNombre());
-            session.setAttribute("role", "OPERADOR");
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Inicio de sesión de operador exitoso",
+                "token", token,
                 "operador", Map.of(
                     "id", operador.getId(),
                     "nombre", operador.getNombre(),
                     "cedula", operador.getCedula(),
                     "disponible", operador.isDisponible(),
-                    "role", "OPERADOR"
+                    "role", role
                 )
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor"));
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Error interno del servidor: " + e.getMessage()));
         }
     }
 
