@@ -75,9 +75,22 @@ export class AdicionalService {
 
   // Obtener todos los adicionales
   getAdicionales(): Observable<Adicional[]> {
-    // Preferir datos del subject (actualizados por load/CRUD);
-    // si se requiere refresco inmediato, se podría llamar a loadAdicionales aparte
-    return this.adicionales$;
+    // Hacer petición HTTP fresca al backend para obtener datos actualizados
+    return this.http.get<any[]>(`${this.apiUrl}`).pipe(
+      map((lista: any[]) => (Array.isArray(lista) ? lista : []).map(adic => this.mapBackendAdicional(adic))),
+      tap((adicionales) => {
+        this.adicionalesSubject.next(adicionales);
+        // Actualizar storage como caché para fallback
+        localStorage.setItem('adicionales', JSON.stringify(adicionales));
+      }),
+      catchError((err) => {
+        console.warn('Backend no disponible para adicionales, usando caché local.');
+        const storedRaw = localStorage.getItem('adicionales');
+        const stored: Adicional[] = storedRaw ? JSON.parse(storedRaw) : [];
+        this.adicionalesSubject.next(Array.isArray(stored) ? stored : []);
+        return of(Array.isArray(stored) ? stored : []);
+      })
+    );
   }
 
   // Obtener adicional por ID
@@ -182,6 +195,35 @@ export class AdicionalService {
       observer.next(filtered);
       observer.complete();
     });
+  }
+
+  // Obtener solo adicionales activos
+  getAdicionalesActivos(): Observable<Adicional[]> {
+    return this.http.get<any>(`${this.apiUrl}/activos`).pipe(
+      map((res: any) => {
+        const lista = Array.isArray(res?.adicionales) ? res.adicionales : [];
+        return lista.map((adic: any) => this.mapBackendAdicional(adic));
+      }),
+      catchError(() => {
+        const adicionalesRaw = localStorage.getItem('adicionales');
+        const adicionales: Adicional[] = adicionalesRaw ? JSON.parse(adicionalesRaw) : [];
+        return of(adicionales.filter((a: Adicional) => a.activo));
+      })
+    );
+  }
+
+  // Obtener cantidad de adicionales activos (más eficiente que obtener todos)
+  getCantidadAdicionalesActivos(): Observable<number> {
+    return this.http.get<any>(`${this.apiUrl}/cantidadActivos`).pipe(
+      map((res: any) => {
+        return typeof res?.cantidad === 'number' ? res.cantidad : 0;
+      }),
+      catchError(() => {
+        const adicionalesRaw = localStorage.getItem('adicionales');
+        const adicionales: Adicional[] = adicionalesRaw ? JSON.parse(adicionalesRaw) : [];
+        return of(adicionales.filter((a: Adicional) => a.activo).length);
+      })
+    );
   }
 
   // Obtener estadísticas

@@ -50,7 +50,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadAdicionales();
-    this.loadEstadisticas();
+    // loadEstadisticas() se llama dentro de loadAdicionales()
   }
 
   ngOnDestroy(): void {
@@ -65,6 +65,8 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         this.adicionales = adicionales;
         this.filteredAdicionales = [...adicionales];
         this.isLoading = false;
+        // Actualizar estadísticas después de cargar adicionales
+        this.loadEstadisticas();
         this.toast.info('Adicionales cargados correctamente', 2500);
       },
       error: (error) => {
@@ -79,14 +81,19 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
 
   // Cargar estadísticas
   loadEstadisticas(): void {
-    const sub = this.adicionalService.getEstadisticas().subscribe({
-      next: (stats) => {
-        this.totalAdicionales = stats.totalAdicionales;
-        this.adicionalesActivos = stats.adicionalesActivos;
+    // Calcular total desde los adicionales cargados
+    this.totalAdicionales = this.adicionales.length;
+    
+    // Obtener cantidad de activos desde el backend
+    const sub = this.adicionalService.getCantidadAdicionalesActivos().subscribe({
+      next: (cantidad) => {
+        this.adicionalesActivos = cantidad;
         this.toast.info('Estadísticas actualizadas', 2000);
       },
       error: (error) => {
         console.error('Error al cargar estadísticas:', error);
+        // Fallback: calcular desde los adicionales cargados
+        this.adicionalesActivos = this.adicionales.filter(a => a.activo).length;
         this.toast.error('No se pudieron cargar las estadísticas', 4000);
       }
     });
@@ -173,8 +180,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         this.adicionalForm
       ).subscribe({
         next: () => {
-          this.loadAdicionales();
-          this.loadEstadisticas();
+          this.loadAdicionales(); // Esto llamará automáticamente a loadEstadisticas()
           // Refrescar productos para reflejar cambios en adicionales permitidos
           this.productoService?.getProductos()?.subscribe();
           this.closeModals();
@@ -195,8 +201,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
         this.adicionalForm as Omit<Adicional, 'id'>
       ).subscribe({
         next: () => {
-          this.loadAdicionales();
-          this.loadEstadisticas();
+          this.loadAdicionales(); // Esto llamará automáticamente a loadEstadisticas()
           // Refrescar productos para reflejar cambios en adicionales permitidos
           this.productoService?.getProductos()?.subscribe();
           this.closeModals();
@@ -221,8 +226,7 @@ export class AdminAdicionalesComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const sub = this.adicionalService.deleteAdicional(this.selectedAdicional.id).subscribe({
       next: () => {
-        this.loadAdicionales();
-        this.loadEstadisticas();
+        this.loadAdicionales(); // Esto llamará automáticamente a loadEstadisticas()
         // Refrescar productos para reflejar cambios en adicionales permitidos
         this.productoService?.getProductos()?.subscribe();
         this.closeModals();

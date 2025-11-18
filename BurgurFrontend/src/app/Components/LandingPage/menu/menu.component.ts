@@ -112,16 +112,35 @@ export class MenuComponent implements OnInit {
   filterByCategory(category: string | null): void {
     if (category) {
       this.selectedCategory = category;
+      // Llamar al backend para obtener productos por categoría
+      const categoriaEnum = this.getCategoriaEnum(category);
+      if (categoriaEnum) {
+        this.productoService.getProductosByCategoria(categoriaEnum).subscribe(productos => {
+          this.filteredProducts = productos;
+        });
+      }
     } else {
       this.selectedCategory = 'todos';
+      // Si selecciona "Todos", cargar todos los productos
+      this.cargarProductos();
     }
-    this.filterProducts();
+  }
+
+  private getCategoriaEnum(category: string): CategoriaProducto | null {
+    const map: Record<string, CategoriaProducto> = {
+      'hamburguesa': CategoriaProducto.HAMBURGUESAS,
+      'bebida': CategoriaProducto.BEBIDAS,
+      'acompañamiento': CategoriaProducto.ACOMPAÑAMIENTOS,
+      'postre': CategoriaProducto.POSTRES,
+      'perro caliente': CategoriaProducto.PERROS_CALIENTES
+    };
+    return map[category.toLowerCase()] || null;
   }
 
   resetFilters(): void {
     this.searchTerm = '';
     this.selectedCategory = 'todos';
-    this.filterProducts();
+    this.cargarProductos(); // Recargar todos los productos
   }
 
   private filterProducts(): void {
@@ -135,7 +154,7 @@ export class MenuComponent implements OnInit {
       );
     }
 
-    // Filtrar por categoría
+    // Filtrar por categoría (solo si no estamos usando el filtro del backend)
     if (this.selectedCategory !== 'todos') {
       filtered = filtered.filter(product => 
         product.categoria.toLowerCase() === this.selectedCategory.toLowerCase()
