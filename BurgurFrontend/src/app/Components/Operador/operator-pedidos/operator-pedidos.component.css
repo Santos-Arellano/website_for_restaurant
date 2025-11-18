@@ -169,5 +169,24 @@
 }
 .asignar-domi select:disabled { background: rgba(255,255,255,0.06); color: #a9a9a9; cursor: not-allowed; }
 
+/* Estilos para las opciones del select de domiciliarios */
+.asignar-domi select option {
+  background-color: #1a3d32 !important;
+  background: #1a3d32 !important;
+  color: #e8f5e9 !important;
+  padding: 10px !important;
+}
+.asignar-domi select option:hover,
+.asignar-domi select option:focus {
+  background-color: #2d5a4a !important;
+  background: #2d5a4a !important;
+  color: #bdf8bf !important;
+}
+.asignar-domi select option:checked,
+.asignar-domi select option[selected] {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
 /* Empty state */
 .empty { text-align: center; color: var(--color-text-secondary); padding: 28px; font-weight: 700; }
