@@ -29,20 +29,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        // Extraigo el token JWT del header Authorization (formato "Bearer <token>")
-        String jwt = getJwtFromRequest(request);
+        try {
+            // Extraigo el token JWT del header Authorization (formato "Bearer <token>")
+            String jwt = getJwtFromRequest(request);
 
-        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-            // Obtengo el usuario del token y cargo sus detalles desde el servicio
-            String username = tokenProvider.getUsernameFromJWT(jwt);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+                // Obtengo el usuario del token y cargo sus detalles desde el servicio
+                String username = tokenProvider.getUsernameFromJWT(jwt);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); // adjunto metadatos de la petición
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); // adjunto metadatos de la petición
 
-            // Inyecto la autenticación en el contexto de seguridad para esta petición
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                // Inyecto la autenticación en el contexto de seguridad para esta petición
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception ex) {
+            // Si hay algún error (usuario no encontrado, token inválido, etc.), 
+            // simplemente no autenticamos y dejamos que la petición continúe
+            // Spring Security bloqueará el acceso si la ruta requiere autenticación
+            logger.error("No se pudo establecer la autenticación del usuario en el contexto de seguridad", ex);
         }
 
         filterChain.doFilter(request, response);
