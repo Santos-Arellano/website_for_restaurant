@@ -179,13 +179,21 @@ public class AdicionalController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> stats() {
         try {
-            var adicionales = adicionalService.findAll();
-
-            Map<String, Long> response = Map.of(
-                "total", (long) adicionales.size(),
-                "activos", adicionales.stream()
+            // Obtener TODOS los adicionales directamente del repositorio (sin caché)
+            List<Adicional> adicionales = adicionalService.findAll();
+            
+            // Contar activos en una sola pasada
+            long activos = adicionales.stream()
                                      .filter(a -> a != null && a.isActivo())
-                                     .count()
+                                     .count();
+            
+            long total = (long) adicionales.size();
+            long inactivos = total - activos;
+            
+            Map<String, Long> response = Map.of(
+                "total", total,
+                "activos", activos,
+                "inactivos", inactivos
             );
 
             return ResponseEntity.ok(response);
